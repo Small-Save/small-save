@@ -11,88 +11,26 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 
 
-class SendOtp(APIView):
-    def post(self, request):
-        phone = request.data.get("phone_number")
-
-        if not phone:
-            return CustomResponse(False, error= "Phone number required" ,message="Phone Number required", toast_message="Invalid Data",
-                                  status=status.HTTP_400_BAD_REQUEST)
-
-        # Clean old unverified OTPs
-        Register.objects.filter(phone_number=phone, is_verified=False).delete()
-
-        # otp = send_otp(phone)
-        otp = str(random.randint(100000,999999))
-        Register.objects.create(phone_number=phone, otp_code=otp)
-        return CustomResponse(False, message="OTP sent successfully", toast_message="OTP sent successfully.",
-                                  status=status.HTTP_201_CREATED)
-
-
-class VerifyOtp(APIView):
-    def post(self, request):
-        phone_number = request.data.get("phone_number")
-        otp_code = request.data.get("otp_code")
-
-        if not phone_number or not otp_code:
-            return Response({"message": "Phone number and OTP required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            register_obj = Register.objects.filter(
-                phone_number=phone_number,
-                otp_code=otp_code,
-                is_verified=False
-            ).latest("created_at")
-        except Register.DoesNotExist:
-            return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if register_obj.is_expired():
-            return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        register_obj.is_verified = True
-        register_obj.save()
-
-        # Get user if exists
-        user_obj = User.objects.filter(phone_number=phone_number, is_verified=True).first()
-
-        if not user_obj:
-            # User doesn't exist yet
-            return Response({
-                "is_success": True,
-                "message": "Otp Verified",
-                "data": {"phone_number": phone_number}
-            }, status=200)
-
-        # Generate JWT tokens for existing user
-        refresh = RefreshToken.for_user(user_obj)
-        return Response({
-            "is_success": True,
-            "message": "Login successful",
-            "data": {
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-            }
-        }, status=200)
-        
-        
-
-
 class RegisterUser(APIView):
     def post(self, request):
         username = request.data.get("username")
         phone_number = request.data.get("phone_number")
 
         if not username or not phone_number:
-            return Response({"error": "Username and phone number are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return CustomResponse(is_success=False,data={},message="Registration failed.",
+                                  toast_message="Invalid Data",error="Username and phone number are required",
+                                  status=status.HTTP_400_BAD_REQUEST)
 
         otp_verified = Register.objects.filter(phone_number=phone_number, is_verified=True).exists()
 
         if not otp_verified:
-            return Response({"error": "Phone number not verified via OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
+            return CustomResponse(is_success=False,data={},message="Unauthorized User.",
+                                  toast_message="Not Verified User",error="Phone number not verified via OTP",
+                                  status=status.HTTP_400_BAD_REQUEST)
+        
         user, created = User.objects.get_or_create(
             phone_number=phone_number,
-            defaults={"username": username, "email": "abc@gmail.com", "is_verified": True}
+            defaults={"username": username, "is_verified": True}
         )
 
         if not created:
@@ -104,6 +42,7 @@ class RegisterUser(APIView):
 
         refresh = RefreshToken.for_user(user)
         return CustomResponse(
+            is_success=True,
             message="Registration successful, user logged in",
             data={
                 "user": {
@@ -124,12 +63,36 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.data["refresh"]
+            refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return CustomResponse(
+                    is_success=False,
+                    message="Refresh token is required.",
+                    toast_message="Logout failed.",
+                    error="MissingRefreshToken",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(message="Logout successful")
+
+            return CustomResponse(
+                is_success=True,
+                data={},
+                message="Logout successful.",
+                toast_message="You have been logged out.",
+                status=status.HTTP_200_OK,
+            )
+
         except Exception as e:
-            return Response(is_success=False, error=str(e), status=400)
+            return CustomResponse(
+                is_success=False,
+                data={},
+                message="Logout failed.",
+                toast_message="Something went wrong.",
+                error=str(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         
 class TokenRefreshView(APIView):
     def post(self, request):

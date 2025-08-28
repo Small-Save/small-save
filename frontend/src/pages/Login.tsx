@@ -4,14 +4,14 @@ import useFormInput from "../Hooks/useFormInput";
 import api from "../utils/axios"
 
 export default function Login() {
-    const phone = useFormInput("", validatePhoneNumber);
+    const phone = useFormInput("+91", validatePhoneNumber);
 
     const handleLogin = async () => {
         if (!phone.isValid) {
             return;
         }
         const response = await api.post("/login");
-    }
+    };
 
     return (
         <IonPage>
@@ -38,7 +38,7 @@ export default function Login() {
                         />
 
                         {/* Login Button */}
-                        <IonButton expand="block" className="bg-indigo-500 text-white rounded-lg" onClick={handleLogin}>
+                        <IonButton expand="block" className=" text-white rounded-lg" onClick={handleLogin}>
                             LOGIN
                         </IonButton>
 

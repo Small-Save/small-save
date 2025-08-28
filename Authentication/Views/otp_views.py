@@ -21,8 +21,8 @@ class SendOtp(APIView):
         if serializers.is_valid():
             phone = serializers.validated_data["phone_number"]
             Register.objects.filter(phone_number=phone, is_verified=False).delete()
-        # otp = send_otp(phone) 
-            otp = str(random.randint(100000,999999))
+            otp = send_otp(phone) 
+            # otp = str(random.randint(100000,999999))
             Register.objects.create(phone_number=phone, otp_code=otp)
             return CustomResponse(True, message="OTP sent successfully", toast_message="OTP sent successfully.",
                                     status=status.HTTP_201_CREATED)
@@ -93,6 +93,11 @@ class VerifyOtp(APIView):
         return CustomResponse(
             is_success=True,
             data={
+                "user": {
+                    "id": user_obj.id,
+                    "phone_number": user_obj.phone_number,
+                    "userName": user_obj.username
+                },
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             },

@@ -13,10 +13,10 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, null = True, blank = True)
 
     USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     def __str__(self):
-        return f"{self.username} ({self.phone_number})"
+        return f"{self.first_name} {self.last_name} ({self.phone_number})"
 
 class Register(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -26,7 +26,7 @@ class Register(models.Model):
     is_verified = models.BooleanField(default=False)
 
     def is_expired(self):
-        return (timezone.now()- self.created_at).total_seconds() > 300 
+        return timezone.now() > self.created_at + timedelta(minutes=5)
     
     def __str__(self):
         return f"OTP for {self.phone_number} - Verified: {self.is_verified}"

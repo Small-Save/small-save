@@ -3,6 +3,12 @@ http://ionicframework.com/docs/theming/ */
 
 :root {
     --ion-font-family: "Nexa XBold";
+    --ion-color-primary: #747cba;
+    --ion-color-primary-rgb: 116, 124, 186;
+    --ion-color-primary-contrast: #000000;
+    --ion-color-primary-contrast-rgb: 0, 0, 0;
+    --ion-color-primary-shade: #666da4;
+    --ion-color-primary-tint: #8289c1;
 }
 
 @font-face {
@@ -15,4 +21,6 @@ http://ionicframework.com/docs/theming/ */
 
 ion-button {
     text-transform: none !important;
+    --background: #747cba;
+    --color: #ffff;
 }

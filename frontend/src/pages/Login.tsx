@@ -1,21 +1,32 @@
 import { IonPage, IonContent, IonInput, IonButton } from "@ionic/react";
 import validatePhoneNumber from "../utils/utils";
 import useFormInput from "../Hooks/useFormInput";
-import api from "../utils/axios"
+import api from "../utils/axios";
+import { useState } from "react";
+import { useHistory } from "react-router-dom";
 
 export default function Login() {
+    const history = useHistory();
     const phone = useFormInput("+91", validatePhoneNumber);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleLogin = async () => {
         if (!phone.isValid) {
             return;
         }
-        const response = await api.post("/login");
+        try {
+            setIsLoading(true);
+            // const response = await api.post("/login");
+            history.push("/verify_otp", { phone: phone.value });
+        } catch {
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
         <IonPage>
-            <IonContent className="ion-padding h-full">
+            <IonContent className="ion-padding">
                 <div className="flex items-center justify-center h-full">
                     <div className="max-w-md w-full space-y-6">
                         {/* Title */}
@@ -34,11 +45,12 @@ export default function Login() {
                             label="Phone Number"
                             placeholder="Enter phone number"
                             labelPlacement="floating"
+                            maxlength={14}
                             {...phone.bind}
                         />
 
                         {/* Login Button */}
-                        <IonButton expand="block" className=" text-white rounded-lg" onClick={handleLogin}>
+                        <IonButton expand="block" onClick={handleLogin}>
                             LOGIN
                         </IonButton>
 
@@ -47,11 +59,11 @@ export default function Login() {
                             {/* <IonCheckbox /> */}
                             <span>
                                 By continuing you agree to accept our{" "}
-                                <a href="#" className="text-indigo-500">
+                                <a href="#" color={"primary"}>
                                     privacy policy
                                 </a>{" "}
                                 and{" "}
-                                <a href="#" className="text-indigo-500">
+                                <a href="#" color="primary">
                                     terms of service
                                 </a>
                                 .
@@ -66,11 +78,12 @@ export default function Login() {
                         </div>
 
                         {/* Google Button */}
-                        <IonButton expand="block" fill="outline" className="rounded-lg border-gray-300 p-0">
-                            <div className="flex items-center justify-center gap-2 w-full py-2">
-                                <img src="/src/assets/images/google.png" alt="Google" className="w-5 h-5" />
-                                <span>SIGN UP WITH GOOGLE</span>
-                            </div>
+                        {/* TODO: fix the UI of this later */}
+                        <IonButton expand="block" className="rounded-lg">
+                            {/* <div className="flex items-center justify-center gap-2 w-full py-2">
+                                <img src="/src/assets/images/google.png" alt="Google" className="w-5 h-5" /> */}
+                            <span>SIGN UP WITH GOOGLE</span>
+                            {/* </div> */}
                         </IonButton>
 
                         {/* Footer */}

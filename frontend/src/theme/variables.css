@@ -1,0 +1,18 @@
+/* For information on how to create your own theme, please see:
+http://ionicframework.com/docs/theming/ */
+
+:root {
+    --ion-font-family: "Nexa XBold";
+}
+
+@font-face {
+    font-family: "Nexa XBold";
+    font-style: normal;
+    font-weight: 800; /* Use a value like 800 or 900 for XBold */
+    src: url("../assets/fonts/Nexa_XBold.woff2") format("woff2");
+    font-display: swap; /* This prevents text from being invisible while the font is loading */
+}
+
+ion-button {
+    text-transform: none !important;
+}

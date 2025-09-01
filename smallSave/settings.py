@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
+import os
 from pathlib import Path
 import environ
 
@@ -17,14 +19,20 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env')) 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY")
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+TWILIO_ACCOUNT_SID = env.str("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = env.str("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = env.str("TWILIO_PHONE_NUMBER")
 
 ALLOWED_HOSTS = []
 
@@ -38,8 +46,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'Authentication',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    "rest_framework_simplejwt.token_blacklist"
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # short expiry
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,   # rotation enabled
+    "BLACKLIST_AFTER_ROTATION": True,  # old tokens go into blacklist
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -51,6 +76,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'smallSave.urls'
+AUTH_USER_MODEL = "Authentication.User"
 
 TEMPLATES = [
     {

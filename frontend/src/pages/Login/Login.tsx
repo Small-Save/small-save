@@ -1,7 +1,6 @@
 import { IonPage, IonContent, IonInput, IonButton } from "@ionic/react";
-import validatePhoneNumber from "../utils/utils";
-import useFormInput from "../Hooks/useFormInput";
-import api from "../utils/axios";
+import validatePhoneNumber from "../../utils/utils";
+import useFormInput from "../../Hooks/useFormInput";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 

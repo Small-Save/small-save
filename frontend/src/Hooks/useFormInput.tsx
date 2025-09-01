@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 
-function useFormInput(initial: string, validate: (v: string) => ValidationResult, transform?: (v: string) => string) {
+function useFormInput(initial: any, validate: (v: string) => ValidationResult, transform?: (v: string) => string) {
     const [value, setValue] = useState(initial);
     const [touched, setTouched] = useState(false);
 
@@ -21,11 +21,11 @@ function useFormInput(initial: string, validate: (v: string) => ValidationResult
             value,
             onIonInput: handleInput,
             onIonBlur: () => setTouched(true),
-            errorText: result.errorText,
+            errorText: result.errorText
         },
         isError,
         touched,
-        isValid: result.isValid,
+        isValid: result.isValid
     };
 }
 

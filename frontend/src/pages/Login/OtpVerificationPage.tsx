@@ -1,8 +1,9 @@
 import { IonButton, IonContent, IonInput, IonPage, IonRouterLink, IonText } from "@ionic/react";
-import { useLocation } from "react-router-dom";
-import useFormInput from "../Hooks/useFormInput";
-import { formatTime, validateOtp } from "../utils/utils";
+import { useHistory, useLocation } from "react-router-dom";
+import useFormInput from "../../Hooks/useFormInput";
+import { formatTime, validateOtp } from "../../utils/utils";
 import { useEffect, useState } from "react";
+import { verifyOtpAPI } from "./loginAPi";
 
 interface RouteParams {
     phone: string;
@@ -10,16 +11,32 @@ interface RouteParams {
 
 const OtpVerificationPage = () => {
     const location = useLocation<RouteParams>();
+    const history = useHistory();
     const phone = location.state?.phone || "";
     const otp = useFormInput("", validateOtp);
     const [timeLeft, setTimeLeft] = useState(150);
+    const [isLoading, setIsLoading] = useState(false);
 
     const resendOtp = () => {
         console.log("implement this !!");
     };
 
-    useEffect(() => {
+    const verifyOtp = async () => {
+        try {
+            setIsLoading(true);
+            const response = await verifyOtpAPI(otp.value);
+            if (response.OK) {
+                history.push("/register",)
+            } else {
+                // write invalid logic
+            }
+        } catch {
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         const interval = setInterval(() => {
             setTimeLeft((prev) => prev - 1);
         }, 1000);
@@ -40,13 +57,15 @@ const OtpVerificationPage = () => {
                         <IonInput
                             className={`${otp.isValid === false && "ion-invalid"} ${otp.touched && "ion-touched"}`}
                             label="Enter OTP"
-                            placeholder="1234"
+                            placeholder="12356"
                             labelPlacement="floating"
                             inputmode="numeric"
                             maxlength={6}
                             {...otp.bind}
                         />
-                        <IonButton expand="full">VERIFY</IonButton>
+                        <IonButton expand="full" onClick={verifyOtp}>
+                            VERIFY
+                        </IonButton>
                         {/* resend otp */}
                         <div className="flex flex-col items-center gap-1 text-xs">
                             <div className="">Didn't recevie code?</div>
@@ -57,7 +76,7 @@ const OtpVerificationPage = () => {
                                     type="button"
                                     color={"primary"}
                                     onClick={resendOtp}
-                                    disabled={timeLeft>0}
+                                    disabled={timeLeft > 0}
                                 >
                                     Resend
                                 </IonButton>

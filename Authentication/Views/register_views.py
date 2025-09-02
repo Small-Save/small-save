@@ -99,7 +99,6 @@ class LogoutView(APIView):
 
             return CustomResponse(
                 is_success=True,
-                data={},
                 message="Logout successful.",
                 toast_message="You have been logged out.",
                 status=status.HTTP_200_OK,

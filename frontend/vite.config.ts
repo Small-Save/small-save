@@ -3,13 +3,18 @@
 import legacy from '@vitejs/plugin-legacy'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    legacy()
+    legacy(),
+    tailwindcss(),
   ],
+  server: {
+    allowedHosts:["55116cb9b752.ngrok-free.app"]
+  },
   test: {
     globals: true,
     environment: 'jsdom',

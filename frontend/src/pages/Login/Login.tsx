@@ -1,12 +1,14 @@
-import { IonPage, IonContent, IonInput, IonButton } from "@ionic/react";
+import { IonPage, IonContent, IonInput, IonButton, IonRouterLink } from "@ionic/react";
 import validatePhoneNumber from "../../utils/utils";
 import useFormInput from "../../Hooks/useFormInput";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useHistory } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthProvider";
 
 export default function Login() {
     const history = useHistory();
-    const phone = useFormInput("+91", validatePhoneNumber);
+    const { sendOtp } = useContext(AuthContext)!;
+    const phone = useFormInput("", validatePhoneNumber);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleLogin = async () => {
@@ -15,17 +17,20 @@ export default function Login() {
         }
         try {
             setIsLoading(true);
-            // const response = await api.post("/login");
-            history.push("/verify_otp", { phone: phone.value });
+            const response = await sendOtp(phone.value);
+            if (response) {
+                history.push("/verify_otp", { phone: phone.value });
+            }
         } catch {
         } finally {
+            phone.setValue("");
             setIsLoading(false);
         }
     };
 
     return (
         <IonPage>
-            <IonContent className="ion-padding">
+            <IonContent className="ion-padding" scrollY={false}>
                 <div className="flex items-center justify-center h-full">
                     <div className="max-w-md w-full space-y-6">
                         {/* Title */}
@@ -37,19 +42,18 @@ export default function Login() {
                         </div>
 
                         {/* Phone Input */}
-
                         <IonInput
                             className={`${phone.isValid === false && "ion-invalid"} ${phone.touched && "ion-touched"}`}
                             type="tel"
                             label="Phone Number"
                             placeholder="Enter phone number"
                             labelPlacement="floating"
-                            maxlength={14}
+                            maxlength={10}
                             {...phone.bind}
                         />
 
                         {/* Login Button */}
-                        <IonButton expand="block" onClick={handleLogin}>
+                        <IonButton expand="block" onClick={handleLogin} disabled={phone.isError}>
                             LOGIN
                         </IonButton>
 
@@ -58,14 +62,8 @@ export default function Login() {
                             {/* <IonCheckbox /> */}
                             <span>
                                 By continuing you agree to accept our{" "}
-                                <a href="#" color={"primary"}>
-                                    privacy policy
-                                </a>{" "}
-                                and{" "}
-                                <a href="#" color="primary">
-                                    terms of service
-                                </a>
-                                .
+                                <IonRouterLink routerLink="/privacy-policy">privacy policy </IonRouterLink>
+                                and <IonRouterLink routerLink="/terms-of-service">terms of service</IonRouterLink>.
                             </span>
                         </div>
 
@@ -77,10 +75,7 @@ export default function Login() {
                         </div>
 
                         {/* Google Button */}
-                        {/* TODO: fix the UI of this later */}
                         <IonButton expand="block" className="rounded-lg">
-                            {/* <div className="flex items-center justify-center gap-2 w-full py-2">
-                                <img src="/src/assets/images/google.png" alt="Google" className="w-5 h-5" /> */}
                             <span>SIGN UP WITH GOOGLE</span>
                             {/* </div> */}
                         </IonButton>

@@ -2,8 +2,8 @@ import { IonButton, IonContent, IonInput, IonPage, IonRouterLink, IonText } from
 import { useHistory, useLocation } from "react-router-dom";
 import useFormInput from "../../Hooks/useFormInput";
 import { formatTime, validateOtp } from "../../utils/utils";
-import { useEffect, useState } from "react";
-import { verifyOtpAPI } from "./loginAPi";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;
@@ -12,26 +12,33 @@ interface RouteParams {
 const OtpVerificationPage = () => {
     const location = useLocation<RouteParams>();
     const history = useHistory();
+    const { verifyOtp } = useContext(AuthContext)!;
+
     const phone = location.state?.phone || "";
-    const otp = useFormInput("", validateOtp);
+    const otp = useFormInput(null, validateOtp);
     const [timeLeft, setTimeLeft] = useState(150);
     const [isLoading, setIsLoading] = useState(false);
 
     const resendOtp = () => {
         console.log("implement this !!");
+        setTimeLeft(150);
     };
 
-    const verifyOtp = async () => {
+    const handleVerifyOtp = async () => {
+        if (!otp.isValid) {
+            return; // maybe show toast here
+        }
         try {
             setIsLoading(true);
-            const response = await verifyOtpAPI(otp.value);
-            if (response.OK) {
-                history.push("/register",)
+            const response = await verifyOtp(phone, otp.value);
+            if (response) {
+                history.push("/register");
             } else {
                 // write invalid logic
             }
         } catch {
         } finally {
+            otp.setValue(null);
             setIsLoading(false);
         }
     };
@@ -59,11 +66,12 @@ const OtpVerificationPage = () => {
                             label="Enter OTP"
                             placeholder="12356"
                             labelPlacement="floating"
-                            inputmode="numeric"
+                            type="tel"
+                            inputMode="numeric"
                             maxlength={6}
                             {...otp.bind}
                         />
-                        <IonButton expand="full" onClick={verifyOtp}>
+                        <IonButton expand="full" onClick={handleVerifyOtp}>
                             VERIFY
                         </IonButton>
                         {/* resend otp */}

@@ -9,14 +9,21 @@ from utils.response import CustomResponse
 from ..models import Register, User
 from ..serializers import register_user_serializer
 
+import logging
+
+
+logger = logging.getLogger("api")
+
 
 class RegisterUser(APIView):
     def post(self, request):
         username = request.data.get("username")
         phone_number = request.data.get("phone_number")
+        logger.info("Registration request received")
         serializer = register_user_serializer.RegisterUserSerializer(data=request.data)
 
         if not serializer.is_valid():
+            logger.warning(f"Registration failed: invalid data {serializer.errors}")
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -27,12 +34,14 @@ class RegisterUser(APIView):
             )
 
         phone_number = serializer.validated_data["phone_number"]
+        logger.debug(f"Validated phone_number={phone_number}")
 
         otp_verified = Register.objects.filter(
             phone_number=phone_number, is_verified=True
         ).exists()
 
         if not otp_verified:
+            logger.warning(f"Registration blocked: phone={phone_number} not verified via OTP")
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -45,6 +54,7 @@ class RegisterUser(APIView):
         first_name = serializer.validated_data["first_name"].strip()
         last_name = serializer.validated_data["last_name"].strip()
         username = f"{first_name}{last_name}".replace(" ", "").lower()
+        logger.debug(f"Generated username={username} for phone={phone_number}")
         user, created = User.objects.get_or_create(
             phone_number=phone_number,
             defaults={
@@ -56,10 +66,38 @@ class RegisterUser(APIView):
             },
         )
 
+
+        try:
+            user, created = User.objects.get_or_create(
+                phone_number=phone_number,
+                defaults={
+                    "username": username,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": serializer.validated_data.get("email", None),
+                    "is_verified": True,
+                },
+            )
+        except Exception as e:
+            logger.error(f"Database error during user creation for phone={phone_number}: {str(e)}")
+            return CustomResponse(
+                is_success=False,
+                data={},
+                message="Registration failed due to server error.",
+                toast_message="Server Error",
+                error=str(e),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
         if not created:
-            return CustomResponse(message="User already exists", data={}, status=400)
+            logger.info(f"User already exists: phone={phone_number}, id={user.id}")
+            return CustomResponse(
+                message="User already exists", data={}, status=400
+            )
 
         refresh = RefreshToken.for_user(user)
+        logger.info(f"Registration successful: user_id={user.id}, phone={phone_number}")
+
         return CustomResponse(
             is_success=True,
             message="Registration successful, user logged in",
@@ -78,9 +116,9 @@ class RegisterUser(APIView):
             status=201,
         )
 
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
+    logger.info("")
 
     def post(self, request):
         try:
@@ -99,7 +137,6 @@ class LogoutView(APIView):
 
             return CustomResponse(
                 is_success=True,
-                data={},
                 message="Logout successful.",
                 toast_message="You have been logged out.",
                 status=status.HTTP_200_OK,

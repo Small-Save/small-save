@@ -8,6 +8,7 @@ interface User {
     id: string;
     phone_number: string;
     user_name: string;
+    gender: string;
     is_registered: boolean;
 }
 
@@ -23,7 +24,12 @@ interface AuthContextType {
     loading: boolean;
     sendOtp: (phone_number: string) => Promise<boolean>;
     verifyOtp: (phone_number: string, otp_code: number) => Promise<VerifyOtpResponse | false>;
-    register: (firstName: string, lastName: string) => Promise<boolean>;
+    register: (
+        phone_number: string | undefined,
+        first_name: string,
+        last_name: string,
+        gender: string
+    ) => Promise<boolean>;
     // refreshToken: () => Promise<boolean>;
     logout: () => Promise<void>;
 }
@@ -122,9 +128,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //     }
     // };
 
-    const register = async (firstName: string, lastName: string): Promise<boolean> => {
+    const register = async (
+        phone_number: string | undefined,
+        first_name: string,
+        last_name: string,
+        gender: string
+    ): Promise<boolean> => {
         try {
-            const response = await axios.post("/register", { firstName, lastName });
+            const response = await axios.post(`${URLS.BASE_URL}/${URLS.REGISTER}`, {
+                phone_number,
+                first_name,
+                last_name,
+                gender
+            });
             if (response.status === 200 || response.status === 201) {
                 const { access, refresh, user } = response.data.data;
                 await Preferences.set({ key: "access_token", value: access });

@@ -19,7 +19,7 @@ const Register: React.FC = () => {
     const firstName = useFormInput("");
     const lastName = useFormInput("");
     const [gender, setGender] = useState<string>("male");
-    const { register } = useContext(AuthContext)!;
+    const { register, user } = useContext(AuthContext)!;
 
     const handleRegister = async () => {
         if (!firstName.isValid && !lastName.isValid) {
@@ -27,11 +27,9 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await register(firstName.value, lastName.value)
+            const response = await register(user?.phone_number, firstName.value, lastName.value, gender);
         } catch {
-            
         } finally {
-            
         }
     };
 
@@ -92,7 +90,7 @@ const Register: React.FC = () => {
                                 <IonLabel>Others</IonLabel>
                             </IonSegmentButton>
                         </IonSegment>
-                        <IonButton expand="block" onClick={() => {}}>
+                        <IonButton expand="block" onClick={handleRegister}>
                             {" "}
                             SUBMIT{" "}
                         </IonButton>

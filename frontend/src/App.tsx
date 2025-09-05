@@ -24,6 +24,7 @@ import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 import { AuthProvider } from "./contexts/AuthProvider";
+import OnBaord from "./pages/Login/onboard";
 
 setupIonicReact({
     mode: "md"
@@ -46,6 +47,9 @@ const App: React.FC = () => (
                     </Route>
                     <Route exact path="/verify_otp">
                         <OtpVerificationPage />
+                    </Route>
+                    <Route exact path="/onboard">
+                        <OnBaord/>
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

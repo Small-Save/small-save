@@ -7,6 +7,9 @@ name = "pypi"
 django = "==5.2.5"
 django-environ = "==0.12.0"
 psycopg2-binary = "==2.9.10"
+twilio = "*"
+djangorestframework = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 

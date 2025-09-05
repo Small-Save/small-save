@@ -4,6 +4,7 @@ import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import Home from "./pages/Home";
 import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -12,7 +13,6 @@ import "@ionic/react/css/core.css";
 import "@ionic/react/css/normalize.css";
 import "@ionic/react/css/structure.css";
 import "@ionic/react/css/typography.css";
-import "./theme/global.css";
 import "./theme/variables.css";
 
 /* Optional CSS utils that can be commented out */
@@ -24,6 +24,7 @@ import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 import { AuthProvider } from "./contexts/AuthProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 setupIonicReact({
     mode: "md"
@@ -46,6 +47,9 @@ const App: React.FC = () => (
                     </Route>
                     <Route exact path="/verify_otp">
                         <OtpVerificationPage />
+                    </Route>
+                    <Route exact path="/register">
+                        <ProtectedRoute component={<Register />} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

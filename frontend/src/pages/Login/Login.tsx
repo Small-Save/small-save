@@ -53,7 +53,7 @@ export default function Login() {
                         />
 
                         {/* Login Button */}
-                        <IonButton expand="block" onClick={handleLogin} disabled={phone.isError}>
+                        <IonButton expand="block" onClick={handleLogin}>
                             LOGIN
                         </IonButton>
 

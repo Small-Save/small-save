@@ -20,6 +20,7 @@ const OtpVerificationPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const resendOtp = () => {
+        // TODO: sendOtp function
         console.log("implement this !!");
         setTimeLeft(150);
     };
@@ -32,9 +33,13 @@ const OtpVerificationPage = () => {
             setIsLoading(true);
             const response = await verifyOtp(phone, otp.value);
             if (response) {
-                history.push("/register");
+                if (!response.data?.user.is_registered) {
+                    history.push("/register");
+                } else {
+                    history.push("/home");
+                }
             } else {
-                // write invalid logic
+                // invalid otp
             }
         } catch {
         } finally {

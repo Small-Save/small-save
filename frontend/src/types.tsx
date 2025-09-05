@@ -3,11 +3,10 @@ type ValidationResult = {
     errorText?: string;
 };
 
-type response = {
+type BaseResponse<T> = {
     is_success: boolean;
-    data: null | object;
-    toast_message: null | string;
-    message: null | string;
-    error: null | string;
-    status: number;
+    data: T | null;
+    toast_message: string | null;
+    message: string | null;
+    error: string | null;
 };

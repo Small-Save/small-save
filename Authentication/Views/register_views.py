@@ -94,10 +94,8 @@ class RegisterUser(APIView):
                     "email": user.email,
                     "userName": user.username,
                 },
-                "tokens": {
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                },
+                 "access": str(refresh.access_token),
+                 "refresh": str(refresh),
             },
             status=status.HTTP_201_CREATED,
         )

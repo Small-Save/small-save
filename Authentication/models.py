@@ -12,9 +12,10 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=15, unique=True)
     is_verified = models.BooleanField(default=False)
     email = models.EmailField(unique=True, null=True, blank=True)
-
+    username = models.CharField(max_length=150, unique=False, blank=True, null=True)
+    gender = models.CharField(max_length=100, blank = True , null = False )
     USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    REQUIRED_FIELDS = ["first_name", "last_name","gender"]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.phone_number})"

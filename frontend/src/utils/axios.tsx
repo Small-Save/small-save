@@ -8,6 +8,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
+        //todo: change this to capacitor preference
         const token = localStorage.getItem("authToken");
 
         if (token) {

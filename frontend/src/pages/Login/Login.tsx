@@ -5,7 +5,7 @@ import { useContext, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthProvider";
 
-export default function Login() {
+const Login: React.FC = () => {
     const history = useHistory();
     const { sendOtp } = useContext(AuthContext)!;
     const phone = useFormInput("", validatePhoneNumber);
@@ -92,4 +92,5 @@ export default function Login() {
             </IonContent>
         </IonPage>
     );
-}
+};
+export default Login;

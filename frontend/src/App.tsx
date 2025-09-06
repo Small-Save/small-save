@@ -25,6 +25,7 @@ import "@ionic/react/css/display.css";
 import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoutes";
 
 setupIonicReact({
     mode: "md"
@@ -36,20 +37,24 @@ const App: React.FC = () => (
             <IonReactRouter>
                 <IonRouterOutlet>
                     {/* TODO: add login to check if user is authenticated if yes take hime to home page */}
+
+                    {/* Public pages → redirect if already logged in */}
                     <Route exact path="/">
                         <Redirect to="/login" />
                     </Route>
-                    <Route exact path="/home">
-                        <Home />
-                    </Route>
                     <Route exact path="/login">
-                        <Login />
+                        <PublicRoute component={Login} />
                     </Route>
                     <Route exact path="/verify_otp">
-                        <OtpVerificationPage />
+                        <PublicRoute component={OtpVerificationPage} />
                     </Route>
                     <Route exact path="/register">
-                        <ProtectedRoute component={Register} redirectIfAuth="/home" />
+                        <PublicRoute component={Register} />
+                    </Route>
+
+                    {/* Protected pages → must be logged in */}
+                    <Route exact path="/home">
+                        <ProtectedRoute component={Home} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

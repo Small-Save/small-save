@@ -2,14 +2,14 @@ import { IonButton, IonContent, IonInput, IonPage, IonRouterLink, IonText } from
 import { useHistory, useLocation } from "react-router-dom";
 import useFormInput from "../../Hooks/useFormInput";
 import { formatTime, validateOtp } from "../../utils/utils";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;
 }
 
-const OtpVerificationPage = () => {
+const OtpVerificationPage: React.FC = () => {
     const location = useLocation<RouteParams>();
     const history = useHistory();
     const { verifyOtp } = useContext(AuthContext)!;

@@ -1,9 +1,13 @@
+// src/contexts/AuthProvider.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { Preferences } from "@capacitor/preferences";
-import URLS from "../utils/constants";
 import { jwtDecode } from "jwt-decode";
+import URLS from "../utils/constants";
 
+// TODO need to implement refresh token funtionality
+
+// ----------------- Types -----------------
 interface User {
     id: string;
     phone_number: string;
@@ -17,6 +21,7 @@ interface VerifyOtpData {
     access: string;
     refresh: string;
 }
+
 type VerifyOtpResponse = BaseResponse<VerifyOtpData>;
 
 interface AuthContextType {
@@ -30,7 +35,6 @@ interface AuthContextType {
         last_name: string,
         gender: string
     ) => Promise<boolean>;
-    // refreshToken: () => Promise<boolean>;
     logout: () => Promise<void>;
 }
 
@@ -46,6 +50,36 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
+// ----------------- API Client -----------------
+const api = axios.create({
+    baseURL: URLS.BASE_URL,
+    timeout: 5000
+});
+
+// ----------------- Helpers -----------------
+const saveAuthData = async (access: string, refresh: string, user: User) => {
+    await Preferences.set({ key: "access_token", value: access });
+    await Preferences.set({ key: "refresh_token", value: refresh });
+    await Preferences.set({ key: "user", value: JSON.stringify(user) });
+};
+
+const clearAuthData = async () => {
+    await Preferences.remove({ key: "access_token" });
+    await Preferences.remove({ key: "refresh_token" });
+    await Preferences.remove({ key: "user" });
+};
+
+const getStoredUser = async (): Promise<User | null> => {
+    const { value } = await Preferences.get({ key: "user" });
+    if (!value) return null;
+    try {
+        return JSON.parse(value) as User;
+    } catch {
+        return null;
+    }
+};
+
+// ----------------- Provider -----------------
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -55,32 +89,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const checkAuth = async () => {
             try {
                 const { value: accessToken } = await Preferences.get({ key: "access_token" });
-                const { value: refreshToken } = await Preferences.get({ key: "refresh_token" });
-                const { value } = await Preferences.get({ key: "user" });
-                let user: User | null = null;
-
-                if (value) {
-                    user = JSON.parse(value) as User;
-                }
+                const storedUser = await getStoredUser();
 
                 if (accessToken) {
                     const decoded = jwtDecode<CustomJwtPayload>(accessToken);
-                    const currentTime = Math.floor(Date.now() / 1000);
+                    const now = Math.floor(Date.now() / 1000);
 
-                    if (decoded.exp && decoded.exp > currentTime) {
-                        // TODO: getUserDetails
-                        setUser(user);
+                    if (decoded.exp && decoded.exp > now) {
+                        setUser(storedUser);
                     } else {
-                        // Token expired, attempt refresh
-                        // const refreshed = await refreshToken();
-                        // if (!refreshed) {
-                        //     await logout();
-                        // }
+                        // TODO: attempt refresh token
+                        await clearAuthData();
                     }
                 }
             } catch (error) {
-                console.error("Error checking auth:", error);
-                await logout();
+                console.error("Auth check error:", error);
+                await clearAuthData();
             } finally {
                 setLoading(false);
             }
@@ -88,45 +112,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkAuth();
     }, []);
 
+    // ----------------- Auth Functions -----------------
     const sendOtp = async (phone_number: string): Promise<boolean> => {
         try {
-            const response = await axios.post(`${URLS.BASE_URL}/${URLS.SEND_OTP}`, { phone_number });
-            if (response.status === 200 || response.status === 201) {
-                return true;
-            }
-            console.error("Unexpected response status:", response.status);
-            return false;
+            setLoading(true);
+            const response = await api.post(URLS.SEND_OTP, { phone_number });
+            return response.status === 200 || response.status === 201;
         } catch (error) {
             console.error("Send OTP error:", error);
             return false;
+        } finally {
+            setLoading(false);
         }
     };
 
     const verifyOtp = async (phone_number: string, otp_code: number): Promise<VerifyOtpResponse | false> => {
         try {
-            const response = await axios.post(`${URLS.BASE_URL}/${URLS.VERIFY_OTP}`, { phone_number, otp_code });
+            setLoading(true);
+            const response = await api.post(URLS.VERIFY_OTP, { phone_number, otp_code });
+
             if (response.status === 200) {
                 const { access, refresh, user } = response.data.data;
-                // const decoded = jwtDecode<CustomJwtPayload>(access);
-                await Preferences.set({ key: "access_token", value: access });
-                await Preferences.set({ key: "refresh_token", value: refresh });
-                await Preferences.set({ key: "user", value: JSON.stringify(user) });
+                await saveAuthData(access, refresh, user);
                 setUser(user);
                 return response.data;
             }
-            throw new Error(response.data.message || "OTP verification failed");
+            return false;
         } catch (error) {
             console.error("Verify OTP error:", error);
             return false;
+        } finally {
+            setLoading(false);
         }
     };
-
-    // const checkNetwork = async () => {
-    //     const status = await Network.getStatus();
-    //     if (!status.connected) {
-    //         throw new Error("No internet connection");
-    //     }
-    // };
 
     const register = async (
         phone_number: string | undefined,
@@ -135,57 +153,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         gender: string
     ): Promise<boolean> => {
         try {
-            const response = await axios.post(`${URLS.BASE_URL}/${URLS.REGISTER}`, {
+            setLoading(true);
+            const response = await api.post(URLS.REGISTER, {
                 phone_number,
                 first_name,
                 last_name,
                 gender
             });
+
             if (response.status === 200 || response.status === 201) {
                 const { access, refresh, user } = response.data.data;
-                await Preferences.set({ key: "access_token", value: access });
-                await Preferences.set({ key: "refresh_token", value: refresh });
-                await Preferences.set({ key: "user", value: JSON.stringify(user) });
+                await saveAuthData(access, refresh, user);
                 setUser(user);
                 return true;
             }
-            throw new Error(response.data.message || "Registration failed");
+            return false;
         } catch (error) {
             console.error("Registration error:", error);
             return false;
+        } finally {
+            setLoading(false);
         }
     };
 
-    // const refreshToken = async (): Promise<boolean> => {
-    //     try {
-    //         const { value: refreshToken } = await Preferences.get({ key: "refresh_token" });
-    //         if (!refreshToken) {
-    //             throw new Error("No refresh token available");
-    //         }
-    //         // await checkNetwork();
-    //         const response = await axios.post(`${URLS.BASE_URL}/refresh`, { refresh: refreshToken });
-    //         if (response.status === 200) {
-    //             const { access, refresh: newRefreshToken } = response.data.data;
-    //             const decoded = jwtDecode<CustomJwtPayload>(access);
-    //             await Preferences.set({ key: "access_token", value: access });
-    //             if (newRefreshToken) {
-    //                 await Preferences.set({ key: "refresh_token", value: newRefreshToken });
-    //             }
-    //             setUser(user);
-    //             return true;
-    //         }
-    //         return false;
-    //     } catch (error) {
-    //         console.error("Token refresh error:", error);
-    //         return false;
-    //     }
-    // };
-
     const logout = async (): Promise<void> => {
         try {
-            // TODO: call BE API here
-            await Preferences.remove({ key: "access_token" });
-            await Preferences.remove({ key: "refresh_token" });
+            await clearAuthData();
             setUser(null);
         } catch (error) {
             console.error("Logout error:", error);

@@ -49,7 +49,7 @@ const App: React.FC = () => (
                         <OtpVerificationPage />
                     </Route>
                     <Route exact path="/register">
-                        <ProtectedRoute component={<Register />} />
+                        <ProtectedRoute component={Register} redirectIfAuth="/home" />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

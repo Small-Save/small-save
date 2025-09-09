@@ -1,14 +1,20 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
 
+@import "tailwindcss";
+@import "swiper/css";
+@import "swiper/css/pagination";
+
 :root {
     --ion-font-family: "Nexa XBold";
-    --ion-color-primary: #747cba;
-    --ion-color-primary-rgb: 116, 124, 186;
-    --ion-color-primary-contrast: #000000;
-    --ion-color-primary-contrast-rgb: 0, 0, 0;
-    --ion-color-primary-shade: #666da4;
-    --ion-color-primary-tint: #8289c1;
+
+    --ion-color-primary: #181729;
+	--ion-color-primary-rgb: 24,23,41;
+	--ion-color-primary-contrast: #ffffff;
+	--ion-color-primary-contrast-rgb: 255,255,255;
+	--ion-color-primary-shade: #151424;
+	--ion-color-primary-tint: #2f2e3e;
+
 }
 
 @font-face {
@@ -21,7 +27,15 @@ http://ionicframework.com/docs/theming/ */
 
 ion-button {
     text-transform: none !important;
-    --background: #747cba;
-    --color: #ffff;
-    border-radius: 100%;
+}
+
+.swiper-pagination {
+    top: 16px !important;
+    bottom: auto !important;   
+}
+
+.swiper-pagination-bullet {
+    height: 10px;
+    width: 90px;
+    border-radius: 15%;
 }

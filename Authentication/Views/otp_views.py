@@ -8,7 +8,7 @@ from ..models import Register, User
 from ..serializers import otp_serializers
 from ..services.twilio_service import send_otp
 import logging
-
+import random
 
 logger = logging.getLogger("api")
 
@@ -20,7 +20,8 @@ class SendOtp(APIView):
         if serializers.is_valid():
             phone = serializers.validated_data["phone_number"]
             Register.objects.filter(phone_number=phone).delete()
-            otp = send_otp(phone)
+            otp = str(random.randint(100000,999999))
+            # otp = send_otp(phone)
             Register.objects.create(phone_number=phone, otp_code=otp)
             logger.info(f"OTP request received for phone={phone}")
             return CustomResponse(
@@ -94,7 +95,16 @@ class VerifyOtp(APIView):
             logger.info("user does not exist proceed with registration process")
             return CustomResponse(
                 is_success=True,
-                data={"phone_number": phone_number, "is_registered": False},
+                data={
+                    "user":{
+                        "id": "",
+                        "phone_number": phone_number,
+                        "is_registered": False,
+                         "userName": "",
+                    },
+                     "access": "",
+                     "refresh": "",
+                },
                 message="OTP Verified successfully.",
                 toast_message="",
                 status=status.HTTP_200_OK,
@@ -109,7 +119,7 @@ class VerifyOtp(APIView):
                 "user": {
                     "id": user_obj.id,
                     "phone_number": user_obj.phone_number,
-                    "userName": user_obj.username,
+                    "user_name": user_obj.username,
                     "is_registered": True
                 },
                 "access": str(refresh.access_token),

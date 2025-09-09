@@ -1,0 +1,25 @@
+.gender-segment {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0;
+}
+
+.gender-segment ion-segment-button {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 0 6px;
+    padding: 8px 12px;
+    background: white;
+    color: black;
+    font-weight: 500;
+}
+
+.gender-segment ion-segment-button.segment-button-checked {
+    background: #666;
+    color: white;
+    border-color: #666;
+}
+
+.gender-segment ion-icon {
+    margin-right: 6px;
+}

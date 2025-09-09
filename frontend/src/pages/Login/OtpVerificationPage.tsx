@@ -2,14 +2,14 @@ import { IonButton, IonContent, IonInput, IonPage, IonRouterLink, IonText } from
 import { useHistory, useLocation } from "react-router-dom";
 import useFormInput from "../../Hooks/useFormInput";
 import { formatTime, validateOtp } from "../../utils/utils";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;
 }
 
-const OtpVerificationPage = () => {
+const OtpVerificationPage: React.FC = () => {
     const location = useLocation<RouteParams>();
     const history = useHistory();
     const { verifyOtp } = useContext(AuthContext)!;
@@ -20,6 +20,7 @@ const OtpVerificationPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const resendOtp = () => {
+        // TODO: sendOtp function
         console.log("implement this !!");
         setTimeLeft(150);
     };
@@ -32,9 +33,13 @@ const OtpVerificationPage = () => {
             setIsLoading(true);
             const response = await verifyOtp(phone, otp.value);
             if (response) {
-                history.push("/register");
+                if (!response.data?.user.is_registered) {
+                    history.push("/register");
+                } else {
+                    history.push("/home");
+                }
             } else {
-                // write invalid logic
+                // invalid otp
             }
         } catch {
         } finally {

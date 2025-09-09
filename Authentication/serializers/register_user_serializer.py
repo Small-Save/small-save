@@ -4,12 +4,13 @@ from  ..models import User
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["phone_number", "first_name", "last_name", "email"]
+        fields = ["phone_number", "first_name", "last_name", "email","gender"]
         extra_kwargs = {
             "phone_number": {"required": True},
             "first_name": {"required": True},
             "last_name": {"required": True},
             "email": {"required": False, "allow_blank": True},
+            "gender":{"required": True}
         }
 
     def validate_phone_number(self, value):

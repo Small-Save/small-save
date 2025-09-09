@@ -17,11 +17,8 @@ logger = logging.getLogger("api")
 
 class RegisterUser(APIView):
     def post(self, request):
-        username = request.data.get("username")
-        phone_number = request.data.get("phone_number")
         logger.info("Registration request received")
         serializer = register_user_serializer.RegisterUserSerializer(data=request.data)
-
         if not serializer.is_valid():
             logger.warning(f"Registration failed: invalid data {serializer.errors}")
             return CustomResponse(
@@ -32,8 +29,11 @@ class RegisterUser(APIView):
                 error=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        first_name = serializer.validated_data["first_name"].strip()
+        last_name = serializer.validated_data["last_name"].strip()
+        username = f"{first_name}{last_name}".replace(" ", "").lower()
         phone_number = serializer.validated_data["phone_number"]
+        gender = serializer.validated_data["gender"]
         logger.debug(f"Validated phone_number={phone_number}")
 
         otp_verified = Register.objects.filter(
@@ -50,22 +50,7 @@ class RegisterUser(APIView):
                 error="Phone number not verified via OTP",
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        first_name = serializer.validated_data["first_name"].strip()
-        last_name = serializer.validated_data["last_name"].strip()
-        username = f"{first_name}{last_name}".replace(" ", "").lower()
         logger.debug(f"Generated username={username} for phone={phone_number}")
-        user, created = User.objects.get_or_create(
-            phone_number=phone_number,
-            defaults={
-                "username": username,
-                "first_name": first_name,
-                "last_name": last_name,
-                "email": serializer.validated_data.get("email", None),
-                "is_verified": True,
-            },
-        )
-
 
         try:
             user, created = User.objects.get_or_create(
@@ -74,6 +59,7 @@ class RegisterUser(APIView):
                     "username": username,
                     "first_name": first_name,
                     "last_name": last_name,
+                    "gender": gender,
                     "email": serializer.validated_data.get("email", None),
                     "is_verified": True,
                 },
@@ -92,7 +78,7 @@ class RegisterUser(APIView):
         if not created:
             logger.info(f"User already exists: phone={phone_number}, id={user.id}")
             return CustomResponse(
-                message="User already exists", data={}, status=400
+                message="User already exists", data={}, status=status.HTTP_400_BAD_REQUEST
             )
 
         refresh = RefreshToken.for_user(user)
@@ -108,12 +94,10 @@ class RegisterUser(APIView):
                     "email": user.email,
                     "userName": user.username,
                 },
-                "tokens": {
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                },
+                 "access": str(refresh.access_token),
+                 "refresh": str(refresh),
             },
-            status=201,
+            status=status.HTTP_201_CREATED,
         )
 
 class LogoutView(APIView):

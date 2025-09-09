@@ -23,4 +23,5 @@ ion-button {
     text-transform: none !important;
     --background: #747cba;
     --color: #ffff;
+    border-radius: 100%;
 }

@@ -1,27 +1,46 @@
-import React from "react";
-import { IonContent, IonButton } from "@ionic/react";
-import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
+import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
+import { IonContent, IonButton, IonIcon } from "@ionic/react";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
+import { arrowForward, home } from "ionicons/icons";
 import smartallocation from "../../assets/images/smartallocation.svg";
+import { addIcons } from 'ionicons';
 import secure from "../../assets/images/secure.svg";
 import groupsaving from "../../assets/images/groupsavings.svg";
 
 const OnBoard: React.FC = () => {
+    const history = useHistory();
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [swiperInstance, setSwiperInstance] = useState<any>(null);
+    const totalSlides = 3;
 
-    // Helper component for a slide with a Next button
     const SlideWithNextButton: React.FC<{ imgSrc: string; text: string }> = ({ imgSrc, text }) => {
-        const swiper = useSwiper();
+        const isLastSlide = activeIndex === totalSlides - 1;
+
+        const handleNext = () => {
+            if (isLastSlide) {
+                history.push('/home');
+            } else if (swiperInstance) {
+                swiperInstance.slideNext();
+            }
+        };
 
         return (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+            <div className="flex flex-col items-center justify-center h-full text-center p-4 relative">
                 <p style={{ lineHeight: '1.8' }}>{text}</p>
-                <img src={imgSrc} className="w-100 h-100" />
-                 <IonButton className="w-full flex justify-end mt-4"
-                    color="primary"
-                    onClick={() => swiper.slideNext()}
-                >
-                    Next
-                </IonButton>
+
+                <div className="relative w-full flex justify-center mt-30">
+                    <img src={imgSrc} className="w-100 h-100 object-contain" />
+
+                    <IonButton
+                        color="primary"
+                        className="absolute bottom-4 right-4"
+                        shape="round"
+                        onClick={handleNext}>
+                         <IonIcon slot="icon-only" icon={isLastSlide ? home : arrowForward}></IonIcon>
+                    </IonButton>
+                </div>
             </div>
         );
     };
@@ -32,6 +51,8 @@ const OnBoard: React.FC = () => {
                 modules={[Pagination]}
                 pagination={{ clickable: true }}
                 className="h-full"
+                onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+                onSwiper={(swiper) => setSwiperInstance(swiper)}
             >
                 <SwiperSlide>
                     <SlideWithNextButton

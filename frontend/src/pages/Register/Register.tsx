@@ -14,11 +14,14 @@ import useFormInput from "../../Hooks/useFormInput";
 import { checkmarkCircle } from "ionicons/icons";
 import "./Register.css";
 import { AuthContext } from "../../contexts/AuthProvider";
+import { useHistory } from "react-router";
 
 const Register: React.FC = () => {
     const firstName = useFormInput("");
     const lastName = useFormInput("");
-    const [gender, setGender] = useState<string>("male");
+    const history = useHistory();
+    // const [gender, setGender] = useState<string>("male");
+    const gender = useFormInput("male");
     const { register, user } = useContext(AuthContext)!;
 
     const handleRegister = async () => {
@@ -27,7 +30,10 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await register(user?.phone_number, firstName.value, lastName.value, gender);
+            const response = await register(user?.phone_number, firstName.value, lastName.value, gender.value);
+            if (response) {
+                history.push("/home");
+            }
         } catch {
         } finally {
         }
@@ -70,23 +76,19 @@ const Register: React.FC = () => {
 
                             <IonRadio labelPlacement="end">Others</IonRadio>
                         </IonRadioGroup> */}
-                        <IonSegment
-                            value={gender}
-                            onIonChange={(e) => setGender(String(e.detail.value))}
-                            className="gender-segment"
-                        >
+                        <IonSegment {...gender.bind} className="gender-segment">
                             <IonSegmentButton value="male">
-                                {gender === "male" && <IonIcon icon={checkmarkCircle} color="success" />}
+                                {gender.value === "male" && <IonIcon icon={checkmarkCircle} color="success" />}
                                 <IonLabel>Male</IonLabel>
                             </IonSegmentButton>
 
                             <IonSegmentButton value="female">
-                                {gender === "female" && <IonIcon icon={checkmarkCircle} color="success" />}
+                                {gender.value === "female" && <IonIcon icon={checkmarkCircle} color="success" />}
                                 <IonLabel>Female</IonLabel>
                             </IonSegmentButton>
 
                             <IonSegmentButton value="others">
-                                {gender === "others" && <IonIcon icon={checkmarkCircle} color="success" />}
+                                {gender.value === "others" && <IonIcon icon={checkmarkCircle} color="success" />}
                                 <IonLabel>Others</IonLabel>
                             </IonSegmentButton>
                         </IonSegment>

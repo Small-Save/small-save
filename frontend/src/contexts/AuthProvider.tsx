@@ -132,9 +132,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const response = await api.post(URLS.VERIFY_OTP, { phone_number, otp_code });
 
             if (response.status === 200) {
-                const { access, refresh, user } = response.data.data;
-                await saveAuthData(access, refresh, user);
-                setUser(user);
                 return response.data;
             }
             return false;

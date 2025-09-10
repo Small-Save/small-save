@@ -131,7 +131,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(true);
             const response = await api.post(URLS.VERIFY_OTP, { phone_number, otp_code });
 
-            if (response.status === 200) {
+            if (response.status === 200 && response.data.is_success) {
+                if (response.data.data?.user.is_registered) {
+                    const { access, refresh, user } = response.data.data;
+                    await saveAuthData(access, refresh, user);
+                    setUser(user);
+                }
                 return response.data;
             }
             return false;
@@ -164,6 +169,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setUser(user);
                 return true;
             }
+            // TODO: Handle invalid otp case
+            console.log(response);
             return false;
         } catch (error) {
             console.error("Registration error:", error);

@@ -12,7 +12,7 @@ interface RouteParams {
 const OtpVerificationPage: React.FC = () => {
     const location = useLocation<RouteParams>();
     const history = useHistory();
-    const { verifyOtp } = useContext(AuthContext)!;
+    const { verifyOtp, user } = useContext(AuthContext)!;
 
     const phone = location.state?.phone || "";
     const otp = useFormInput(null, validateOtp);
@@ -34,12 +34,13 @@ const OtpVerificationPage: React.FC = () => {
             const response = await verifyOtp(phone, otp.value);
             if (response) {
                 if (!response.data?.user.is_registered) {
-                    history.push("/register");
+                    history.push("/register", { phone });
                 } else {
                     history.push("/home");
                 }
             } else {
                 // invalid otp
+                console.log();
             }
         } catch {
         } finally {

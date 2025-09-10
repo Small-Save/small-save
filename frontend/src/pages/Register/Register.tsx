@@ -8,21 +8,26 @@ import {
     IonSegment,
     IonSegmentButton
 } from "@ionic/react";
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import ProfileImageInput from "../../components/CaptureImage/ProfileImageInput";
 import useFormInput from "../../Hooks/useFormInput";
 import { checkmarkCircle } from "ionicons/icons";
 import "./Register.css";
 import { AuthContext } from "../../contexts/AuthProvider";
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
+
+interface RouteParams {
+    phone: string;
+}
 
 const Register: React.FC = () => {
+    const location = useLocation<RouteParams>();
+    const phone = location.state?.phone || "";
     const firstName = useFormInput("");
     const lastName = useFormInput("");
     const history = useHistory();
-    // const [gender, setGender] = useState<string>("male");
     const gender = useFormInput("male");
-    const { register, user } = useContext(AuthContext)!;
+    const { register } = useContext(AuthContext)!;
 
     const handleRegister = async () => {
         if (!firstName.isValid && !lastName.isValid) {
@@ -30,7 +35,7 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await register(user?.phone_number, firstName.value, lastName.value, gender.value);
+            const response = await register(phone, firstName.value, lastName.value, gender.value);
             if (response) {
                 history.push("/home");
             }

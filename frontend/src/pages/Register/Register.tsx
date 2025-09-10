@@ -37,7 +37,7 @@ const Register: React.FC = () => {
         try {
             const response = await register(phone, firstName.value, lastName.value, gender.value);
             if (response) {
-                history.push("/home");
+                history.push("/onboard");
             }
         } catch {
         } finally {

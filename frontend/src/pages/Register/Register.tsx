@@ -8,18 +8,26 @@ import {
     IonSegment,
     IonSegmentButton
 } from "@ionic/react";
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import ProfileImageInput from "../../components/CaptureImage/ProfileImageInput";
 import useFormInput from "../../Hooks/useFormInput";
 import { checkmarkCircle } from "ionicons/icons";
 import "./Register.css";
 import { AuthContext } from "../../contexts/AuthProvider";
+import { useHistory, useLocation } from "react-router";
+
+interface RouteParams {
+    phone: string;
+}
 
 const Register: React.FC = () => {
+    const location = useLocation<RouteParams>();
+    const phone = location.state?.phone || "";
     const firstName = useFormInput("");
     const lastName = useFormInput("");
-    const [gender, setGender] = useState<string>("male");
-    const { register, user } = useContext(AuthContext)!;
+    const history = useHistory();
+    const gender = useFormInput("male");
+    const { register } = useContext(AuthContext)!;
 
     const handleRegister = async () => {
         if (!firstName.isValid && !lastName.isValid) {
@@ -27,7 +35,10 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await register(user?.phone_number, firstName.value, lastName.value, gender);
+            const response = await register(phone, firstName.value, lastName.value, gender.value);
+            if (response) {
+                history.push("/home");
+            }
         } catch {
         } finally {
         }
@@ -70,23 +81,19 @@ const Register: React.FC = () => {
 
                             <IonRadio labelPlacement="end">Others</IonRadio>
                         </IonRadioGroup> */}
-                        <IonSegment
-                            value={gender}
-                            onIonChange={(e) => setGender(String(e.detail.value))}
-                            className="gender-segment"
-                        >
+                        <IonSegment {...gender.bind} className="gender-segment">
                             <IonSegmentButton value="male">
-                                {gender === "male" && <IonIcon icon={checkmarkCircle} color="success" />}
+                                {gender.value === "male" && <IonIcon icon={checkmarkCircle} color="success" />}
                                 <IonLabel>Male</IonLabel>
                             </IonSegmentButton>
 
                             <IonSegmentButton value="female">
-                                {gender === "female" && <IonIcon icon={checkmarkCircle} color="success" />}
+                                {gender.value === "female" && <IonIcon icon={checkmarkCircle} color="success" />}
                                 <IonLabel>Female</IonLabel>
                             </IonSegmentButton>
 
                             <IonSegmentButton value="others">
-                                {gender === "others" && <IonIcon icon={checkmarkCircle} color="success" />}
+                                {gender.value === "others" && <IonIcon icon={checkmarkCircle} color="success" />}
                                 <IonLabel>Others</IonLabel>
                             </IonSegmentButton>
                         </IonSegment>

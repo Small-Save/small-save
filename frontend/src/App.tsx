@@ -58,7 +58,7 @@ const App: React.FC = () => (
                         <ProtectedRoute component={Home} />
                     </Route>
                     <Route exact path="/onboard">
-                        <OnBaord/>
+                        <ProtectedRoute component={OnBaord} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

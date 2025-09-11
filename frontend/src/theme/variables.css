@@ -31,11 +31,12 @@ ion-button {
 
 .swiper-pagination {
     top: 16px !important;
-    bottom: auto !important;   
+    bottom: auto !important;
 }
 
 .swiper-pagination-bullet {
     height: 10px;
     width: 90px;
     border-radius: 15%;
+    background: var(--ion-color-primary);
 }

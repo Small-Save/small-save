@@ -5,7 +5,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { arrowForward, home } from "ionicons/icons";
 import smartallocation from "../../assets/images/smartallocation.svg";
-import { addIcons } from 'ionicons';
 import secure from "../../assets/images/secure.svg";
 import groupsaving from "../../assets/images/groupsavings.svg";
 
@@ -20,7 +19,7 @@ const OnBoard: React.FC = () => {
 
         const handleNext = () => {
             if (isLastSlide) {
-                history.push('/home');
+                history.push("/home");
             } else if (swiperInstance) {
                 swiperInstance.slideNext();
             }
@@ -28,17 +27,13 @@ const OnBoard: React.FC = () => {
 
         return (
             <div className="flex flex-col items-center justify-center h-full text-center p-4 relative">
-                <p style={{ lineHeight: '1.8' }}>{text}</p>
+                <p className="leading-[1.8]">{text}</p>
 
                 <div className="relative w-full flex justify-center mt-30">
                     <img src={imgSrc} className="w-100 h-100 object-contain" />
 
-                    <IonButton
-                        color="primary"
-                        className="absolute bottom-4 right-4"
-                        shape="round"
-                        onClick={handleNext}>
-                         <IonIcon slot="icon-only" icon={isLastSlide ? home : arrowForward}></IonIcon>
+                    <IonButton color="primary" className="absolute bottom-4 right-4" shape="round" onClick={handleNext}>
+                        <IonIcon slot="icon-only" icon={isLastSlide ? home : arrowForward}></IonIcon>
                     </IonButton>
                 </div>
             </div>

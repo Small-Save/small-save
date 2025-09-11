@@ -1,8 +1,18 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
 
+@import "tailwindcss";
+
 :root {
     --ion-font-family: "Nexa XBold";
+
+    --ion-color-primary: #181729;
+	--ion-color-primary-rgb: 24,23,41;
+	--ion-color-primary-contrast: #ffffff;
+	--ion-color-primary-contrast-rgb: 255,255,255;
+	--ion-color-primary-shade: #151424;
+	--ion-color-primary-tint: #2f2e3e;
+
 }
 
 @font-face {

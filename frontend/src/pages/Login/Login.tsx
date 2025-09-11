@@ -1,21 +1,36 @@
-import { IonPage, IonContent, IonInput, IonButton } from "@ionic/react";
-import validatePhoneNumber from "../utils/utils";
-import useFormInput from "../Hooks/useFormInput";
-import api from "../utils/axios"
+import { IonPage, IonContent, IonInput, IonButton, IonRouterLink } from "@ionic/react";
+import validatePhoneNumber from "../../utils/utils";
+import useFormInput from "../../Hooks/useFormInput";
+import { useContext, useState } from "react";
+import { useHistory } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthProvider";
 
-export default function Login() {
+const Login: React.FC = () => {
+    const history = useHistory();
+    const { sendOtp } = useContext(AuthContext)!;
     const phone = useFormInput("", validatePhoneNumber);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleLogin = async () => {
         if (!phone.isValid) {
             return;
         }
-        const response = await api.post("/login");
-    }
+        try {
+            setIsLoading(true);
+            const response = await sendOtp(phone.value);
+            if (response) {
+                history.push("/verify_otp", { phone: phone.value });
+            }
+        } catch {
+        } finally {
+            phone.setValue("");
+            setIsLoading(false);
+        }
+    };
 
     return (
         <IonPage>
-            <IonContent className="ion-padding h-full">
+            <IonContent className="ion-padding" scrollY={false}>
                 <div className="flex items-center justify-center h-full">
                     <div className="max-w-md w-full space-y-6">
                         {/* Title */}
@@ -27,18 +42,18 @@ export default function Login() {
                         </div>
 
                         {/* Phone Input */}
-
                         <IonInput
                             className={`${phone.isValid === false && "ion-invalid"} ${phone.touched && "ion-touched"}`}
                             type="tel"
                             label="Phone Number"
                             placeholder="Enter phone number"
                             labelPlacement="floating"
+                            maxlength={10}
                             {...phone.bind}
                         />
 
                         {/* Login Button */}
-                        <IonButton expand="block" className="bg-indigo-500 text-white rounded-lg" onClick={handleLogin}>
+                        <IonButton expand="block" onClick={handleLogin}>
                             LOGIN
                         </IonButton>
 
@@ -47,14 +62,8 @@ export default function Login() {
                             {/* <IonCheckbox /> */}
                             <span>
                                 By continuing you agree to accept our{" "}
-                                <a href="#" className="text-indigo-500">
-                                    privacy policy
-                                </a>{" "}
-                                and{" "}
-                                <a href="#" className="text-indigo-500">
-                                    terms of service
-                                </a>
-                                .
+                                <IonRouterLink routerLink="/privacy-policy">privacy policy </IonRouterLink>
+                                and <IonRouterLink routerLink="/terms-of-service">terms of service</IonRouterLink>.
                             </span>
                         </div>
 
@@ -66,11 +75,9 @@ export default function Login() {
                         </div>
 
                         {/* Google Button */}
-                        <IonButton expand="block" fill="outline" className="rounded-lg border-gray-300 p-0">
-                            <div className="flex items-center justify-center gap-2 w-full py-2">
-                                <img src="/src/assets/images/google.png" alt="Google" className="w-5 h-5" />
-                                <span>SIGN UP WITH GOOGLE</span>
-                            </div>
+                        <IonButton expand="block" className="rounded-lg">
+                            <span>SIGN UP WITH GOOGLE</span>
+                            {/* </div> */}
                         </IonButton>
 
                         {/* Footer */}
@@ -85,4 +92,5 @@ export default function Login() {
             </IonContent>
         </IonPage>
     );
-}
+};
+export default Login;

@@ -27,7 +27,7 @@ class RegisterUser(APIView):
                 message="Registration failed.",
                 toast_message="Invalid Data",
                 error=serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
         first_name = serializer.validated_data["first_name"].strip()
         last_name = serializer.validated_data["last_name"].strip()
@@ -48,7 +48,7 @@ class RegisterUser(APIView):
                 message="Unauthorized User.",
                 toast_message="Not Verified User",
                 error="Phone number not verified via OTP",
-                status=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
         logger.debug(f"Generated username={username} for phone={phone_number}")
 
@@ -72,13 +72,13 @@ class RegisterUser(APIView):
                 message="Registration failed due to server error.",
                 toast_message="Server Error",
                 error=str(e),
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         if not created:
             logger.info(f"User already exists: phone={phone_number}, id={user.id}")
             return CustomResponse(
-                message="User already exists", data={}, status=status.HTTP_400_BAD_REQUEST
+                message="User already exists", data={}, status_code=status.HTTP_400_BAD_REQUEST
             )
 
         refresh = RefreshToken.for_user(user)
@@ -97,7 +97,7 @@ class RegisterUser(APIView):
                  "access": str(refresh.access_token),
                  "refresh": str(refresh),
             },
-            status=status.HTTP_201_CREATED,
+            status_code=status.HTTP_201_CREATED,
         )
 
 class LogoutView(APIView):
@@ -113,7 +113,7 @@ class LogoutView(APIView):
                     message="Refresh token is required.",
                     toast_message="Logout failed.",
                     error="MissingRefreshToken",
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
             token = RefreshToken(refresh_token)
@@ -123,7 +123,7 @@ class LogoutView(APIView):
                 is_success=True,
                 message="Logout successful.",
                 toast_message="You have been logged out.",
-                status=status.HTTP_200_OK,
+                status_code=status.HTTP_200_OK,
             )
 
         except Exception as e:
@@ -133,7 +133,7 @@ class LogoutView(APIView):
                 message="Logout failed.",
                 toast_message="Something went wrong.",
                 error=str(e),
-                status=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
 

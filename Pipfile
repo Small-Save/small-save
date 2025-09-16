@@ -13,6 +13,7 @@ djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
 
 [dev-packages]
+django-extensions = "*"
 
 [requires]
 python_version = "3.10"

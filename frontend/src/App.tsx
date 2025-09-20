@@ -24,6 +24,7 @@ import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 import { AuthProvider } from "./contexts/AuthProvider";
+import OnBoard from "./pages/Login/onboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
 
@@ -55,6 +56,9 @@ const App: React.FC = () => (
                     {/* Protected pages → must be logged in */}
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
+                    </Route>
+                    <Route exact path="/onboard">
+                        <ProtectedRoute component={OnBoard} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

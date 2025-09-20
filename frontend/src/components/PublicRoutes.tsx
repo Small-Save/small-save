@@ -16,6 +16,9 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ component: Component, redirec
     }
 
     if (user) {
+        if (!user.is_registered) {
+            return <Redirect to="/onboard" />;
+        }
         return <Redirect to={redirectIfAuth} />;
     }
 

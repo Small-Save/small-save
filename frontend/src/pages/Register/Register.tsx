@@ -14,7 +14,8 @@ import useFormInput from "../../Hooks/useFormInput";
 import { checkmarkCircle } from "ionicons/icons";
 import "./Register.css";
 import { AuthContext } from "../../contexts/AuthProvider";
-import { useHistory, useLocation } from "react-router";
+import { useHistory, useLocation } from "react-router-dom";
+import { useIonRouter } from "@ionic/react";
 
 interface RouteParams {
     phone: string;
@@ -28,6 +29,7 @@ const Register: React.FC = () => {
     const history = useHistory();
     const gender = useFormInput("male");
     const { register } = useContext(AuthContext)!;
+    const router = useIonRouter();
 
     const handleRegister = async () => {
         if (!firstName.isValid && !lastName.isValid) {
@@ -37,7 +39,7 @@ const Register: React.FC = () => {
         try {
             const response = await register(phone, firstName.value, lastName.value, gender.value);
             if (response) {
-                history.push("/home");
+                router.push("/onboard", "forward");
             }
         } catch {
         } finally {

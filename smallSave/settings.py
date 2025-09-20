@@ -39,6 +39,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8100",
     "http://127.0.0.1:8100",
+    "http://localhost:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -67,8 +68,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # short expiry
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),  # short expiry
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,  # rotation enabled
     "BLACKLIST_AFTER_ROTATION": True,  # old tokens go into blacklist
     "AUTH_HEADER_TYPES": ("Bearer",),

@@ -2,6 +2,8 @@
 http://ionicframework.com/docs/theming/ */
 
 @import "tailwindcss";
+@import "swiper/css";
+@import "swiper/css/pagination";
 
 :root {
     --ion-font-family: "Nexa XBold";
@@ -25,4 +27,16 @@ http://ionicframework.com/docs/theming/ */
 
 ion-button {
     text-transform: none !important;
+}
+
+.swiper-pagination {
+    top: 16px !important;
+    bottom: auto !important;
+}
+
+.swiper-pagination-bullet {
+    height: 10px;
+    width: 90px;
+    border-radius: 15%;
+    background: var(--ion-color-primary);
 }

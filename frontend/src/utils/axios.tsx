@@ -16,6 +16,7 @@ api.interceptors.request.use(
         if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
+        config.headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         return config;
     },

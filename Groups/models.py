@@ -15,7 +15,8 @@ class Group(models.Model):
 
     name = models.CharField(max_length=200)
     target_amount = models.DecimalField(
-        max_digits=12, decimal_places=2, help_text="Target amount for the group"
+        max_digits=12, decimal_places=2, help_text="Target amount for the group",
+        validators=[MinValueValidator(0)] # ensures positive only data
     )
     size = models.PositiveIntegerField(
         help_text="Number of members in the group", validators=[MinValueValidator(5)]
@@ -27,9 +28,9 @@ class Group(models.Model):
         max_length=50,
         choices=WINNER_SELECTION_CHOICES,
         default="random",
-        help_text="Method for selecting the winner each period",
+        help_text="Method for selecting the winner each month.",
     )
-    start_date = models.DateField(help_text="Start date of the group")
+    start_date = models.DateTimeField(help_text="Start date of the group")
 
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, related_name="Admins", null=True

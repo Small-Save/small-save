@@ -1,14 +1,14 @@
 import { IonPage, IonContent, IonInput, IonButton, IonRouterLink } from "@ionic/react";
-import validatePhoneNumber from "../../utils/utils";
 import useFormInput from "../../Hooks/useFormInput";
 import { useContext, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthProvider";
+import { validatePhoneNumber } from "../../utils/utils";
 
 const Login: React.FC = () => {
     const history = useHistory();
     const { sendOtp } = useContext(AuthContext)!;
-    const phone = useFormInput("", validatePhoneNumber);
+    const phone = useFormInput<string>("", validatePhoneNumber);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleLogin = async () => {

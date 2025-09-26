@@ -1,8 +1,10 @@
 import React from "react";
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton } from "@ionic/react";
-import { IonRouterLink } from "@ionic/react";
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon } from "@ionic/react";
+import { addOutline } from 'ionicons/icons';
+import { useHistory } from "react-router";
 
 const Home: React.FC = () => {
+    const history = useHistory()
     return (
         <IonPage>
             <IonHeader>
@@ -12,9 +14,10 @@ const Home: React.FC = () => {
             </IonHeader>
             <IonContent className="ion-padding">
                 <p>Welcome to the home page!</p>
-                <IonRouterLink routerLink="/details">
-                    Go to details
-                </IonRouterLink>
+
+                <IonButton onClick={()=>{history.push('/createNewGroup')}} >
+                    <IonIcon slot="icon-only" icon={addOutline}></IonIcon>
+                </IonButton>
             </IonContent>
         </IonPage>
     );

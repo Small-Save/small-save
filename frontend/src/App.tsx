@@ -26,6 +26,7 @@ import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
+import CreateNewGroup from "./pages/CreateNewGroup/CreateNewGroup";
 
 setupIonicReact({
     mode: "md"
@@ -55,6 +56,9 @@ const App: React.FC = () => (
                     {/* Protected pages → must be logged in */}
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
+                    </Route>
+                    <Route exact path="/createNewGroup">
+                        <ProtectedRoute component={CreateNewGroup} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

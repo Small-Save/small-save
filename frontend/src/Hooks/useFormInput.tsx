@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 
-function useFormInput(initial: any, validate?: (v: string) => ValidationResult, transform?: (v: string) => string) {
-    const [value, setValue] = useState<any>(initial);
+function useFormInput<T>(initial: T, validate?: (v: T) => ValidationResult, transform?: (v: T) => T) {
+    const [value, setValue] = useState<T>(initial);
     const [touched, setTouched] = useState<boolean>(false);
 
     // compute validation result
@@ -11,7 +11,7 @@ function useFormInput(initial: any, validate?: (v: string) => ValidationResult, 
 
     const handleInput = (e: CustomEvent) => {
         const input = e.target as HTMLInputElement;
-        let newValue = input?.value ?? "";
+        let newValue = input?.value as T;
         if (transform) newValue = transform(newValue);
         setValue(newValue);
     };

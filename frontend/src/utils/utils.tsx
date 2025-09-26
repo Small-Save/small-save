@@ -1,4 +1,4 @@
-const validatePhoneNumber = (phone: string): ValidationResult => {
+export const validatePhoneNumber = (phone: string): ValidationResult => {
     if (/^\d{10}$/.test(phone)) {
         return { isValid: true };
     } else {
@@ -20,4 +20,28 @@ export const formatTime = (seconds: number) => {
     return `${m}:${s}`;
 };
 
-export default validatePhoneNumber;
+export const validateTargetAmount = (v: string): ValidationResult => {
+    const amount = parseFloat(v);
+    if (!isNaN(amount) && amount > 0) {
+        return { isValid: true };
+    } else {
+        return { isValid: false, errorText: "Invalid Target Amount" };
+    }
+};
+export const validateDuration = (v: string): ValidationResult => {
+    const duration = parseInt(v);
+    if (!isNaN(duration) && duration > 0) {
+        return { isValid: true };
+    } else {
+        return { isValid: false, errorText: "Invalid Duration" };
+    }
+};
+export const validateGroupSize = (v: string): ValidationResult => {
+    const size = parseInt(v);
+    if (!isNaN(size) && size > 0) {
+        return { isValid: true };
+    } else {
+        return { isValid: false, errorText: "Invalid Group Size" };
+    }
+};
+

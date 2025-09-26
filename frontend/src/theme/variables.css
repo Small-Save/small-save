@@ -26,3 +26,11 @@ http://ionicframework.com/docs/theming/ */
 ion-button {
     text-transform: none !important;
 }
+
+ion-toolbar {
+  --min-height: 100px; /* increase header height */
+}
+
+ion-input.custom {
+      --placeholder-opacity: 0.4;
+}

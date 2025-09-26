@@ -1,7 +1,12 @@
 # views.py
 from rest_framework import generics, status
 from Groups.models import Group, GroupMember
-from Groups.serializers import GroupCreateSerializer, GroupReadSerializer
+from Groups.serializers import (
+    GroupCreateSerializer,
+    GroupReadSerializer,
+    GroupUpdateSerializer,
+)
+from Groups.permissions import IsGroupAdmin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import IntegrityError, transaction
@@ -96,3 +101,92 @@ class GroupCreateAPIView(generics.CreateAPIView):
         except Exception as exc:
             logger.exception("Unexpected error creating group: %s", exc)
             raise
+
+
+class UserGroupListAPIView(generics.ListAPIView):
+    """
+    Lists all groups the authenticated user is a member of.
+    Optional query param: ?simple=true for a lighter serializer.
+    """
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupReadSerializer
+
+    def get_queryset(self):
+        return (
+            Group.objects.filter(groupmember__user=self.request.user)
+            .distinct()
+            .select_related("created_by")
+            .prefetch_related("groupmember_set__user")
+            .order_by("-created_at")
+        )
+
+    def list(self, request, *args, **kwargs):
+        logger.info("UserGroupListAPIView called by user_id=%s", request.user.id)
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(
+            page if page is not None else queryset, many=True
+        )
+        logger.info(
+            "UserGroupListAPIView success user_id=%s groups_returned=%d",
+            request.user.id,
+            len(serializer.data),
+        )
+
+        response = CustomResponse(
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+            message="Groups fetched",
+        )
+        return response
+
+
+class GroupUpdateAPIView(generics.UpdateAPIView):
+    """
+    Admin-only update of a group.
+    Allowed fields: name, target_amount, duration, winner_selection_method, start_date.
+    """
+
+    queryset = Group.objects.all().select_related("created_by")
+    serializer_class = GroupUpdateSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsGroupAdmin]
+    lookup_url_kwarg = "group_id"
+    lookup_field = "id"
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.get("partial", False)
+        group = self.get_object()
+        serializer = self.get_serializer(group, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            with transaction.atomic():
+                serializer.save()
+                logger.info(
+                    "Group updated: group_id=%s by user_id=%s fields=%s",
+                    group.id,
+                    request.user.id,
+                    list(serializer.validated_data.keys()),
+                )
+        except IntegrityError as exc:
+            logger.exception("Integrity error updating group: %s", exc)
+            raise ConflictError("Could not update group due to integrity error.")
+        except Exception as exc:
+            logger.exception("Unexpected error updating group: %s", exc)
+            raise
+
+        refreshed = (
+            Group.objects.select_related("created_by")
+            .prefetch_related("groupmember_set__user")
+            .get(id=group.id)
+        )
+        read_data = GroupReadSerializer(refreshed).data
+        return CustomResponse(
+            data=read_data,
+            status_code=status.HTTP_200_OK,
+            message="Group updated successfully",
+            toast_message="Group updated ✅",
+        )

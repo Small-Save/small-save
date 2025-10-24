@@ -15,7 +15,7 @@ const Home: React.FC = () => {
             <IonContent className="ion-padding">
                 <p>Welcome to the home page!</p>
 
-                <IonButton onClick={()=>{history.push('/createNewGroup')}} >
+                <IonButton onClick={()=>{history.push('/group/new')}} >
                     <IonIcon slot="icon-only" icon={addOutline}></IonIcon>
                 </IonButton>
             </IonContent>

@@ -14,6 +14,14 @@ from django.contrib.auth import get_user_model
 
 from utils.exceptions import BadRequestError, ConflictError
 from utils.response import CustomResponse
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+
+from django.core.exceptions import ValidationError
+from Groups.services import validate_contact_data
 
 import logging
 
@@ -190,3 +198,152 @@ class GroupUpdateAPIView(generics.UpdateAPIView):
             message="Group updated successfully",
             toast_message="Group updated ✅",
         )
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def verify_contacts(request):
+    logger.info(
+        "verify_contacts called by user_id=%s with %d contacts",
+        request.user.id,
+        len(request.data.get("contacts", [])),
+    )
+
+    try:
+        contacts = request.data.get("contacts", [])
+
+        if not isinstance(contacts, list):
+            raise BadRequestError("'contacts' must be a list")
+
+        if len(contacts) > 100:  # Reasonable limit
+            raise BadRequestError("Maximum 100 contacts allowed per request")
+
+        if not contacts:
+            return CustomResponse(
+                data={
+                    "existing_users": [],
+                    "invite_needed": [],
+                    "invalid_contacts": [],
+                },
+                message="No contacts provided",
+            )
+
+        # Validate and normalize all contacts
+        valid_contacts = []
+        invalid_contacts = []
+
+        for i, contact in enumerate(contacts):
+            try:
+                validated_contact = validate_contact_data(contact)
+                valid_contacts.append(validated_contact)
+            except ValidationError as e:
+                invalid_contacts.append(
+                    {"contact": contact, "errors": [str(e)], "index": i}
+                )
+                logger.warning(
+                    "Invalid contact at index %d from user_id=%s: %s",
+                    i,
+                    request.user.id,
+                    str(e),
+                )
+
+        if not valid_contacts:
+            return CustomResponse(
+                data={
+                    "existing_users": [],
+                    "invite_needed": [],
+                    "invalid_contacts": invalid_contacts,
+                },
+                message="No valid contacts provided",
+            )
+
+        # Collect all phones and emails for bulk query
+        phones = [c["phone"] for c in valid_contacts if "phone" in c]
+        emails = [c["email"] for c in valid_contacts if "email" in c]
+
+        # Bulk query for existing users
+        existing_users_qs = User.objects.none()
+
+        if phones:
+            existing_users_qs = existing_users_qs.union(
+                User.objects.filter(phone_number__in=phones)
+                .select_related()
+                .only("id", "phone_number", "email", "first_name", "last_name")
+            )
+
+        if emails:
+            existing_users_qs = existing_users_qs.union(
+                User.objects.filter(email__in=emails)
+                .select_related()
+                .only("id", "phone_number", "email", "first_name", "last_name")
+            )
+
+        existing_users_list = list(existing_users_qs)
+
+        # Create lookup dictionaries for efficient matching
+        users_by_phone = {
+            u.phone_number: u for u in existing_users_list if u.phone_number
+        }
+        users_by_email = {u.email: u for u in existing_users_list if u.email}
+
+        # Categorize contacts
+        existing_users = []
+        invite_needed = []
+
+        for contact in valid_contacts:
+            user = None
+
+            # Check phone first, then email
+            if "phone" in contact and contact["phone"] in users_by_phone:
+                user = users_by_phone[contact["phone"]]
+            elif "email" in contact and contact["email"] in users_by_email:
+                user = users_by_email[contact["email"]]
+
+            if user:
+                # Exclude current user from results
+                if user.id != request.user.id:
+                    existing_users.append(
+                        {
+                            "contact": contact,
+                            "user": {
+                                "id": user.id,
+                                "phone_number": user.phone_number,
+                                "email": user.email,
+                                "full_name": f"{user.first_name} {user.last_name}".strip()
+                                or "User",
+                                "first_name": user.first_name,
+                                "last_name": user.last_name,
+                            },
+                        }
+                    )
+            else:
+                invite_needed.append(contact)
+
+        logger.info(
+            "verify_contacts completed for user_id=%s: %d existing, %d invite_needed, %d invalid",
+            request.user.id,
+            len(existing_users),
+            len(invite_needed),
+            len(invalid_contacts),
+        )
+
+        return CustomResponse(
+            data={
+                "existing_users": existing_users,
+                "invite_needed": invite_needed,
+                "invalid_contacts": invalid_contacts,
+            },
+            message=f"Verified {len(valid_contacts)} contacts",
+            status_code=status.HTTP_200_OK,
+        )
+
+    except BadRequestError:
+        raise
+    except Exception as exc:
+        logger.exception(
+            "Unexpected error in verify_contacts for user_id=%s: %s",
+            request.user.id,
+            exc,
+        )
+        raise BadRequestError("Failed to verify contacts. Please try again.")

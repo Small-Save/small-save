@@ -26,11 +26,20 @@ import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
-import CreateNewGroup from "./pages/CreateNewGroup/CreateNewGroup";
+import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
+import AddMembers from "./pages/CreateGroup/AddMembers";
 
 setupIonicReact({
     mode: "md"
 });
+const GroupRoutes: React.FC = () => {
+    return (
+        <IonRouterOutlet>
+            <Route path={"/group/new"} component={CreateGroup}></Route>
+            <Route path={"/group/new/members"} component={AddMembers}></Route>
+        </IonRouterOutlet>
+    );
+};
 
 const App: React.FC = () => (
     <IonApp>
@@ -57,8 +66,8 @@ const App: React.FC = () => (
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
                     </Route>
-                    <Route exact path="/createNewGroup">
-                        <ProtectedRoute component={CreateNewGroup} />
+                    <Route path="/group">
+                        <ProtectedRoute component={GroupRoutes} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

@@ -12,9 +12,8 @@ api.interceptors.request.use(
         //todo: change this to capacitor preference
         // const token = localStorage.getItem("authToken");
         const accessToken = await Preferences.get({ key: "access_token" });
-
         if (accessToken) {
-            config.headers.Authorization = `Bearer ${accessToken}`;
+            config.headers.Authorization = `Bearer ${accessToken.value}`;
         }
         config.headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
 

@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from utils.response import CustomResponse
 
 from ..models import Register, User
-from ..serializers import register_user_serializer
+from Authentication.serializers import RegisterUserSerializer
 
 import logging
 
@@ -18,7 +18,7 @@ logger = logging.getLogger("api")
 class RegisterUser(APIView):
     def post(self, request):
         logger.info("Registration request received")
-        serializer = register_user_serializer.RegisterUserSerializer(data=request.data)
+        serializer = RegisterUserSerializer(data=request.data)
         if not serializer.is_valid():
             logger.warning(f"Registration failed: invalid data {serializer.errors}")
             return CustomResponse(

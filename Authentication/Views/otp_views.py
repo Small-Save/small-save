@@ -5,7 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from utils.response import CustomResponse
 
 from Authentication.models import Register, User
-from Authentication.serializers import otp_serializers
+from Authentication.serializers import SendOtpSerializer, VerifyOtpSerializer
 from Authentication.services.twilio_service import send_otp
 import logging
 import random
@@ -15,7 +15,7 @@ logger = logging.getLogger("api")
 
 class SendOtp(APIView):
     def post(self, request):
-        serializers = otp_serializers.SendOtpSerializer(data=request.data)
+        serializers = SendOtpSerializer(data=request.data)
 
         if serializers.is_valid():
             phone = serializers.validated_data["phone_number"]
@@ -42,7 +42,7 @@ class SendOtp(APIView):
 
 class VerifyOtp(APIView):
     def post(self, request):
-        serializer = otp_serializers.VerifyOtpSerializer(data=request.data)
+        serializer = VerifyOtpSerializer(data=request.data)
 
         if not serializer.is_valid():
             logger.error("Invalid input")

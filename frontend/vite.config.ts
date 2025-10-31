@@ -15,7 +15,7 @@ export default defineConfig({
     tsconfigPaths()
   ],
   server: {
-    allowedHosts:["55116cb9b752.ngrok-free.app"],
+    // allowedHosts:[""],
     port:3000,
   },
   test: {

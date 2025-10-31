@@ -28,18 +28,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
 import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
 import AddMembers from "./pages/CreateGroup/AddMembers";
+import { GroupCreationProvider } from "contexts/GroupCreationContext";
 
 setupIonicReact({
     mode: "md"
 });
-const GroupRoutes: React.FC = () => {
-    return (
-        <IonRouterOutlet>
-            <Route path={"/group/new"} component={CreateGroup}></Route>
-            <Route path={"/group/new/members"} component={AddMembers}></Route>
-        </IonRouterOutlet>
-    );
-};
 
 const App: React.FC = () => (
     <IonApp>
@@ -66,8 +59,17 @@ const App: React.FC = () => (
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
                     </Route>
+
+                    {/* Group routes - shared context */}
                     <Route path="/group">
-                        <ProtectedRoute component={GroupRoutes} />
+                        <ProtectedRoute>
+                            <GroupCreationProvider>
+                                <IonRouterOutlet>
+                                    <Route exact path="/group/new" component={CreateGroup} />
+                                    <Route exact path="/group/new/members" component={AddMembers} />
+                                </IonRouterOutlet>
+                            </GroupCreationProvider>
+                        </ProtectedRoute>
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

@@ -5,12 +5,14 @@ import { Redirect, RouteProps } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthProvider";
 
 interface ProtectedRouteProps extends RouteProps {
-    component: React.ComponentType<any>;
+    component?: React.ComponentType<any>;
+    children?: React.ReactNode;
     redirectIfNotAuth?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     component: Component,
+    children,
     redirectIfNotAuth = "/login",
     ...rest
 }) => {
@@ -31,7 +33,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Redirect to={redirectIfNotAuth} />;
     }
 
-    return <Component {...rest} />;
+    if (Component) {
+        return <Component {...rest} />;
+    }
+
+    return <>{children}</>;
 };
 
 export default ProtectedRoute;

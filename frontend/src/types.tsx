@@ -1,3 +1,12 @@
+type User = {
+    id: string;
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+    email: string;
+    phone_number: string;
+};
+
 type ValidationResult = {
     isValid: boolean;
     errorText?: string;
@@ -9,4 +18,10 @@ type BaseResponse<T> = {
     toast_message: string | null;
     message: string | null;
     error: string | null;
+};
+
+type Contact = {
+    name: string;
+    phone_number: string;
+    email: string;
 };

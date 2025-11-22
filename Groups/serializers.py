@@ -1,18 +1,18 @@
 # serializers.py
 from rest_framework import serializers
 from .models import Group, GroupMember
-from Authentication.serializers import UserLiteSerializer
 
 from django.utils import timezone
 import datetime
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):
-    user = UserLiteSerializer(read_only=True)
+    id = serializers.UUIDField(source="user.id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = GroupMember
-        fields = ("user",)
+        fields = ("id", "username")
 
 
 class GroupReadSerializer(serializers.ModelSerializer):

@@ -36,7 +36,7 @@ def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(contact, dict):
         raise ValidationError("Contact must be a dictionary")
 
-    phone = contact.get("phone")
+    phone = contact.get("phone_number")
     email = contact.get("email")
     name = contact.get("name", "").strip()
 
@@ -48,11 +48,12 @@ def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
     # Validate and normalize phone
     if phone:
         # Try to detect region from user's profile or default to None for international parsing
-        normalized_phone = normalize_phone_number(phone)
-        if normalized_phone:
-            validated_contact["phone"] = normalized_phone
-        else:
-            raise ValidationError(f"Invalid phone number: {phone}")
+        # normalized_phone = normalize_phone_number(phone)
+        # if normalized_phone:
+        #     validated_contact["phone"] = normalized_phone
+        validated_contact["phone"] = phone
+        # else:
+        #     raise ValidationError(f"Invalid phone number: {phone}")
 
     # Validate email
     if email:

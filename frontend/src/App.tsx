@@ -61,16 +61,14 @@ const App: React.FC = () => (
                     </Route>
 
                     {/* Group routes - shared context */}
-                    <Route path="/group">
-                        <ProtectedRoute>
-                            <GroupCreationProvider>
-                                <IonRouterOutlet>
-                                    <Route exact path="/group/new" component={CreateGroup} />
-                                    <Route exact path="/group/new/members" component={AddMembers} />
-                                </IonRouterOutlet>
-                            </GroupCreationProvider>
-                        </ProtectedRoute>
-                    </Route>
+                    <GroupCreationProvider>
+                        <Route exact path="/group/new">
+                            <ProtectedRoute component={CreateGroup} />
+                        </Route>
+                        <Route exact path="/group/new/members">
+                            <ProtectedRoute component={AddMembers} />
+                        </Route>
+                    </GroupCreationProvider>
                 </IonRouterOutlet>
             </IonReactRouter>
         </AuthProvider>

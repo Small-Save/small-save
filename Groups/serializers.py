@@ -1,16 +1,10 @@
 # serializers.py
 from rest_framework import serializers
 from .models import Group, GroupMember
-from django.contrib.auth import get_user_model
+from Authentication.serializers import UserLiteSerializer
+
 from django.utils import timezone
-
-User = get_user_model()
-
-
-class UserLiteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("id", "username")
+import datetime
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):
@@ -50,6 +44,7 @@ class GroupCreateSerializer(serializers.ModelSerializer):
             "winner_selection_method",
             "start_date",
             "members",
+            "member_ids"
         )
         choices = Group.WINNER_SELECTION_CHOICES
 
@@ -63,8 +58,9 @@ class GroupCreateSerializer(serializers.ModelSerializer):
     # TODO: add validations based on size and duration(size should be related to duration)
     def validate_start_date(self, value):
         # TODO may need to add validation based on usecase
+        value_date = timezone.localtime(value).date()
         today = timezone.localdate()
-        if value < today:
+        if value_date < today:
             raise serializers.ValidationError("start_date cannot be in the past.")
         return value
 
@@ -124,8 +120,9 @@ class GroupUpdateSerializer(serializers.ModelSerializer):
     # TODO: add some higher limit to target_amount
     def validate_start_date(self, value):
         # Provided start_date must not be in the past
+        value_date = timezone.localtime(value).date()
         today = timezone.localdate()
-        if value < today:
+        if value_date < today:
             raise serializers.ValidationError("start_date cannot be in the past.")
         return value
 

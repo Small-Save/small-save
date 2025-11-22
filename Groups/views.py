@@ -6,6 +6,7 @@ from Groups.serializers import (
     GroupReadSerializer,
     GroupUpdateSerializer,
 )
+from Authentication.serializers import BaseUserSerializer
 from Groups.permissions import IsGroupAdmin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -25,7 +26,7 @@ from Groups.services import validate_contact_data
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("api")
 User = get_user_model()
 
 
@@ -216,9 +217,6 @@ def verify_contacts(request):
         if not isinstance(contacts, list):
             raise BadRequestError("'contacts' must be a list")
 
-        if len(contacts) > 100:  # Reasonable limit
-            raise BadRequestError("Maximum 100 contacts allowed per request")
-
         if not contacts:
             return CustomResponse(
                 data={
@@ -303,20 +301,7 @@ def verify_contacts(request):
             if user:
                 # Exclude current user from results
                 if user.id != request.user.id:
-                    existing_users.append(
-                        {
-                            "contact": contact,
-                            "user": {
-                                "id": user.id,
-                                "phone_number": user.phone_number,
-                                "email": user.email,
-                                "full_name": f"{user.first_name} {user.last_name}".strip()
-                                or "User",
-                                "first_name": user.first_name,
-                                "last_name": user.last_name,
-                            },
-                        }
-                    )
+                    existing_users.append(BaseUserSerializer(user).data)
             else:
                 invite_needed.append(contact)
 

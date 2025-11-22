@@ -10,20 +10,36 @@ import {
     IonLabel,
     IonIcon
 } from "@ionic/react";
-import { arrowBack} from "ionicons/icons";
-import { useHistory } from "react-router";
+import { arrowBack } from "ionicons/icons";
+import { useIonRouter } from "@ionic/react";
 import useFormInput from "Hooks/useFormInput";
 import { validateDuration, validateGroupSize, validateTargetAmount } from "lib/utils";
+import { useGroupCreation } from "contexts/GroupCreationContext";
 
 const CreateGroup: React.FC = () => {
-    const history = useHistory();
+    const ionRouter = useIonRouter();
+    const { setDetails } = useGroupCreation();
+
     const winnerMethod = useFormInput<"random" | "bidding">("random");
 
     const groupName = useFormInput("");
     const targetAmount = useFormInput("", validateTargetAmount);
     const duration = useFormInput("", validateDuration);
     const groupSize = useFormInput("", validateGroupSize);
+    const startDate = useFormInput("2025-11-01T00:00:00.000Z");
 
+    const handleAddMembers = () => {
+        const groupDetails = {
+            groupName: groupName.value,
+            targetAmount: Number(targetAmount.value),
+            duration: Number(duration.value),
+            groupSize: Number(groupSize.value),
+            winnerMethod: winnerMethod.value,
+            startDate: startDate.value ? new Date(startDate.value).toISOString() : startDate.value
+        };
+        setDetails(groupDetails);
+        ionRouter.push("/group/new/members", "forward");
+    };
 
     return (
         <IonPage>
@@ -31,7 +47,7 @@ const CreateGroup: React.FC = () => {
             <IonHeader>
                 <IonToolbar color="dark">
                     <IonButtons slot="start">
-                        <IonButton onClick={() => history.goBack()}>
+                        <IonButton onClick={() => ionRouter.goBack()}>
                             <IonIcon icon={arrowBack} />
                         </IonButton>
                     </IonButtons>
@@ -43,7 +59,7 @@ const CreateGroup: React.FC = () => {
             </IonHeader>
 
             {/* Content */}
-            <IonContent className="ion-padding" scrollY={false}>
+            <IonContent className="ion-padding">
                 <div className="h-full">
                     <p className="text-sm text-gray-500 text-center">
                         Fill in the details below to create your savings group
@@ -109,7 +125,15 @@ const CreateGroup: React.FC = () => {
                                 Bidding
                             </IonButton>
                         </div>
-                        <IonInput type="text" placeholder="Pick a date" />
+
+                        <IonInput
+                            type="datetime-local"
+                            className="custom"
+                            label="Start Date"
+                            labelPlacement="stacked"
+                            placeholder="Pick a date"
+                            {...startDate.bind}
+                        />
                         {/* Submit Button */}
                         <IonButton
                             expand="block"
@@ -118,7 +142,7 @@ const CreateGroup: React.FC = () => {
                             disabled={
                                 !groupSize.isValid || !targetAmount.isValid || !groupName.isValid || !duration.isValid
                             }
-                            onClick={()=>history.push("/group/new/members")}
+                            onClick={handleAddMembers}
                         >
                             Next : Add Members
                         </IonButton>

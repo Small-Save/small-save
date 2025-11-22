@@ -12,11 +12,14 @@ class CustomResponse(Response):
         toast_message: str | None = None,
         message: str | None = None,
         error: str | None = "",
-        status: str | int = status.HTTP_200_OK,
+        status_code: int = status.HTTP_200_OK,
     ):
         if data is None:
             data = {}
-        super().__init__(self._format_response(is_success, data, message, toast_message, error), status)
+        super().__init__(
+            self._format_response(is_success, data, message, toast_message, error),
+            status_code,
+        )
 
     @staticmethod
     def _format_response(is_success: bool, data: dict, message: str, toast_message: str, error: str) -> dict:

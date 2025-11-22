@@ -1,3 +1,13 @@
+ 
+type User = {
+    id: string;
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+    email: string;
+    phone_number: string;
+};
+
 export type ValidationResult = {
     isValid: boolean;
     errorText?: string;
@@ -29,11 +39,8 @@ export interface Member {
     id: string
     username: string
 }
-type User = {
-    id: string;
-    username?: string;
-    first_name?: string;
-    last_name?: string;
-    email: string;
+type Contact = {
+    name: string;
     phone_number: string;
+    email: string;
 };

@@ -14,6 +14,7 @@ import "@ionic/react/css/normalize.css";
 import "@ionic/react/css/structure.css";
 import "@ionic/react/css/typography.css";
 import "./theme/variables.css";
+import "./theme/global.css"
 
 /* Optional CSS utils that can be commented out */
 import "@ionic/react/css/padding.css";
@@ -27,6 +28,9 @@ import { AuthProvider } from "./contexts/AuthProvider";
 import OnBoard from "./pages/Login/onboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
+import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
+import AddMembers from "./pages/CreateGroup/AddMembers";
+import { GroupCreationProvider } from "contexts/GroupCreationContext";
 
 setupIonicReact({
     mode: "md"
@@ -60,6 +64,16 @@ const App: React.FC = () => (
                     <Route exact path="/onboard">
                         <ProtectedRoute component={OnBoard} />
                     </Route>
+
+                    {/* Group routes - shared context */}
+                    <GroupCreationProvider>
+                        <Route exact path="/group/new">
+                            <ProtectedRoute component={CreateGroup} />
+                        </Route>
+                        <Route exact path="/group/new/members">
+                            <ProtectedRoute component={AddMembers} />
+                        </Route>
+                    </GroupCreationProvider>
                 </IonRouterOutlet>
             </IonReactRouter>
         </AuthProvider>

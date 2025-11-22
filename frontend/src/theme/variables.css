@@ -42,3 +42,10 @@ ion-button {
     border-radius: 15%;
     background: var(--ion-color-primary);
 }
+ion-toolbar {
+  --min-height: 100px; /* increase header height */
+}
+
+ion-input.custom {
+      --placeholder-opacity: 0.4;
+}

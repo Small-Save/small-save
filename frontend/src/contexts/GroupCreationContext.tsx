@@ -10,7 +10,7 @@ export type GroupDetails = {
 };
 
 type GroupCreationContextType = {
-    details: GroupDetails | null;
+    groupInfo: GroupDetails | null;
     setDetails: (d: GroupDetails) => void;
     reset: () => void;
 };
@@ -24,7 +24,7 @@ export const GroupCreationProvider: React.FC<{ children: React.ReactNode }> = ({
     const reset = () => setDetailsState(null);
 
     return (
-        <GroupCreationContext.Provider value={{ details, setDetails, reset }}>{children}</GroupCreationContext.Provider>
+        <GroupCreationContext.Provider value={{ groupInfo: details, setDetails, reset }}>{children}</GroupCreationContext.Provider>
     );
 };
 

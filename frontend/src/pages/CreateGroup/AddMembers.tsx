@@ -8,12 +8,21 @@ import { useGroupCreation } from "contexts/GroupCreationContext";
 
 const AddMembers: React.FC = () => {
     const ionRouter = useIonRouter();
-    const { details, reset } = useGroupCreation();
+    const { groupInfo, reset } = useGroupCreation();
 
     const [existingUsers, setExistingUsers] = useState<User[]>([]);
     const [inviteNeeded, setInviteNeeded] = useState<Contact[]>([]);
     const [searchText, setSearchText] = useState("");
     const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (!groupInfo) {
+            console.error("No group details available");
+            // Navigate back to create group page
+            ionRouter.push("/group/new", "back");
+            return;
+        }
+    });
 
     const handleFetchContacts = async () => {
         try {
@@ -31,25 +40,25 @@ const AddMembers: React.FC = () => {
     };
 
     const handleCreateGroup = async () => {
-        if (!details) {
-            console.error("No group details available");
+        if (!groupInfo) {
+            console.error("No group groupInfo available");
             // Navigate back to create group page
             ionRouter.push("/group/new", "back");
             return;
         }
-        if (selectedMembers.size === details.groupSize) {
+        if (selectedMembers.size !== groupInfo.groupSize) {
             // TODO show some error
             return;
         }
 
         const payload = {
-            name: details.groupName,
-            target_amount: details.targetAmount,
-            duration: details.duration,
-            size: details.groupSize,
-            winner_selection_method: details.winnerMethod,
+            name: groupInfo.groupName,
+            target_amount: groupInfo.targetAmount,
+            duration: groupInfo.duration,
+            size: groupInfo.groupSize,
+            winner_selection_method: groupInfo.winnerMethod,
             member_ids: Array.from(selectedMembers),
-            start_date: details.startDate
+            start_date: groupInfo.startDate
         };
 
         try {
@@ -64,7 +73,6 @@ const AddMembers: React.FC = () => {
     };
 
     useEffect(() => {
-        console.log(details)
         handleFetchContacts();
     }, []);
 
@@ -90,15 +98,15 @@ const AddMembers: React.FC = () => {
         <IonPage>
             {/* Header */}
             <IonHeader>
-                <IonToolbar className="">
+                <IonToolbar color="dark">
                     <IonButtons slot="start">
-                        <IonButton onClick={() => ionRouter.goBack()} className="text-white">
-                            <IonIcon icon={arrowBack} className="text-white" />
+                        <IonButton onClick={() => ionRouter.goBack()}>
+                            <IonIcon icon={arrowBack} />
                         </IonButton>
                     </IonButtons>
-                    <div className="flex flex-col items-center justify-center py-2">
-                        <p className="text-lg font-bold text-white m-0">Create New Group</p>
-                        <p className="text-sm text-gray-300 m-0">Add Group Members</p>
+                    <div className="flex flex-col items-center">
+                        <p className="text-lg">Create New Group</p>
+                        <p className="text-sm">Add Group Members</p>
                     </div>
                 </IonToolbar>
             </IonHeader>
@@ -120,6 +128,7 @@ const AddMembers: React.FC = () => {
                             className="custom-searchbar p-0"
                         />
                     </div>
+                    {/* TODO: Add a list of added members section  */}
 
                     {/* Contacts List Container */}
                     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -135,18 +144,19 @@ const AddMembers: React.FC = () => {
                                             {contact.username}
                                         </span>
                                     </div>
-                                    <button
+                                    <IonButton
                                         // TODO: May need to change this to take ID
                                         onClick={() => toggleMember(contact.id)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                                        size="small"
+                                        className={`invite-btn ${
                                             selectedMembers.has(contact.id)
-                                                ? "bg-green-600 text-white"
-                                                : "bg-gray-800 text-white hover:bg-gray-700"
+                                                ? "bg-green-600 text-white": ""
                                         }`}
+
                                     >
                                         <IonIcon icon={addOutline} className="text-lg" />
                                         {selectedMembers.has(contact.id) ? "Added" : "Add"}
-                                    </button>
+                                    </IonButton>
                                 </div>
                             ))}
 
@@ -159,10 +169,10 @@ const AddMembers: React.FC = () => {
                                     <div className="flex items-center gap-3">
                                         <span className="text-base font-semibold text-gray-800">{contact.name}</span>
                                     </div>
-                                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm bg-gray-800 text-white hover:bg-gray-700 transition-colors">
+                                    <IonButton size="small" className="invite-btn" >
                                         <IonIcon icon={shareSocialOutline} className="text-lg" />
                                         Invite
-                                    </button>
+                                    </IonButton>
                                 </div>
                             ))}
                         </div>
@@ -170,15 +180,16 @@ const AddMembers: React.FC = () => {
                 </div>
 
                 {/* Create Group Button */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-50">
-                    <button
-                        className="w-full bg-[#1a1a2e] text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:bg-[#252541] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={selectedMembers.size !== details?.groupSize}
-                        onClick={handleCreateGroup}
-                    >
-                        Create Group
-                    </button>
-                </div>
+
+                <IonButton
+                    expand="block"
+                    className="ion-margin-top"
+                    color="dark"
+                    disabled={selectedMembers.size !== groupInfo?.groupSize}
+                    onClick={handleCreateGroup}
+                >
+                    Create Group
+                </IonButton>
             </IonContent>
         </IonPage>
     );

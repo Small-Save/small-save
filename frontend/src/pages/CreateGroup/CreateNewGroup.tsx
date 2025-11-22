@@ -8,7 +8,10 @@ import {
     IonContent,
     IonInput,
     IonLabel,
-    IonIcon
+    IonIcon,
+    IonDatetime,
+    IonDatetimeButton,
+    IonModal
 } from "@ionic/react";
 import { arrowBack } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
@@ -26,7 +29,9 @@ const CreateGroup: React.FC = () => {
     const targetAmount = useFormInput("", validateTargetAmount);
     const duration = useFormInput("", validateDuration);
     const groupSize = useFormInput("", validateGroupSize);
-    const startDate = useFormInput("2025-11-01T00:00:00.000Z");
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const startDate = useFormInput(tomorrow.toISOString().split("T")[0]);
 
     const handleAddMembers = () => {
         const groupDetails = {
@@ -125,15 +130,17 @@ const CreateGroup: React.FC = () => {
                                 Bidding
                             </IonButton>
                         </div>
-
-                        <IonInput
-                            type="datetime-local"
-                            className="custom"
-                            label="Start Date"
-                            labelPlacement="stacked"
-                            placeholder="Pick a date"
-                            {...startDate.bind}
-                        />
+                        <IonLabel> Pick a Date</IonLabel>
+                        <IonDatetimeButton datetime="datetime"></IonDatetimeButton>
+                        <IonModal keepContentsMounted={true}>
+                            <IonDatetime
+                                id="datetime"
+                                presentation="date"
+                                min={tomorrow.toISOString()}
+                                value={startDate.value}
+                                onIonChange={(e) => startDate.setValue((e.detail.value as string) ?? "")}
+                            ></IonDatetime>
+                        </IonModal>
                         {/* Submit Button */}
                         <IonButton
                             expand="block"

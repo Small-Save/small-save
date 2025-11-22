@@ -26,14 +26,14 @@ export interface Group {
     size: number;
     duration: number;
     winner_selection_method: string;
-    start_date: string; // ISO date string
-    created_at: string; // ISO timestamp
+    start_date: string;
+    created_at: string;
     members: Member[];
 }
 
 export interface Member {
     user: User;
-    joined_at: string; // ISO timestamp
+    joined_at: string;
 }
 
 export const createGroup = async (data: any): Promise<BaseResponse<Group>> => {

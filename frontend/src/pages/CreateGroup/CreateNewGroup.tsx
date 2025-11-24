@@ -1,13 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import {
-    IonPage,
-    IonButton,
-    IonContent,
-    IonLabel,
-    IonDatetime,
-    IonDatetimeButton,
-    IonModal,
-} from "@ionic/react";
+import { IonPage, IonButton, IonContent, IonLabel, IonDatetime, IonDatetimeButton, IonModal } from "@ionic/react";
 import { useIonRouter } from "@ionic/react";
 import useFormInput from "Hooks/useFormInput";
 import { validateDuration, validateGroupSize, validateTargetAmount } from "lib/utils";
@@ -15,13 +7,7 @@ import { useGroupCreation, GroupDetails } from "contexts/GroupCreationContext";
 import { HeaderBox } from "components/HeaderBox";
 import { Field } from "components/Field";
 
-// Winner method values allowed across app (sync with backend choices if needed)
 type WinnerMethod = GroupDetails["winnerMethod"];
-
-// Simple reusable field wrapper to reduce duplication
-
-
-
 
 const CreateGroup: React.FC = () => {
     const ionRouter = useIonRouter();
@@ -68,7 +54,17 @@ const CreateGroup: React.FC = () => {
         };
         setDetails(details);
         ionRouter.push("/group/new/members", "forward");
-    }, [isFormValid, groupName.value, targetAmount.value, duration.value, groupSize.value, winnerMethod.value, startDate.value, setDetails, ionRouter]);
+    }, [
+        isFormValid,
+        groupName.value,
+        targetAmount.value,
+        duration.value,
+        groupSize.value,
+        winnerMethod.value,
+        startDate.value,
+        setDetails,
+        ionRouter
+    ]);
 
     return (
         <IonPage>
@@ -77,11 +73,10 @@ const CreateGroup: React.FC = () => {
             <HeaderBox title="Create New Group" subTitle="Setup your savings group" />
             {/* Content */}
             <IonContent className="ion-padding">
-                <div className="h-full">
-                    <p className="text-sm text-gray-500 text-center">
+                <div className="h-full px-3">
+                    <p className="text-xs text-gray-500 text-center mt-3">
                         Fill in the details below to create your savings group
                     </p>
-
                     <div className="flex flex-col gap-2  pt-4 h-full">
                         <Field label="Name Of The Group" placeholder="e.g. Sharmila" hook={groupName} />
                         <Field label="Target Amount (₹)" placeholder="e.g. 10,000" type="number" hook={targetAmount} />
@@ -94,7 +89,7 @@ const CreateGroup: React.FC = () => {
                             {[
                                 { label: "Randomization", value: "random" as WinnerMethod },
                                 { label: "Bidding", value: "bidding" as WinnerMethod }
-                            ].map(option => (
+                            ].map((option) => (
                                 <IonButton
                                     key={option.value}
                                     onClick={() => winnerMethod.setValue(option.value)}
@@ -119,7 +114,7 @@ const CreateGroup: React.FC = () => {
                         {/* Submit Button */}
                         <IonButton
                             expand="block"
-                            className="ion-margin-top"
+                            className="mt-4"
                             color="dark"
                             disabled={!isFormValid}
                             onClick={handleAddMembers}

@@ -1,4 +1,4 @@
-import { IonPage, IonButton, IonIcon, IonContent, IonSearchbar } from "@ionic/react";
+import { IonPage, IonButton, IonIcon, IonContent, IonSearchbar, IonFooter } from "@ionic/react";
 import { checkmarkDoneSharp, arrowRedoOutline, personAddOutline } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
 import { fetchDeviceContacts } from "lib/utils";
@@ -28,8 +28,9 @@ const AddUserComponent: React.FC<AddUserComponentProps> = ({ id, username, isSel
     }, [mode, isSelected]);
 
     return (
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+        <div className="flex items-center justify-between px-4 py-3 border border-gray-200 last:border-b-0 hover:bg-gray-50">
             <div className="flex gap-3">
+                {/* src = {contact.pic ?? profileImageTemp} */}
                 <img src={profileImageTemp} alt={`${username || "User"} avatar`} className="w-10 h-10 rounded-3xl" />
                 <div className="flex items-center gap-3">
                     <span className="text-base font-semibold text-gray-800">{username}</span>
@@ -154,16 +155,16 @@ const AddMembers: React.FC = () => {
             {/* Header */}
             <HeaderBox title="Create New Group" subTitle="Add Group Memebers" />
 
-            <IonContent className="bg-gray-50">
-                <div className="px-4 py-6">
+            <IonContent fullscreen className="ion-padding">
+                <div className="px-3 ">
                     {/* Section Title */}
                     <div className="mb-3">
-                        <span className="text-xl font-bold text-gray-800 mb-1">Add Members</span>
-                        <p className="text-sm text-gray-500">Invite friends to join your savings group</p>
+                        <span className="text-lg font-bold">Add Members</span>
+                        <p className="text-xs text-gray-500">Invite friends to join your savings group</p>
                     </div>
 
                     {/* Search Bar */}
-                    <div className="flex flex-col gap-2 justify-center-safe rounded-2xl shadow-lg">
+                    <div className="flex flex-col rounded-2xl shadow-lg p-1 min-h-150">
                         <IonSearchbar
                             value={searchText}
                             onIonInput={(e) => setSearchText(e.detail.value!)}
@@ -171,9 +172,24 @@ const AddMembers: React.FC = () => {
                             className="search-bar"
                             inputMode="search"
                         />
-
-                        {/* TODO: Add a list of added members section  */}
-                        <div></div>
+                        {/* list of selected users with their image */}
+                        {selectedMembers.size > 0 && (
+                            <div className="flex gap-3 px-3 py-2 my-2 overflow-y-hidden">
+                                {existingUsers
+                                    .filter((contact) => selectedMembers.has(contact.id))
+                                    .map((contact) => {
+                                        return (
+                                            <>
+                                                <img
+                                                    src={profileImageTemp}
+                                                    alt={`${contact.username || "User"} avatar`}
+                                                    className="w-20 h-15 rounded-2xl"
+                                                />
+                                            </>
+                                        );
+                                    })}
+                            </div>
+                        )}
 
                         {/* Contacts List Container */}
                         <div className="bg-white rounded-2xl max-h-200 overflow-hidden">
@@ -181,20 +197,14 @@ const AddMembers: React.FC = () => {
                                 className="px-4 py-2 flex items-center justify-between text-xs text-gray-600"
                                 aria-live="polite"
                             >
+                                <span> Contacts on SmallSave</span>
                                 <span>
                                     Selected: {selectedMembers.size}/{groupInfo?.groupSize ?? "-"}
                                 </span>
-                                {groupInfo &&
-                                    groupInfo.groupSize > 0 &&
-                                    selectedMembers.size < (groupInfo?.groupSize ?? 0) && (
-                                        <span className="ml-2">
-                                            Need {groupInfo.groupSize - selectedMembers.size} more
-                                        </span>
-                                    )}
                                 {loading && <span>Loading contacts...</span>}
                                 {!loading && error && <span className="text-red-600">{error}</span>}
                             </div>
-                            <div className="max-h-[400px] overflow-y-auto ">
+                            <div className="h-full overflow-y-auto ">
                                 {/* Existing Users */}
                                 {filteredExistingUsers.map((contact, idx) => {
                                     const id = deriveId(contact, `existing-${idx}`);
@@ -232,16 +242,17 @@ const AddMembers: React.FC = () => {
                 </div>
 
                 {/* Create Group Button */}
-
-                <IonButton
-                    expand="block"
-                    className="ion-margin-top"
-                    color="dark"
-                    disabled={!groupInfo || selectedMembers.size !== groupInfo.groupSize || loading}
-                    onClick={handleCreateGroup}
-                >
-                    {loading ? "Processing..." : "Create Group"}
-                </IonButton>
+                <IonFooter>
+                    <IonButton
+                        expand="block"
+                        className="mt-4"
+                        color="dark"
+                        disabled={!groupInfo || selectedMembers.size !== groupInfo.groupSize || loading}
+                        onClick={handleCreateGroup}
+                    >
+                        {loading ? "Processing..." : "Create Group"}
+                    </IonButton>
+                </IonFooter>
             </IonContent>
         </IonPage>
     );

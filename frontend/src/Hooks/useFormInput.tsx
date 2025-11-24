@@ -1,4 +1,5 @@
     import { useState } from "react";
+    import type { ValidationResult } from "types";
 
 
     function useFormInput<T>(initial: T, validate?: (v: T) => ValidationResult, transform?: (v: T) => T) {

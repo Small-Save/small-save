@@ -1,4 +1,4 @@
-type User = {
+export type User = {
     id: string;
     username?: string;
     first_name?: string;
@@ -7,12 +7,12 @@ type User = {
     phone_number: string;
 };
 
-type ValidationResult = {
+export type ValidationResult = {
     isValid: boolean;
     errorText?: string;
 };
 
-type BaseResponse<T> = {
+export type BaseResponse<T> = {
     is_success: boolean;
     data: T | null;
     toast_message: string | null;
@@ -20,8 +20,9 @@ type BaseResponse<T> = {
     error: string | null;
 };
 
-type Contact = {
-    name: string;
+export type Contact = {
+    id?: string;
+    username: string;
     phone_number: string;
     email: string;
 };

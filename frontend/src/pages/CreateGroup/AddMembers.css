@@ -1,0 +1,36 @@
+.invite-btn {
+    --border-radius: 10px;
+    --box-shadow: none;
+    min-width: 5.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.invite-btn .btn-content {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    justify-content: space-evenly;
+    width: 100%;
+}
+
+.invite-btn.selected {
+    --background: #e6f9ec;
+    --background-hover: #daf5e5;
+    --border-color: #2ecc71;
+    color: #2ecc71;
+}
+
+.search-bar {
+    --background: #f4f4f4;
+    --color: #9b9b9b;
+    --placeholder-color: #9b9b9b;
+    --icon-color: #9b9b9b;
+
+    --border-radius: 30px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --box-shadow: none;
+
+    height: 45px;
+}

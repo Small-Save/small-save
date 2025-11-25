@@ -3,8 +3,9 @@ import { arrowBack, addOutline, shareSocialOutline } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
 import { fetchDeviceContacts } from "lib/utils";
 import { useEffect, useState } from "react";
-import { verifyContacts, createGroup } from "./services";
+import { verifyContacts, createGroup } from "../../services/groupservice";
 import { useGroupCreation } from "contexts/GroupCreationContext";
+import { Contact, User } from "types";
 
 const AddMembers: React.FC = () => {
     const ionRouter = useIonRouter();

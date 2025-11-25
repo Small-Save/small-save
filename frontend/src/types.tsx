@@ -1,5 +1,5 @@
  
-type User = {
+export type User = {
     id: string;
     username?: string;
     first_name?: string;
@@ -39,7 +39,7 @@ export interface Member {
     id: string
     username: string
 }
-type Contact = {
+export type Contact = {
     name: string;
     phone_number: string;
     email: string;

@@ -170,7 +170,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 return true;
             }
             // TODO: Handle invalid otp case
-            console.log(response);
             return false;
         } catch (error) {
             console.error("Registration error:", error);

@@ -163,8 +163,8 @@ const AddMembers: React.FC = () => {
                         <p className="text-xs text-gray-500">Invite friends to join your savings group</p>
                     </div>
 
+                    <div className="flex flex-col rounded-2xl shadow-lg p-1 max-h-150 overflow-y-auto">
                     {/* Search Bar */}
-                    <div className="flex flex-col rounded-2xl shadow-lg p-1 min-h-150">
                         <IonSearchbar
                             value={searchText}
                             onIonInput={(e) => setSearchText(e.detail.value!)}
@@ -174,20 +174,24 @@ const AddMembers: React.FC = () => {
                         />
                         {/* list of selected users with their image */}
                         {selectedMembers.size > 0 && (
-                            <div className="flex gap-3 px-3 py-2 my-2 overflow-y-hidden">
-                                {existingUsers
-                                    .filter((contact) => selectedMembers.has(contact.id))
-                                    .map((contact) => {
-                                        return (
-                                            <>
-                                                <img
-                                                    src={profileImageTemp}
-                                                    alt={`${contact.username || "User"} avatar`}
-                                                    className="w-20 h-15 rounded-2xl"
-                                                />
-                                            </>
-                                        );
-                                    })}
+                            <div className="selected-strip" aria-label="Selected members">
+                                {existingUsers.filter(c => selectedMembers.has(c.id)).map(c => (
+                                    <div key={c.id} className="selected-item">
+                                        <img
+                                            src={profileImageTemp}
+                                            alt={`${c.username || "User"} avatar`}
+                                            className="selected-img"
+                                        />
+                                        <button
+                                            type="button"
+                                            aria-label={`Remove ${c.username}`}
+                                            onClick={() => toggleMember(c.id)}
+                                            className="remove-selected"
+                                        >
+                                            x
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         )}
 
@@ -204,7 +208,7 @@ const AddMembers: React.FC = () => {
                                 {loading && <span>Loading contacts...</span>}
                                 {!loading && error && <span className="text-red-600">{error}</span>}
                             </div>
-                            <div className="h-full overflow-y-auto ">
+                            <div className="h-full overflow-y-auto">
                                 {/* Existing Users */}
                                 {filteredExistingUsers.map((contact, idx) => {
                                     const id = deriveId(contact, `existing-${idx}`);

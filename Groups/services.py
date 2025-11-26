@@ -38,12 +38,12 @@ def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
 
     phone = contact.get("phone_number")
     email = contact.get("email")
-    name = contact.get("name", "").strip()
+    name = contact.get("username", "").strip()
 
     if not phone and not email:
         raise ValidationError("Either phone or email is required")
 
-    validated_contact = {"name": name}
+    validated_contact = {"username": name}
 
     # Validate and normalize phone
     if phone:

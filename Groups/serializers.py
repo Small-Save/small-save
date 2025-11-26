@@ -3,7 +3,6 @@ from rest_framework import serializers
 from .models import Group, GroupMember
 
 from django.utils import timezone
-import datetime
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):

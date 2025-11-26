@@ -23,10 +23,13 @@ export const formatTime = (seconds: number) => {
     return `${m}:${s}`;
 };
 
-export const validateTargetAmount = (v: string): ValidationResult => {
-    const amount = parseFloat(v);
+export const validateTargetAmount = (targetAmount: string, groupSize: string): ValidationResult => {
+    const amount = parseFloat(targetAmount);
+    const size = parseInt(groupSize);
     if (!isNaN(amount) && amount > 0) {
         return { isValid: true };
+    } else if (amount % size === 0) {
+        return { isValid: false, errorText: "Target amount should be a multiple of size" };
     } else {
         return { isValid: false, errorText: "Invalid Target Amount" };
     }
@@ -35,14 +38,22 @@ export const validateDuration = (v: string): ValidationResult => {
     const duration = parseInt(v);
     if (!isNaN(duration) && duration > 0) {
         return { isValid: true };
+    } else if (duration <= 0) {
+        return { isValid: false, errorText: "Duration should be positive number" };
+    } else if (duration > 99) {
+        return { isValid: false, errorText: "Duration cannot be more than 99" };
     } else {
-        return { isValid: false, errorText: "Invalid Duration" };
+        return { isValid: false, errorText: "Invalid duration" };
     }
 };
 export const validateGroupSize = (v: string): ValidationResult => {
     const size = parseInt(v);
     if (!isNaN(size) && size >= 5) {
         return { isValid: true };
+    } else if (size < 5) {
+        return { isValid: false, errorText: "Group size should be minimum 5" };
+    } else if (size > 99) {
+        return { isValid: false, errorText: "Group size cannot be more than 99" };
     } else {
         return { isValid: false, errorText: "Invalid Group Size" };
     }
@@ -52,46 +63,61 @@ export const fetchDeviceContacts = async (): Promise<Contact[] | undefined> => {
     // console.log("Platform:", Capacitor.getPlatform());
     // console.log("Is native?:", Capacitor.isNativePlatform());
 
-    
+    //     const { contacts } = await Contacts.getContacts({
+    //         projection: {
+    //             name: true,
+    //             phones: true,
+    //             emails: true
+    //         }
+    //     });
+
+    //     return contacts.map((c) => ({
+    //         username: c.name?.display || "Unknown",
+    //         phone_number: c.phones?.[0]?.number || "",
+    //         email: c.emails?.[0]?.address || ""
+    //     }));
+    // } catch (error) {
+    //     console.error("=== ERROR ===", error);
+    // }
 
     return [
         {
-            name: "Rithvik kantha",
+            username: "Rithvik kantha",
             phone_number: "7337264708",
             email: "rithivk.kantha@cyberark.com"
         },
         {
-            name: "Pranay Sharma",
+            username: "Pranay Sharma",
             phone_number: "6281865323",
             email: "sharma@sharma.sol"
         },
         {
-            name: "Rithvik kantha 2",
+            username: "Rithvik kantha 2",
             phone_number: "8907456273",
             email: "rithvikkantha3771@gmail.com"
         },
         {
-            name: "Rithvik kantha 3",
+            username: "Rithvik kantha 3",
             phone_number: "8799374339",
             email: "rithvikkantha3771@gmail.com"
         },
         {
-            name: "Rithvik kantha 4",
+            username: "Rithvik kantha 4",
             phone_number: "2131231231",
             email: "rithvikkantha3771@gmail.com"
         },
         {
-            name: "Rithvik kantha 5",
+            username: "Rithvik kantha 5",
             phone_number: "1234564234",
             email: "rithvikkantha3771@gmail.com"
         },
         {
-            name: "Phanindhra",
+            username: "Phanindhra",
             phone_number: "8686965012",
             email: "Phani@gmail.com"
         },
         {
-            name: "Chutiya",
+            username: "Chutiya",
             phone_number: "2133123435",
             email: "noob@gmail.com"
         }

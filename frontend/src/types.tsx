@@ -39,8 +39,10 @@ export interface Member {
     id: string
     username: string
 }
+
 export type Contact = {
-    name: string;
+    id?: string;
+    username: string;
     phone_number: string;
     email: string;
 };

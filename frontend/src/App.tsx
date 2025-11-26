@@ -14,7 +14,6 @@ import "@ionic/react/css/normalize.css";
 import "@ionic/react/css/structure.css";
 import "@ionic/react/css/typography.css";
 import "./theme/variables.css";
-import "./theme/global.css"
 
 /* Optional CSS utils that can be commented out */
 import "@ionic/react/css/padding.css";
@@ -61,6 +60,7 @@ const App: React.FC = () => (
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
                     </Route>
+
                     <Route exact path="/onboard">
                         <ProtectedRoute component={OnBoard} />
                     </Route>

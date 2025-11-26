@@ -4,6 +4,7 @@ import axios from "axios";
 import { Preferences } from "@capacitor/preferences";
 import { jwtDecode } from "jwt-decode";
 import URLS from "lib/constants";
+import type { BaseResponse } from "types";
 
 // TODO need to implement refresh token funtionality
 
@@ -33,7 +34,8 @@ interface AuthContextType {
         phone_number: string | undefined,
         first_name: string,
         last_name: string,
-        gender: string
+        gender: string,
+        profile_pic: File | null
     ) => Promise<boolean>;
     logout: () => Promise<void>;
 }
@@ -148,37 +150,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     };
 
-    const register = async (
-        phone_number: string | undefined,
-        first_name: string,
-        last_name: string,
-        gender: string
-    ): Promise<boolean> => {
-        try {
-            setLoading(true);
-            const response = await api.post(URLS.REGISTER, {
-                phone_number,
-                first_name,
-                last_name,
-                gender
-            });
+const register = async (
+    phone_number: string | undefined,
+    first_name: string,
+    last_name: string,
+    gender: string,
+    profile_pic: File | null
+): Promise<boolean> => {
+    try {
+        setLoading(true);
 
-            if (response.status === 200 || response.status === 201) {
-                const { access, refresh, user } = response.data.data;
-                await saveAuthData(access, refresh, user);
-                setUser(user);
-                return true;
-            }
-            // TODO: Handle invalid otp case
-            console.log(response);
-            return false;
-        } catch (error) {
-            console.error("Registration error:", error);
-            return false;
-        } finally {
-            setLoading(false);
+        const formData = new FormData();
+        formData.append("phone_number", phone_number || "");
+        formData.append("first_name", first_name);
+        formData.append("last_name", last_name);
+        formData.append("gender", gender);
+
+        if (profile_pic) {
+            formData.append("profile_pic", profile_pic);
         }
-    };
+
+        const response = await api.post(URLS.REGISTER, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        if (response.status === 200 || response.status === 201) {
+            const { access, refresh, user } = response.data.data;
+            await saveAuthData(access, refresh, user);
+            setUser(user);
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error("Registration error:", error);
+        return false;
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     const logout = async (): Promise<void> => {
         try {

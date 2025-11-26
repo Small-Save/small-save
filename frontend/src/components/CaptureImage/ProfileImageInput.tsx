@@ -3,7 +3,11 @@ import { IonIcon } from "@ionic/react";
 import { camera } from "ionicons/icons";
 import "./ProfileImageInput.css";
 
-const ProfileImageInput: React.FC = () => {
+interface ProfileImageInputProps {
+    onFileSelect: (file: File | null) => void;
+}
+
+const ProfileImageInput: React.FC<ProfileImageInputProps> = ({onFileSelect}) => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
 
@@ -15,6 +19,7 @@ const ProfileImageInput: React.FC = () => {
                 setPreview(reader.result as string);
             };
             reader.readAsDataURL(file);
+            onFileSelect(file)
         }
     };
 

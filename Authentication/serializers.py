@@ -15,6 +15,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "phone_number",
+            "profile_pic"
         )
 
 
@@ -35,7 +36,7 @@ class UserDetailSerializer(BaseUserSerializer):
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["phone_number", "first_name", "last_name", "email", "gender"]
+        fields = ["phone_number", "first_name", "last_name", "email", "gender", "profile_pic"]
         extra_kwargs = {
             "phone_number": {"required": True},
             "first_name": {"required": True},

@@ -63,19 +63,19 @@ CORS_ALLOW_HEADERS = [
 
 # Application definition
 
-INSTALLED_APPS = [
+LOCAL_APPS = ["Groups","Authentication"]
+
+INSTALLED_APPS =  LOCAL_APPS + [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "Authentication",
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    "Groups",
     "django_extensions",
 ]
 
@@ -216,3 +216,21 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID")
+# AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY")
+# AWS_STORAGE_BUCKET_NAME = env.str("AWS_STORAGE_BUCKET_NAME")
+# AWS_S3_REGION_NAME = "ap-south-1"  # Change if needed
+# AWS_QUERYSTRING_AUTH = False       # So image URLs are public
+
+# AWS_DEFAULT_ACL = None
+
+# AWS_S3_FILE_OVERWRITE = False
+# AWS_S3_OBJECT_PARAMETERS = {
+#     "CacheControl": "max-age=86400",
+# }
+
+# DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+# MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"

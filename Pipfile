@@ -12,6 +12,9 @@ djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
 phonenumbers = "*"
+boto3 = "*"
+django-storages = "*"
+pillow = "*"
 
 [dev-packages]
 django-extensions = "*"

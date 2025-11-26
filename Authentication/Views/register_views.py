@@ -34,6 +34,8 @@ class RegisterUser(APIView):
         username = f"{first_name}{last_name}".replace(" ", "").lower()
         phone_number = serializer.validated_data["phone_number"]
         gender = serializer.validated_data["gender"]
+        profile_pic = serializer.validated_data["profile_pic"]
+
         logger.debug(f"Validated phone_number={phone_number}")
 
         otp_verified = Register.objects.filter(
@@ -61,6 +63,7 @@ class RegisterUser(APIView):
                     "last_name": last_name,
                     "gender": gender,
                     "email": serializer.validated_data.get("email", None),
+                    "profile_pic": profile_pic,
                     "is_verified": True,
                 },
             )

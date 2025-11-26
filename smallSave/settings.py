@@ -38,15 +38,12 @@ ALLOWED_HOSTS = ["*"]
 
 
 CORS_ALLOWED_ORIGINS = [
-<<<<<<< HEAD
-    "http://localhost:8100",
-    "http://127.0.0.1:8100",
-    "http://localhost:5173",
-=======
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://10.0.2.2",
->>>>>>> 16287ada66a32a0b3592bfb61dccaf0734c450b0
+    "http://localhost:8100",
+    "http://127.0.0.1:8100",
+    "http://localhost:5173",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

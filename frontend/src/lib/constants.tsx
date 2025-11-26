@@ -9,7 +9,7 @@ const URLS = {
     GROUP: {
         VERIFY_CONTACTS: "/groups/verify-contacts/",
         CREATE_GROUP: "/groups/create/",
-        GET_USER_GROUPS: "/groups"
+        GET_USER_GROUPS: "/groups/"
     }
 };
 

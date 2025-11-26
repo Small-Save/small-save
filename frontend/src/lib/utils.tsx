@@ -1,4 +1,5 @@
 import { Contacts } from "@capacitor-community/contacts";
+import { Contact, ValidationResult } from "types";
 
 export const validatePhoneNumber = (phone: string): ValidationResult => {
     if (/^\d{10}$/.test(phone)) {
@@ -50,28 +51,8 @@ export const validateGroupSize = (v: string): ValidationResult => {
 export const fetchDeviceContacts = async (): Promise<Contact[] | undefined> => {
     // console.log("Platform:", Capacitor.getPlatform());
     // console.log("Is native?:", Capacitor.isNativePlatform());
-    // try {
-    //     const permission = await Contacts.requestPermissions();
-    //     if (permission.contacts !== "granted") {
-    //         throw new Error("Contacts permission denied");
-    //     }
 
-    //     const { contacts } = await Contacts.getContacts({
-    //         projection: {
-    //             name: true,
-    //             phones: true,
-    //             emails: true
-    //         }
-    //     });
-
-    //     return contacts.map((c) => ({
-    //         name: c.name?.display || "Unknown",
-    //         phone_number: c.phones?.[0]?.number || "",
-    //         email: c.emails?.[0]?.address || ""
-    //     }));
-    // } catch (error) {
-    //     console.error("=== ERROR ===", error);
-    // }
+    
 
     return [
         {

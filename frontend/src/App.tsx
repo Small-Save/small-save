@@ -2,7 +2,7 @@ import React from "react";
 import { Redirect, Route } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import Home from "./pages/Home";
+import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 
@@ -59,7 +59,7 @@ const App: React.FC = () => (
 
                     {/* Protected pages → must be logged in */}
                     <Route exact path="/home">
-                        <PublicRoute component={Home} />
+                        <ProtectedRoute component={Home} />
                     </Route>
                     <Route exact path="/onboard">
                         <ProtectedRoute component={OnBoard} />

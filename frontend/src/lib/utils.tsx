@@ -62,69 +62,69 @@ export const validateGroupSize = (v: string): ValidationResult => {
 export const fetchDeviceContacts = async (): Promise<Contact[] | undefined> => {
     // console.log("Platform:", Capacitor.getPlatform());
     // console.log("Is native?:", Capacitor.isNativePlatform());
-    // try {
-    //     const permission = await Contacts.requestPermissions();
-    //     if (permission.contacts !== "granted") {
-    //         throw new Error("Contacts permission denied");
-    //     }
-
-    //     const { contacts } = await Contacts.getContacts({
-    //         projection: {
-    //             name: true,
-    //             phones: true,
-    //             emails: true
-    //         }
-    //     });
-
-    //     return contacts.map((c) => ({
-    //         username: c.name?.display || "Unknown",
-    //         phone_number: c.phones?.[0]?.number || "",
-    //         email: c.emails?.[0]?.address || ""
-    //     }));
-    // } catch (error) {
-    //     console.error("=== ERROR ===", error);
-    // }
-
-    return [
-        {
-            username: "Rithvik kantha",
-            phone_number: "7337264708",
-            email: "rithivk.kantha@cyberark.com"
-        },
-        {
-            username: "Pranay Sharma",
-            phone_number: "6281865323",
-            email: "sharma@sharma.sol"
-        },
-        {
-            username: "Rithvik kantha 2",
-            phone_number: "8907456273",
-            email: "rithvikkantha3771@gmail.com"
-        },
-        {
-            username: "Rithvik kantha 3",
-            phone_number: "8799374339",
-            email: "rithvikkantha3771@gmail.com"
-        },
-        {
-            username: "Rithvik kantha 4",
-            phone_number: "2131231231",
-            email: "rithvikkantha3771@gmail.com"
-        },
-        {
-            username: "Rithvik kantha 5",
-            phone_number: "1234564234",
-            email: "rithvikkantha3771@gmail.com"
-        },
-        {
-            username: "Phanindhra",
-            phone_number: "8686965012",
-            email: "Phani@gmail.com"
-        },
-        {
-            username: "Chutiya",
-            phone_number: "2133123435",
-            email: "noob@gmail.com"
+    try {
+        const permission = await Contacts.requestPermissions();
+        if (permission.contacts !== "granted") {
+            throw new Error("Contacts permission denied");
         }
-    ];
+
+        const { contacts } = await Contacts.getContacts({
+            projection: {
+                name: true,
+                phones: true,
+                emails: true
+            }
+        });
+
+        return contacts.map((c) => ({
+            username: c.name?.display || "Unknown",
+            phone_number: c.phones?.[0]?.number || "",
+            email: c.emails?.[0]?.address || ""
+        }));
+    } catch (error) {
+        console.error("=== ERROR ===", error);
+    }
+
+    // return [
+    //     {
+    //         username: "Rithvik kantha",
+    //         phone_number: "7337264708",
+    //         email: "rithivk.kantha@cyberark.com"
+    //     },
+    //     {
+    //         username: "Pranay Sharma",
+    //         phone_number: "6281865323",
+    //         email: "sharma@sharma.sol"
+    //     },
+    //     {
+    //         username: "Rithvik kantha 2",
+    //         phone_number: "8907456273",
+    //         email: "rithvikkantha3771@gmail.com"
+    //     },
+    //     {
+    //         username: "Rithvik kantha 3",
+    //         phone_number: "8799374339",
+    //         email: "rithvikkantha3771@gmail.com"
+    //     },
+    //     {
+    //         username: "Rithvik kantha 4",
+    //         phone_number: "2131231231",
+    //         email: "rithvikkantha3771@gmail.com"
+    //     },
+    //     {
+    //         username: "Rithvik kantha 5",
+    //         phone_number: "1234564234",
+    //         email: "rithvikkantha3771@gmail.com"
+    //     },
+    //     {
+    //         username: "Phanindhra",
+    //         phone_number: "8686965012",
+    //         email: "Phani@gmail.com"
+    //     },
+    //     {
+    //         username: "Chutiya",
+    //         phone_number: "2133123435",
+    //         email: "noob@gmail.com"
+    //     }
+    // ];
 };

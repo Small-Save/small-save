@@ -21,9 +21,11 @@ def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
         parsed_number = phonenumbers.parse(phone, region)
         if not phonenumbers.is_valid_number(parsed_number):
             return None
-        return phonenumbers.format_number(
-            parsed_number, phonenumbers.PhoneNumberFormat.E164
-        )
+        # TODO: fix this after adding country codes to phone number
+        # return phonenumbers.format_number(
+        #     parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL
+        # )
+        return str(parsed_number.national_number)
     except NumberParseException:
         return None
 
@@ -48,12 +50,13 @@ def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
     # Validate and normalize phone
     if phone:
         # Try to detect region from user's profile or default to None for international parsing
-        # normalized_phone = normalize_phone_number(phone)
-        # if normalized_phone:
-        #     validated_contact["phone"] = normalized_phone
-        validated_contact["phone"] = phone
-        # else:
-        #     raise ValidationError(f"Invalid phone number: {phone}")
+        normalized_phone = normalize_phone_number(phone)
+        print(normalized_phone)
+        if normalized_phone:
+            validated_contact["phone"] = normalized_phone
+            # validated_contact["phone"] = phone
+        else:
+            raise ValidationError(f"Invalid phone number: {phone}")
 
     # Validate email
     if email:

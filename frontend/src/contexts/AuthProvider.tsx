@@ -4,7 +4,7 @@ import axios from "axios";
 import { Preferences } from "@capacitor/preferences";
 import { jwtDecode } from "jwt-decode";
 import URLS from "lib/constants";
-
+import type { BaseResponse } from "types";
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------

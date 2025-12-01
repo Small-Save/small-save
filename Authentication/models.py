@@ -18,10 +18,13 @@ class User(AbstractUser):
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = ["first_name", "last_name","gender"]
 
-    def profile_picture_url(self):
-        if self.profile_pic:
-            return self.profile_pic.url
-        return None
+    @property
+    def profile_pic_url(self):
+        """Backward-compatible alias expected by clients/serializers.
+
+        Returns the URL of the profile picture or None if not set.
+        """
+        return self.profile_pic.url if self.profile_pic else None
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.phone_number})"

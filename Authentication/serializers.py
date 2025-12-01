@@ -6,6 +6,8 @@ User = get_user_model()
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
+    profile_pic = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -15,8 +17,16 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "phone_number",
-            "profile_pic"
+            "profile_pic",
         )
+
+    def get_profile_pic(self, obj):
+        # Prefer absolute URL when request context is available
+        url = obj.profile_pic_url
+        if not url:
+            return None
+        request = self.context.get("request")
+        return request.build_absolute_uri(url) if request else url
 
 
 class UserLiteSerializer(BaseUserSerializer):
@@ -36,7 +46,14 @@ class UserDetailSerializer(BaseUserSerializer):
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["phone_number", "first_name", "last_name", "email", "gender", "profile_pic"]
+        fields = [
+            "phone_number",
+            "first_name",
+            "last_name",
+            "email",
+            "gender",
+            "profile_pic",
+        ]
         extra_kwargs = {
             "phone_number": {"required": True},
             "first_name": {"required": True},

@@ -217,6 +217,9 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 
 # AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID")
 # AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY")

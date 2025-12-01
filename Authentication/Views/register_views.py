@@ -1,11 +1,12 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from utils.response import CustomResponse
-
+from Authentication.serializers import BaseUserSerializer
 from ..models import Register, User
 from Authentication.serializers import RegisterUserSerializer
 
@@ -161,3 +162,17 @@ class TokenRefreshView(APIView):
                 {"detail": "Invalid or expired refresh token"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+class GetUserInfo(generics.RetrieveAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = BaseUserSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.get_serializer(user)
+        return CustomResponse(
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+            is_success=True,
+        )

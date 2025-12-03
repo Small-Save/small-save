@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-
+from Groups.services import normalize_phone_number
 
 User = get_user_model()
 
@@ -49,7 +49,11 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "User with this phone number already exists."
             )
-        return value
+        # TODO: Fix this later
+        # normalized = normalize_phone_number(value)
+        # if not normalized:
+        #     raise serializers.ValidationError("Invalid phone number")
+        # return normalized
 
 
 class SendOtpSerializer(serializers.Serializer):

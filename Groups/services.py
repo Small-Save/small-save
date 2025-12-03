@@ -50,13 +50,12 @@ def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
     # Validate and normalize phone
     if phone:
         # Try to detect region from user's profile or default to None for international parsing
-        normalized_phone = normalize_phone_number(phone)
-        print(normalized_phone)
-        if normalized_phone:
-            validated_contact["phone"] = normalized_phone
-            # validated_contact["phone"] = phone
-        else:
-            raise ValidationError(f"Invalid phone number: {phone}")
+        # normalized_phone = normalize_phone_number(phone)
+        # if normalized_phone:
+        #     validated_contact["phone"] = normalized_phone
+        validated_contact["phone"] = phone
+        # else:
+        #     raise ValidationError(f"Invalid phone number: {phone}")
 
     # Validate email
     if email:

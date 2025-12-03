@@ -81,6 +81,7 @@ const getStoredUser = async (): Promise<User | null> => {
 
 // ----------------- Provider -----------------
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    // TODO: remove this user | null type
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 

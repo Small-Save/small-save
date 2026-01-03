@@ -1,8 +1,15 @@
 import React from "react";
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton } from "@ionic/react";
-import { IonRouterLink } from "@ionic/react";
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon } from "@ionic/react";
+import { addOutline } from "ionicons/icons";
+import { useIonRouter } from "@ionic/react";
 
 const Home: React.FC = () => {
+    const ionRouter = useIonRouter();
+
+    const handleCreateGroup = () => {
+        ionRouter.push("/group/new", "forward");
+    };
+
     return (
         <IonPage>
             <IonHeader>
@@ -12,9 +19,10 @@ const Home: React.FC = () => {
             </IonHeader>
             <IonContent className="ion-padding">
                 <p>Welcome to the home page!</p>
-                <IonRouterLink routerLink="/details">
-                    Go to details
-                </IonRouterLink>
+
+                <IonButton onClick={handleCreateGroup}>
+                    <IonIcon slot="icon-only" icon={addOutline}></IonIcon>
+                </IonButton>
             </IonContent>
         </IonPage>
     );

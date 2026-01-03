@@ -1,9 +1,9 @@
-import { IonButton, IonContent, IonInput, IonPage, IonRouterLink, IonText } from "@ionic/react";
+import { IonButton, IonContent, IonInput, IonPage, IonText } from "@ionic/react";
 import { useHistory, useLocation } from "react-router-dom";
-import useFormInput from "../../Hooks/useFormInput";
-import { formatTime, validateOtp } from "../../utils/utils";
+import useFormInput from "Hooks/useFormInput";
+import { formatTime, validateOtp } from "lib/utils";
 import React, { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../contexts/AuthProvider";
+import { AuthContext } from "contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;
@@ -15,7 +15,7 @@ const OtpVerificationPage: React.FC = () => {
     const { verifyOtp, user } = useContext(AuthContext)!;
 
     const phone = location.state?.phone || "";
-    const otp = useFormInput(null, validateOtp);
+    const otp = useFormInput("", validateOtp, (v: string) => v.replace(/[^0-9]/g, ""));
     const [timeLeft, setTimeLeft] = useState(150);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -26,34 +26,32 @@ const OtpVerificationPage: React.FC = () => {
     };
 
     const handleVerifyOtp = async () => {
-        if (!otp.isValid) {
-            return; // maybe show toast here
-        }
+        if (!otp.isValid) return; // TODO: maybe show toast here
+
+        const numericOtp = Number(otp.value);
+        if (Number.isNaN(numericOtp)) return; // guard: invalid numeric value
+
         try {
             setIsLoading(true);
-            const response = await verifyOtp(phone, otp.value);
+            const response = await verifyOtp(phone, numericOtp);
             if (response) {
                 if (!response.data?.user.is_registered) {
                     history.push("/register", { phone });
                 } else {
                     history.push("/home");
                 }
-            } else {
-                // invalid otp
-                console.log();
             }
-        } catch {
         } finally {
-            otp.setValue(null);
+            otp.setValue("");
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
+        if (timeLeft <= 0) return;
         const interval = setInterval(() => {
             setTimeLeft((prev) => prev - 1);
         }, 1000);
-
         return () => clearInterval(interval);
     }, [timeLeft]);
 
@@ -68,17 +66,17 @@ const OtpVerificationPage: React.FC = () => {
                         </div>
                         <div className="tracking-[.2rem] text-center">{phone}</div>
                         <IonInput
-                            className={`${otp.isValid === false && "ion-invalid"} ${otp.touched && "ion-touched"}`}
+                            className={`${otp.isError ? "ion-invalid" : ""} ${otp.touched ? "ion-touched" : ""}`}
                             label="Enter OTP"
-                            placeholder="12356"
+                            placeholder="123456"
                             labelPlacement="floating"
                             type="tel"
                             inputMode="numeric"
                             maxlength={6}
                             {...otp.bind}
                         />
-                        <IonButton expand="full" onClick={handleVerifyOtp}>
-                            VERIFY
+                        <IonButton expand="full" onClick={handleVerifyOtp} disabled={!otp.isValid || isLoading}>
+                            {isLoading ? "VERIFYING..." : "VERIFY"}
                         </IonButton>
                         {/* resend otp */}
                         <div className="flex flex-col items-center gap-1 text-xs">

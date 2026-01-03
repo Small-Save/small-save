@@ -34,15 +34,31 @@ TWILIO_ACCOUNT_SID = env.str("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = env.str("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = env.str("TWILIO_PHONE_NUMBER")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
+
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8100",
-    "http://127.0.0.1:8100",
-    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://10.0.2.2",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "x-timezone",
+]
 
 
 # Application definition
@@ -59,12 +75,16 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "Groups",
+    "django_extensions",
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+    "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ],
+    "EXCEPTION_HANDLER": "utils.exceptions.custom_exception_handler",
+    # "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 SIMPLE_JWT = {
@@ -83,6 +103,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "smallSave.middlewares.TimezoneMiddleware",
 ]
 
 ROOT_URLCONF = "smallSave.urls"
@@ -137,12 +158,14 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "[{asctime}] {levelname} {name} {message}",
+            "format": "[{asctime}] {levelname:8} {name:20} {module:15} {funcName:15} {lineno:4d} | {message}",
             "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
         "simple": {
-            "format": "{levelname} {message}",
+            "format": "{asctime} {levelname:8} {name} | {message}",
             "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
     "handlers": {

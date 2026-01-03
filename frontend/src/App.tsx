@@ -27,6 +27,9 @@ import { AuthProvider } from "./contexts/AuthProvider";
 import OnBoard from "./pages/Login/onboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
+import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
+import AddMembers from "./pages/CreateGroup/AddMembers";
+import { GroupCreationProvider } from "contexts/GroupCreationContext";
 
 setupIonicReact({
     mode: "md"
@@ -57,9 +60,20 @@ const App: React.FC = () => (
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
                     </Route>
+
                     <Route exact path="/onboard">
                         <ProtectedRoute component={OnBoard} />
                     </Route>
+
+                    {/* Group routes - shared context */}
+                    <GroupCreationProvider>
+                        <Route exact path="/group/new">
+                            <ProtectedRoute component={CreateGroup} />
+                        </Route>
+                        <Route exact path="/group/new/members">
+                            <ProtectedRoute component={AddMembers} />
+                        </Route>
+                    </GroupCreationProvider>
                 </IonRouterOutlet>
             </IonReactRouter>
         </AuthProvider>

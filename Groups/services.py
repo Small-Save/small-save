@@ -21,9 +21,11 @@ def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
         parsed_number = phonenumbers.parse(phone, region)
         if not phonenumbers.is_valid_number(parsed_number):
             return None
-        return phonenumbers.format_number(
-            parsed_number, phonenumbers.PhoneNumberFormat.E164
-        )
+        # TODO: fix this after adding country codes to phone number
+        # return phonenumbers.format_number(
+        #     parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL
+        # )
+        return str(parsed_number.national_number)
     except NumberParseException:
         return None
 

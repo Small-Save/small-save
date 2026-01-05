@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import useFormInput from "Hooks/useFormInput";
 import { validateDuration, validateGroupSize, validateTargetAmount } from "lib/utils";
+import type { ValidationResult } from "types";
 
 // Types
 export type WinnerSelectionMethod = "random" | "bidding";
@@ -45,9 +46,9 @@ const validateStartDate = (date: string): ValidationResult => {
 export const useCreateGroupForm = () => {
     // Form state management
     const groupName = useFormInput("", validateGroupName);
-    const targetAmount = useFormInput("", validateTargetAmount);
-    const duration = useFormInput("", validateDuration);
     const groupSize = useFormInput("", validateGroupSize);
+    const targetAmount = useFormInput("", (v) => validateTargetAmount(v, groupSize.value));
+    const duration = useFormInput("", validateDuration);
     const winnerMethod = useFormInput<WinnerSelectionMethod>("random");
     const startDate = useFormInput("", validateStartDate);
 

@@ -79,8 +79,8 @@ const CreateGroup: React.FC = () => {
                     </p>
                     <div className="flex flex-col gap-2  pt-4 h-full">
                         <Field label="Name Of The Group" placeholder="e.g. Sharmila" hook={groupName} />
-                        <Field label="Target Amount (₹)" placeholder="e.g. 10,000" type="number" hook={targetAmount} />
                         <Field label="Group Size" placeholder="e.g. 8" type="number" hook={groupSize} />
+                        <Field label="Target Amount (₹)" placeholder="e.g. 10,000" type="number" hook={targetAmount} />
                         <Field label="Duration (months)" placeholder="e.g. 12" type="number" hook={duration} />
 
                         {/* Winner Selection */}

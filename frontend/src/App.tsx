@@ -58,7 +58,7 @@ const App: React.FC = () => (
 
                     {/* Protected pages → must be logged in */}
                     <Route exact path="/home">
-                        <ProtectedRoute component={Home} />
+                        <PublicRoute component={Home} />
                     </Route>
 
                     <Route exact path="/onboard">

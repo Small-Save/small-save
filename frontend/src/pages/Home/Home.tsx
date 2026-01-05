@@ -44,48 +44,50 @@ const Home: React.FC = () => {
               </IonCol>
             </IonRow>
 
-            <IonRow
-  style={{
-    marginTop: "16px",
-    padding: "0 12px",
-    display: "flex",
-    justifyContent: "space-between",
-  }}
->
-  <IonCol size="6" style={{ paddingRight: "8px" }}>
-    <div
-      style={{
-        background: "#2A2A3D",
-        borderRadius: "16px",
-        padding: "16px",
-        color: "white",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-      }}
-    >
-      <div style={{ fontSize: "14px", opacity: 0.8 }}>Total Due</div>
-      <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "6px" }}>
-        ${totalSpend}
+            {groupDetails?.data && groupDetails.data.length > 0 && (
+  <IonRow
+    style={{
+      marginTop: "16px",
+      padding: "0 12px",
+      display: "flex",
+      justifyContent: "space-between",
+    }}
+  >
+    <IonCol size="6" style={{ paddingRight: "8px" }}>
+      <div
+        style={{
+          background: "#2A2A3D",
+          borderRadius: "16px",
+          padding: "16px",
+          color: "white",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+        }}
+      >
+        <div style={{ fontSize: "14px", opacity: 0.8 }}>Total Due</div>
+        <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "6px" }}>
+          ${totalSpend}
+        </div>
       </div>
-    </div>
-  </IonCol>
+    </IonCol>
 
-  <IonCol size="6" style={{ paddingLeft: "8px" }}>
-    <div
-      style={{
-        background: "#2A2A3D",
-        borderRadius: "16px",
-        padding: "16px",
-        color: "white",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-      }}
-    >
-      <div style={{ fontSize: "14px", opacity: 0.8 }}>Active Groups</div>
-      <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "6px" }}>
-        {activeGroups}
+    <IonCol size="6" style={{ paddingLeft: "8px" }}>
+      <div
+        style={{
+          background: "#2A2A3D",
+          borderRadius: "16px",
+          padding: "16px",
+          color: "white",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+        }}
+      >
+        <div style={{ fontSize: "14px", opacity: 0.8 }}>Active Groups</div>
+        <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "6px" }}>
+          {activeGroups}
+        </div>
       </div>
-    </div>
-  </IonCol>
-</IonRow>
+    </IonCol>
+  </IonRow>
+)}
 
 
           </IonGrid>

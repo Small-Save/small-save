@@ -22,6 +22,7 @@ class SendOtp(APIView):
             Register.objects.filter(phone_number=phone).delete()
             otp = str(random.randint(100000, 999999))
             # otp = send_otp(phone)
+            print(otp)
             Register.objects.create(phone_number=phone, otp_code=otp)
             logger.info(f"OTP request received for phone={phone}")
             return CustomResponse(

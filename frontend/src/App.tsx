@@ -30,6 +30,7 @@ import PublicRoute from "./components/PublicRoutes";
 import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
 import AddMembers from "./pages/CreateGroup/AddMembers";
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
+import Bidding from "pages/Bidding/Bidding";
 
 setupIonicReact({
     mode: "md"
@@ -56,7 +57,7 @@ const App: React.FC = () => (
                         <PublicRoute component={Register} />
                     </Route>
 
-                    {/* Protected pages → must be logged in */}
+                    {/* Protected pages */}
                     <Route exact path="/home">
                         <ProtectedRoute component={Home} />
                     </Route>
@@ -74,6 +75,11 @@ const App: React.FC = () => (
                             <ProtectedRoute component={AddMembers} />
                         </Route>
                     </GroupCreationProvider>
+
+                    {/* Bidding routes */}
+                    <Route exact path="/bidding">
+                        <ProtectedRoute component={Bidding} />
+                    </Route>
                 </IonRouterOutlet>
             </IonReactRouter>
         </AuthProvider>

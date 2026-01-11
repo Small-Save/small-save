@@ -60,6 +60,7 @@ class GroupMember(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     role = models.CharField(max_length=50, default="member")
+    has_won = models.BooleanField(default=False)
 
     class Meta:
         db_table = "group_members"

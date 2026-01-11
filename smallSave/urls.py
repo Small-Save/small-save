@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("Authentication.urls")),
     path("groups/", include("Groups.urls")),
+    path("",include("Bidding.urls"))
 ]

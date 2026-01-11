@@ -2,13 +2,14 @@ import { IonPage, IonButton, IonIcon, IonContent, IonSearchbar, IonFooter } from
 import { checkmarkDoneSharp, arrowRedoOutline, personAddOutline } from "ionicons/icons";
 import { useIonRouter } from "@ionic/react";
 import { fetchDeviceContacts } from "lib/utils";
-import React, { useEffect, useState, useMemo, useCallback, useDeferredValue } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useDeferredValue, useContext } from "react";
 import { verifyContacts, createGroup } from "./services";
 import { useGroupCreation } from "contexts/GroupCreationContext";
 import { HeaderBox } from "components/HeaderBox";
 import "./AddMembers.css";
 import type { User, Contact } from "types";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
+import { AuthContext } from "contexts/AuthProvider";
 
 type MemberMode = "existing" | "invite";
 interface AddUserComponentProps {
@@ -55,11 +56,11 @@ const AddUserComponent: React.FC<AddUserComponentProps> = ({ id, username, isSel
 const AddMembers: React.FC = () => {
     const ionRouter = useIonRouter();
     const { groupInfo, reset } = useGroupCreation();
-
+    const { user } = useContext(AuthContext)!;
     const [existingUsers, setExistingUsers] = useState<User[]>([]);
     const [inviteNeeded, setInviteNeeded] = useState<Contact[]>([]);
     const [searchText, setSearchText] = useState("");
-    const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+    const [selectedMembers, setSelectedMembers] = useState<Set<string>>(() => new Set(user?.id ? [user.id] : []));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -75,8 +76,12 @@ const AddMembers: React.FC = () => {
             if (contacts) {
                 const response = await verifyContacts(contacts);
                 if (response?.data) {
-                    setExistingUsers(response.data.existing_users ?? []);
+                    const existingUsersFromResponse = response.data.existing_users ?? [];
+                    setExistingUsers(user ? [user, ...existingUsersFromResponse] : existingUsersFromResponse);
                     setInviteNeeded(response.data.invite_needed ?? []);
+                    if (user?.id) {
+                        setSelectedMembers(new Set([user.id]));
+                    }
                 }
             }
         } catch (err: any) {
@@ -131,10 +136,18 @@ const AddMembers: React.FC = () => {
     const toggleMember = useCallback((id: string) => {
         setSelectedMembers((prev) => {
             const copy = new Set(prev);
-            copy.has(id) ? copy.delete(id) : copy.add(id);
+            if (copy.has(id)) {
+                copy.delete(id);
+            } else {
+                if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
+                    copy.add(id);
+                }else{
+                    // TODO show a toast saying group is full
+                }
+            }
             return copy;
         });
-    }, []);
+    }, [groupInfo?.groupSize]);
 
     const deferredSearch = useDeferredValue(searchText.trim().toLowerCase());
     const filteredExistingUsers = useMemo(
@@ -164,7 +177,7 @@ const AddMembers: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col rounded-2xl shadow-lg p-1 max-h-150 overflow-y-auto">
-                    {/* Search Bar */}
+                        {/* Search Bar */}
                         <IonSearchbar
                             value={searchText}
                             onIonInput={(e) => setSearchText(e.detail.value!)}

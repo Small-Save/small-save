@@ -1,5 +1,6 @@
 import api from "lib/axios";
 import URLS from "lib/constants";
+import type { User, Contact, BaseResponse } from "types";
 
 type VerifyContactsResponse = {
     existing_users: User[];

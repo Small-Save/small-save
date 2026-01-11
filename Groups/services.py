@@ -1,8 +1,10 @@
+from typing import Any
+from typing import Optional
+
 import phonenumbers
-from phonenumbers import NumberParseException
-from typing import Optional, Dict, Any
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from phonenumbers import NumberParseException
 
 
 def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
@@ -21,14 +23,16 @@ def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
         parsed_number = phonenumbers.parse(phone, region)
         if not phonenumbers.is_valid_number(parsed_number):
             return None
-        return phonenumbers.format_number(
-            parsed_number, phonenumbers.PhoneNumberFormat.E164
-        )
+        # TODO: fix this after adding country codes to phone number
+        # return phonenumbers.format_number(
+        #     parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL
+        # )
+        return str(parsed_number.national_number)
     except NumberParseException:
         return None
 
 
-def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
+def validate_contact_data(contact: dict[str, Any]) -> dict[str, Any]:
     """
     Validate and normalize contact data.
     Returns validated contact or raises ValidationError.

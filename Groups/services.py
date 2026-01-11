@@ -1,10 +1,8 @@
-from typing import Any
-from typing import Optional
-
 import phonenumbers
+from phonenumbers import NumberParseException
+from typing import Optional, Dict, Any
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from phonenumbers import NumberParseException
 
 
 def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
@@ -32,7 +30,7 @@ def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
         return None
 
 
-def validate_contact_data(contact: dict[str, Any]) -> dict[str, Any]:
+def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
     """
     Validate and normalize contact data.
     Returns validated contact or raises ValidationError.

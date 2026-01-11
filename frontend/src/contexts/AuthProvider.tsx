@@ -4,18 +4,10 @@ import axios from "axios";
 import { Preferences } from "@capacitor/preferences";
 import { jwtDecode } from "jwt-decode";
 import URLS from "lib/constants";
-import type { BaseResponse } from "types";
+import type { BaseResponse,User } from "types";
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------
-interface User {
-    id: string;
-    phone_number: string;
-    user_name: string;
-    gender: string;
-    is_registered: boolean;
-}
-
 interface VerifyOtpData {
     user: User;
     access: string;

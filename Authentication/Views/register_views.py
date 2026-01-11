@@ -1,17 +1,19 @@
-from rest_framework import status, generics
+import logging
+
+from rest_framework import generics
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from utils.response import CustomResponse
 from Authentication.serializers import BaseUserSerializer
-from ..models import Register, User
 from Authentication.serializers import RegisterUserSerializer
+from utils.response import CustomResponse
 
-import logging
-
+from ..models import Register
+from ..models import User
 
 logger = logging.getLogger("api")
 

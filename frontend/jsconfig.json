@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
+        "jsx": "react",
         "baseUrl": "src"
     },
-    "include": ["src"],
-    "exclude": ["node_modules","build"]
+    "include": ["src", "src/**/*.d.ts"],
+    "exclude": ["node_modules", "build"]
 }

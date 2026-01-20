@@ -4,11 +4,13 @@ import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonAvatar, IonFab, IonFabButton, IonIcon, IonFooter
 } from "@ionic/react";
-import { add, homeOutline, notificationsOutline, personOutline, ellipsisVertical } from "ionicons/icons";
+import { add, homeOutline,home, notificationsOutline, personOutline, ellipsisVertical } from "ionicons/icons";
 import profileImageTemp from "../../assets/images/profileImageTemp.jpg";
 import { fetchUserGroups } from "../../services/groupservice";
 import { BaseResponse, Group } from "../../types";
-import GroupCard from "./groupCard";
+import GroupCard from "./GroupCard";
+import { useLocation } from "react-router-dom";
+import "./Home.css"
 
 const Home: React.FC = () => {
   const userName = "Pranay";
@@ -22,12 +24,14 @@ const Home: React.FC = () => {
     fetchGroupDetails();
   }, []);
   const activeGroups = groupDetails?.data?.length || 0;
+  const location = useLocation();
+  const isHome = location.pathname === "/home";
   const totalSpend = groupDetails?.data?.reduce((sum, group) => sum + Number(group.target_amount), 0) || 0;
 
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar style={{ "--background": "#181729", "--color": "#fff" }} className="ion-padding">
+        <IonToolbar  className=" home-toolbar ion-padding">
           <IonGrid>
             <IonRow className="ion-align-items-center">
               <IonCol size="3">
@@ -40,52 +44,26 @@ const Home: React.FC = () => {
                 Welcome to SmallSave
               </IonCol>
               <IonCol size="1">
-                <IonIcon icon={ellipsisVertical} style={{ color: "white", fontSize: "24px" }} />
+                <IonIcon icon={ellipsisVertical} className="header-menu-icon" />
               </IonCol>
             </IonRow>
 
             {groupDetails?.data && groupDetails.data.length > 0 && (
-  <IonRow
-    style={{
-      marginTop: "16px",
-      padding: "0 12px",
-      display: "flex",
-      justifyContent: "space-between",
-    }}
-  >
-    <IonCol size="6" style={{ paddingRight: "8px" }}>
-      <div
-        style={{
-          background: "#2A2A3D",
-          borderRadius: "16px",
-          padding: "16px",
-          color: "white",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-        }}
-      >
-        <div style={{ fontSize: "14px", opacity: 0.8 }}>Total Due</div>
-        <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "6px" }}>
-          ${totalSpend}
-        </div>
-      </div>
-    </IonCol>
+ <IonRow className="summary-row">
+    <IonCol size="6" className="summary-col-right">
+  <div className="summary-card">
+    <div className="summary-label">Total Due</div>
+    <div className="summary-value">${totalSpend}</div>
+  </div>
+</IonCol>
 
-    <IonCol size="6" style={{ paddingLeft: "8px" }}>
-      <div
-        style={{
-          background: "#2A2A3D",
-          borderRadius: "16px",
-          padding: "16px",
-          color: "white",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
-        }}
-      >
-        <div style={{ fontSize: "14px", opacity: 0.8 }}>Active Groups</div>
-        <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "6px" }}>
-          {activeGroups}
-        </div>
-      </div>
-    </IonCol>
+
+    <IonCol size="6" className="summary-col-left">
+  <div className="summary-card">
+    <div className="summary-label">Active Groups</div>
+    <div className="summary-value">{activeGroups}</div>
+  </div>
+</IonCol>
   </IonRow>
 )}
 
@@ -103,7 +81,7 @@ const Home: React.FC = () => {
       ))}
     </>
   ) : (
-    <div style={{ textAlign: "center", marginTop: "40px" }}>
+    <div className="empty-state">
       <h4>Save Together,</h4>
       <h4>Grow Together.</h4>
       <h6>Ready to Start Saving?</h6>
@@ -123,7 +101,7 @@ const Home: React.FC = () => {
           <IonGrid>
             <IonRow className="ion-text-center">
               <IonCol>
-                <IonIcon icon={homeOutline} size="large" />
+                <IonIcon icon={isHome ? home : homeOutline} size="large" />
                 <p>Home</p>
               </IonCol>
               <IonCol>

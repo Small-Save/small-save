@@ -1,10 +1,11 @@
 from django.utils import timezone
 from rest_framework import serializers
 
+from Bidding.models import Bid
 from Bidding.models import BiddingRound
 
 
-class BiddingRoundSeriallizer(serializers.ModelSerializer):
+class BiddingRoundSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(source="group.name", read_only=True)
     winner_username = serializers.CharField(source="winner.user.username", read_only=True)
     total_bids = serializers.SerializerMethodField()
@@ -48,7 +49,23 @@ class CreateBiddingRoundSerializer(serializers.ModelSerializer):
         return value
 
     def validate_scheduled_time(self, value):
+        # TODO:add more vallidations
         if value < timezone.now():
             msg = "Scheduled time must be in the future"
             raise serializers.ValidationError(msg)
         return value
+
+class BidSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Bid
+        fields = [
+            "id",
+            "bidding_round",
+            "member",
+            "amount",
+            "timestamp",
+            "is_valid",
+        ]
+        read_only_fields = ["id", "timestamp", "is_valid"]
+

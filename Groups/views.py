@@ -1,34 +1,34 @@
 # views.py
-from rest_framework import generics, status
-from Groups.models import Group, GroupMember
-from Groups.serializers import (
-    GroupCreateSerializer,
-    GroupReadSerializer,
-    GroupUpdateSerializer,
-)
-from Authentication.serializers import BaseUserSerializer
-from Groups.permissions import IsGroupAdmin
+import logging
+
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from rest_framework import generics
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.decorators import authentication_classes
+from rest_framework.decorators import permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.db import IntegrityError, transaction
-from django.contrib.auth import get_user_model
 
-from utils.exceptions import BadRequestError, ConflictError
-from Bidding.serializers import BiddingRoundSeriallizer, CreateBiddingRoundSerializer
-from django.shortcuts import get_object_or_404
-from utils.response import CustomResponse
-from rest_framework.decorators import (
-    api_view,
-    authentication_classes,
-    permission_classes,
-)
-
-from django.core.exceptions import ValidationError
-from Groups.services import validate_contact_data
+from Authentication.serializers import BaseUserSerializer
 from Bidding.models import BiddingRound
-from rest_framework.exceptions import PermissionDenied
-
-import logging
+from Bidding.serializers import BiddingRoundSerializer
+from Bidding.serializers import CreateBiddingRoundSerializer
+from Groups.models import Group
+from Groups.models import GroupMember
+from Groups.permissions import IsGroupAdmin
+from Groups.serializers import GroupCreateSerializer
+from Groups.serializers import GroupReadSerializer
+from Groups.serializers import GroupUpdateSerializer
+from Groups.services import validate_contact_data
+from utils.exceptions import BadRequestError
+from utils.exceptions import ConflictError
+from utils.response import CustomResponse
 
 logger = logging.getLogger("api")
 User = get_user_model()
@@ -332,11 +332,11 @@ def verify_contacts(request):
         raise
     except Exception as exc:
         logger.exception(
-            "Unexpected error in verify_contacts for user_id=%s: %s",
+            "Unexpected error in verify_contacts for user_id=%s",
             request.user.id,
-            exc,
         )
-        raise BadRequestError("Failed to verify contacts. Please try again.")
+        msg = "Failed to verify contacts. Please try again."
+        raise BadRequestError(msg) from exc
 
 
 @api_view(["POST"])
@@ -353,6 +353,6 @@ def create_bidding_round(request, group_id):
 
     if serializer.is_valid():
         bidding_round = serializer.save(group=group, status="scheduled")
-        return CustomResponse(BiddingRoundSeriallizer(bidding_round).data, status=status.HTTP_201_CREATED)
+        return CustomResponse(data=BiddingRoundSerializer(bidding_round).data, status_code=status.HTTP_201_CREATED)
 
-    return CustomResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return CustomResponse(is_success=False, error=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)

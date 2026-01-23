@@ -1,9 +1,18 @@
+from enum import Enum
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
 from Groups.models import Group
 from Groups.models import GroupMember
+
+
+class BiddingRoundStatusEnum(Enum):
+    SCHEDULED = "scheduled"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLLED = "cancelled"
 
 
 class BiddingRound(models.Model):
@@ -19,7 +28,7 @@ class BiddingRound(models.Model):
     scheduled_time = models.DateTimeField()
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="scheduled")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=BiddingRoundStatusEnum.SCHEDULED.value)
     winner = models.ForeignKey(
         GroupMember,
         on_delete=models.SET_NULL,
@@ -30,6 +39,7 @@ class BiddingRound(models.Model):
     winning_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     class Meta:
+        db_table = "BiddingRound"
         constraints = [models.UniqueConstraint(fields=["group", "round_number"], name="unique_biding_round")]
         ordering = ["scheduled_time"]
 
@@ -37,10 +47,10 @@ class BiddingRound(models.Model):
         return f"{self.group.name} - Round {self.round_number}"
 
     def can_start(self):
-        return self.status == "scheduled" and timezone.now() >= self.scheduled_time
+        return self.status == BiddingRoundStatusEnum.SCHEDULED.value and timezone.now() >= self.scheduled_time
 
     def is_active(self):
-        return self.status == "active"
+        return self.status == BiddingRoundStatusEnum.ACTIVE.value
 
 
 class Bid(models.Model):

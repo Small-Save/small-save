@@ -5,11 +5,13 @@ import React, { useEffect, useState } from "react";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { Field } from "components/Field";
 import useFormInput from "Hooks/useFormInput";
+import { BiddingRound, fetchBiddingDetails } from "./services";
 
 const Bidding: React.FC = () => {
     const [timeLeft, setTimeLeft] = useState(0);
     const [lisftofBids, setlistOfBids] = useState([1, 2]);
     const bidAmount = useFormInput("");
+    const [biddingDetails, setBiddingDetails] = useState<BiddingRound>()
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -25,11 +27,20 @@ const Bidding: React.FC = () => {
         }, 1000);
     }
 
+    useEffect(() => {
+        const fetchData = async () => {
+            // TODO: chnage the param to bidding Round
+            const response = await fetchBiddingDetails(1);
+            setBiddingDetails(response.data?.bidding_round)
+        };
+        fetchData();
+    }, [])
+
     return (
         <IonPage>
             <HeaderBox
-                title="{Group Name}"
-                subTitle="{Round 5 out of 10}"
+                title={biddingDetails?.group_name ?? "Bidding"}
+                subTitle={`{Round ${biddingDetails?.round_number} out of 10}`}
                 actions={[
                     {
                         key: "settings",
@@ -53,7 +64,7 @@ const Bidding: React.FC = () => {
                     {/* Winner Banner */}
                     <div className="flex flex-col items-center-safe">
                         <p className="font-bold">This round's Winner</p>
-                        <p className="text-xs">{"{Rithvik}"}</p>
+                        <p className="text-xs">{biddingDetails?.winner_username}</p>
                     </div>
                 </div>
                 <div className="flex flex-col space-y-3.5 shadow-lg">
@@ -71,7 +82,7 @@ const Bidding: React.FC = () => {
                     <div className="flex flex-col space-y-1 items-center p-1 rounded-lg border-2 border-solid border-green-600 bg-green-200 ">
                         <p>Current Highest Bid</p>
                         <p>{"{₹1995}"}</p>
-                        <div className="flex items-center gap-1">
+                        <div classN ame="flex items-center gap-1">
                             <img src={profileImageTemp} width={30} height={30} className="rounded-xl" />
                             <span> {"{Kantha Bhai is leading!}"}</span>
                         </div>

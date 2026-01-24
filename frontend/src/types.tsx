@@ -1,4 +1,3 @@
- 
 export type User = {
     id: string;
     username?: string;
@@ -21,8 +20,6 @@ export type BaseResponse<T> = {
     error: string | null;
 };
 
-
-
 export interface Group {
     id: number;
     name: string;
@@ -36,8 +33,8 @@ export interface Group {
 }
 
 export interface Member {
-    id: string
-    username: string
+    id: string;
+    username: string;
 }
 
 export type Contact = {

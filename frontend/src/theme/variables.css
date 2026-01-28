@@ -14,6 +14,8 @@ http://ionicframework.com/docs/theming/ */
 	--ion-color-primary-contrast-rgb: 255,255,255;
 	--ion-color-primary-shade: #151424;
 	--ion-color-primary-tint: #2f2e3e;
+     --ion-color-dark: #000000; /* pure black */
+  --ion-color-dark-contrast: #ffffff; /* text color */
 
 }
 
@@ -46,4 +48,11 @@ ion-input.custom {
     width: 90px;
     border-radius: 15%;
     background: var(--ion-color-primary);
+}
+ion-toolbar {
+  --min-height: 100px; /* increase header height */
+}
+
+ion-input.custom {
+      --placeholder-opacity: 0.4;
 }

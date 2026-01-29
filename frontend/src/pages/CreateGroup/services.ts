@@ -34,6 +34,34 @@ export const createGroup = async (data: any): Promise<BaseResponse<Group>> => {
 
 export const fetchUserGroups = async (): Promise<BaseResponse<Group[]>> => {
   try {
+    const data: BaseResponse<Group[]> = {
+    is_success: true,
+    data: [
+      {
+        id: 3,
+        name: "December Savings Club",
+        target_amount: "1200.00",
+        size: 2,
+        duration: 5,
+        winner_selection_method: "random",
+        start_date: "2025-10-01",
+        created_at: "2025-09-20T08:19:32.442209Z",
+        members: [
+          {
+          
+              id: "d02faf88-f30c-40e7-90d9-96722e015380",
+              username: "rithvikkantha",
+          },
+        ],
+      },
+    ],
+    message: "Groups fetched",
+    toast_message: null,
+    error: null,
+  };
+
+  // ✅ behaves like real API
+  return Promise.resolve(data);
     const response = await api.get<BaseResponse<Group[]>>(URLS.GROUP.GET_USER_GROUPS);
     return response.data;
   } catch (error: any) {

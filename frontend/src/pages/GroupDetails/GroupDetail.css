@@ -1,0 +1,16 @@
+.group-header {
+  --background: #000;
+  --color: #fff;
+}
+
+.group-header ion-icon {
+  color: #fff;
+  font-size: 22px;
+}
+
+.group-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}

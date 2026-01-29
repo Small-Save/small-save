@@ -4,16 +4,23 @@ import { calendarClearOutline, peopleOutline } from "ionicons/icons";
 import "./Home.css";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { Group } from "types";
+import { useHistory } from "react-router";
 
 interface GroupCardProps {
     group: Group;
 }
 
 const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
+    const history = useHistory();
+
+  const handleClick = () => {
+    const encodedGroupName = encodeURIComponent(group.name);
+    history.push(`/groupdetail/${encodedGroupName}`);
+  };
     const progress = Math.min((group.members.length / group.size) * 100, 100);
 
     return (
-        <IonCard className="group-card">
+        <IonCard button onClick={handleClick} className="group-card">
             <IonCardContent>
                 <IonGrid>
                     <IonRow className="ion-align-items-center group-row-margin">

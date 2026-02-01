@@ -1,9 +1,18 @@
 # urls.py (example integration)
 from django.urls import path
-from Groups.views import GroupCreateAPIView, UserGroupListAPIView, verify_contacts
+
+from Groups.views import GroupCreateAPIView
+from Groups.views import UserGroupListAPIView
+from Groups.views import create_bidding_round
+from Groups.views import verify_contacts
 
 urlpatterns = [
     path("create/", GroupCreateAPIView.as_view(), name="group-create"),
     path("", UserGroupListAPIView.as_view(), name="user-groups"),
-    path("verify-contacts/", verify_contacts, name="verify-contacts")
+    path("verify-contacts/", verify_contacts, name="verify-contacts"),
+    path(
+        "<int:group_id>/rounds/create/",
+        create_bidding_round,
+        name="create_round",
+    ),
 ]

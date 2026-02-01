@@ -10,6 +10,9 @@ const URLS = {
         VERIFY_CONTACTS: "/groups/verify-contacts/",
         CREATE_GROUP: "/groups/create/",
         GET_USER_GROUPS: "/groups/"
+    },
+    BIDDING: {
+        BIDDING_ROOM: "bidding/"
     }
 };
 

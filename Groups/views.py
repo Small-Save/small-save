@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework import status
@@ -17,7 +18,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from Authentication.serializers import BaseUserSerializer
 from Bidding.models import BiddingRound
-from Bidding.serializers import BiddingRoundSerializer
 from Bidding.serializers import CreateBiddingRoundSerializer
 from Groups.models import Group
 from Groups.models import GroupMember
@@ -161,6 +161,57 @@ class UserGroupListAPIView(generics.ListAPIView):
             message="Groups fetched",
         )
         return response
+
+
+class UserGroupRetrieveAPIView(generics.RetrieveAPIView):
+    """
+    Retrieve a single group the authenticated user is a member of.
+    URL should include the group ID (or slug if you prefer).
+    """
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupReadSerializer
+    lookup_field = "id"  # change to 'uuid' or 'slug' if your model uses that
+
+    def get_queryset(self):
+        return (
+        Group.objects.filter(groupmember__user=self.request.user)
+        .distinct()
+        .select_related("created_by")
+        .prefetch_related(
+            "groupmember_set__user",
+            Prefetch(
+                "bidding_rounds",
+                queryset=BiddingRound.objects.only("id", "group")
+                .order_by("-round_number", "-scheduled_time"),
+                to_attr="prefetched_bidding_rounds",
+            ),
+        )
+        .order_by("-created_at")
+    )
+
+    def retrieve(self, request, *args, **kwargs):
+        logger.info(
+            "UserGroupRetrieveAPIView called by user_id=%s for group_id=%s",
+            request.user.id,
+            kwargs.get(self.lookup_field),
+        )
+
+        instance = self.get_object()  # Automatically checks queryset restrictions
+        serializer = self.get_serializer(instance)
+
+        logger.info(
+            "UserGroupRetrieveAPIView success user_id=%s group_id=%s",
+            request.user.id,
+            instance.id,
+        )
+
+        return CustomResponse(
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+            message="Group fetched",
+        )
 
 
 class GroupUpdateAPIView(generics.UpdateAPIView):
@@ -352,7 +403,10 @@ def create_bidding_round(request, group_id):
     serializer = CreateBiddingRoundSerializer(data=request.data, context={"group": group})
 
     if serializer.is_valid():
-        bidding_round = serializer.save(group=group, status="scheduled")
-        return CustomResponse(data=BiddingRoundSerializer(bidding_round).data, status_code=status.HTTP_201_CREATED)
+        serializer.save(group=group, status="scheduled")
+        return CustomResponse(
+            status_code=status.HTTP_201_CREATED,
+            message="Successfully created bidding round",
+        )
 
     return CustomResponse(is_success=False, error=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)

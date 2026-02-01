@@ -14,3 +14,69 @@
   font-weight: 600;
   color: #fff;
 }
+
+.action-button {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px;
+}
+
+.invite-button {
+--background: #005ffffc;
+}
+.pool-button {
+    --background: white;
+     --color: black;
+}
+
+.button-text {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 5px;
+}
+
+.group-options {
+  position: relative;
+  margin-top: 16px;
+}
+
+.group-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.group-option-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.option-icon {
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.group-option-dropdown {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  width: 160px;
+  z-index: 10;
+  border-radius: 12px;
+}
+
+.dropdown-item {
+  padding: 10px 8px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+}
+
+.group-option-card {
+  margin-top: 16px;
+  border-radius: 14px;
+}

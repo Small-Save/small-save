@@ -1,0 +1,66 @@
+.member-info-card {
+  background: #ff9800; /* orange */
+  border-radius: 14px;
+  margin: 10px;
+}
+
+.member-info-card ion-card-content {
+  color: #fff;
+}
+
+.member-info-title h3 {
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  color: #fff;
+}
+
+.member-info-row {
+  display: flex;
+  align-items: flex-start; /* icon stays top-aligned */
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  justify-content: center;
+}
+
+.member-info-text {
+  display: flex;
+  flex-direction: column; /* STACK TEXT VERTICALLY */
+}
+
+
+.member-info-row ion-icon {
+  font-size: 18px;
+  color: #fff;
+}
+
+.member-info-progress {
+  margin-bottom: 14px;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.member-info-progress ion-progress-bar {
+  --background: #ffffff;
+  --progress-background: black;
+  height: 6px;
+  border-radius: 4px;
+}
+
+
+.member-info-invite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.member-info-invite ion-icon {
+  font-size: 18px;
+  color: #fff;
+}

@@ -12,6 +12,8 @@ djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
 phonenumbers = "*"
+channels = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 django-extensions = "*"

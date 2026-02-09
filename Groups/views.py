@@ -1,6 +1,10 @@
 # views.py
 import logging
 
+from Authentication.serializers import BaseUserSerializer
+from Bidding.models import BiddingRound
+from Bidding.serializers import CreateBiddingRoundSerializer
+from Bidding.services import create_bidding_rounds
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -15,10 +19,10 @@ from rest_framework.decorators import permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from utils.exceptions import BadRequestError
+from utils.exceptions import ConflictError
+from utils.response import CustomResponse
 
-from Authentication.serializers import BaseUserSerializer
-from Bidding.models import BiddingRound
-from Bidding.serializers import CreateBiddingRoundSerializer
 from Groups.models import Group
 from Groups.models import GroupMember
 from Groups.permissions import IsGroupAdmin
@@ -26,9 +30,6 @@ from Groups.serializers import GroupCreateSerializer
 from Groups.serializers import GroupReadSerializer
 from Groups.serializers import GroupUpdateSerializer
 from Groups.services import validate_contact_data
-from utils.exceptions import BadRequestError
-from utils.exceptions import ConflictError
-from utils.response import CustomResponse
 
 logger = logging.getLogger("api")
 User = get_user_model()
@@ -91,16 +92,7 @@ class GroupCreateAPIView(generics.CreateAPIView):
                 ]
                 GroupMember.objects.bulk_create(gm_instances)
 
-                from dateutil.relativedelta import relativedelta
-
-                for i in range(1, group.duration + 1):
-                    scheduled_time = group.start_date + relativedelta(months=i)
-                    BiddingRound.objects.create(
-                        group=group,
-                        round_number=i,
-                        scheduled_time=scheduled_time,
-                        status="scheduled",
-                    )
+                create_bidding_rounds(request, group)
 
                 group.refresh_from_db()  # reload with members
                 logger.info(
@@ -176,20 +168,19 @@ class UserGroupRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return (
-        Group.objects.filter(groupmember__user=self.request.user)
-        .distinct()
-        .select_related("created_by")
-        .prefetch_related(
-            "groupmember_set__user",
-            Prefetch(
-                "bidding_rounds",
-                queryset=BiddingRound.objects.only("id", "group")
-                .order_by("-round_number", "-scheduled_time"),
-                to_attr="prefetched_bidding_rounds",
-            ),
+            Group.objects.filter(groupmember__user=self.request.user)
+            .distinct()
+            .select_related("created_by")
+            .prefetch_related(
+                "groupmember_set__user",
+                Prefetch(
+                    "bidding_rounds",
+                    queryset=BiddingRound.objects.only("id", "group").order_by("-round_number", "-scheduled_time"),
+                    to_attr="prefetched_bidding_rounds",
+                ),
+            )
+            .order_by("-created_at")
         )
-        .order_by("-created_at")
-    )
 
     def retrieve(self, request, *args, **kwargs):
         logger.info(
@@ -390,6 +381,7 @@ def verify_contacts(request):
         raise BadRequestError(msg) from exc
 
 
+# * not to be used in PRODUCTION
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_bidding_round(request, group_id):

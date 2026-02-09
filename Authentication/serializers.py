@@ -49,6 +49,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "User with this phone number already exists."
             )
+        return value
         # TODO: Fix this later
         # normalized = normalize_phone_number(value)
         # if not normalized:

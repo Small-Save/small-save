@@ -117,10 +117,7 @@ def get_bidding_status(request, round_id):
     return CustomResponse(
         data={
             "status": bidding_round.status,
-            "current_lowest": int(bids[0].amount) if bids else None,
-            "lowest_bidder": bids[0].member.user.username if bids else None,
-            "total_bids": bidding_round.bids.filter(is_valid=True).count(),
-            "top_bids": BidSerializer(bids, many=True).data[:2],
+            "bids": BidSerializer(bids, many=True).data,
             "time_remaining": None,  # TODO: Calculate based on your end time logic
         },
         status_code=status.HTTP_200_OK,
@@ -190,3 +187,26 @@ def end_bidding(request, round_id):
             "bidding_round": BiddingRoundSerializer(bidding_round).data,
         },
     )
+
+
+# * not to be used in PRODUCTION
+@api_view(["POST"])
+def make_bidding_active(request, round_id):
+    bidding_round = get_object_or_404(BiddingRound, id=round_id)
+
+    permission = IsGroupAdmin()
+    if not permission.has_object_permission(request, None, bidding_round.group):
+        raise PermissionDenied(permission.message)
+
+    bidding_round.status = BiddingRoundStatusEnum.ACTIVE.value
+    bidding_round.start_time = timezone.now()
+    bidding_round.save()
+
+    return CustomResponse(
+        data={
+            "bidding_round": BiddingRoundSerializer(bidding_round).data,
+        },
+        message="Bidding Stated",
+        status_code=status.HTTP_200_OK,
+    )
+

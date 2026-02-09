@@ -30,6 +30,7 @@ export interface Group {
     start_date: string;
     created_at: string;
     members: Member[];
+    latest_bidding_round_id: string
 }
 
 export interface Member {

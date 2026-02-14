@@ -35,7 +35,9 @@ class BiddingRound(models.Model):
         blank=True,
         related_name="won_rounds",
     )
-    winning_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    winning_bid = models.ForeignKey(
+        "Bid", on_delete=models.SET_NULL, null=True, blank=True, related_name="winning_rounds",
+    )
 
     class Meta:
         db_table = "BiddingRound"
@@ -55,7 +57,7 @@ class BiddingRound(models.Model):
 class Bid(models.Model):
     bidding_round = models.ForeignKey(BiddingRound, on_delete=models.CASCADE, related_name="bids")
     member = models.ForeignKey(GroupMember, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     timestamp = models.DateTimeField(auto_now_add=True)
     is_valid = models.BooleanField(default=True)
 

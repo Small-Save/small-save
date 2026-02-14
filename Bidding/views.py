@@ -1,6 +1,8 @@
 from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from Groups.models import GroupMember
+from Groups.permissions import IsGroupAdmin
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
@@ -8,15 +10,13 @@ from rest_framework.decorators import permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from utils.response import CustomResponse
 
 from Bidding.models import Bid
 from Bidding.models import BiddingRound
 from Bidding.models import BiddingRoundStatusEnum
 from Bidding.serializers import BiddingRoundSerializer
 from Bidding.serializers import BidSerializer
-from Groups.models import GroupMember
-from Groups.permissions import IsGroupAdmin
-from utils.response import CustomResponse
 
 
 @api_view(["GET"])
@@ -88,14 +88,8 @@ def place_bid(request, round_id):
     # Create bid
     bid = Bid.objects.create(bidding_round=bidding_round, member=member, amount=bid_amount)
 
-    # Get current lowest bid
-    lowest_bid = bidding_round.bids.filter(is_valid=True).aggregate(Min("amount"))["amount__min"]
-
     return CustomResponse(
-        data={
-            "bid": BidSerializer(bid).data,
-            "current_lowest": int(lowest_bid) if lowest_bid else None,
-        },
+        data=BidSerializer(bid).data,
         status_code=status.HTTP_201_CREATED,
     )
 
@@ -209,4 +203,3 @@ def make_bidding_active(request, round_id):
         message="Bidding Stated",
         status_code=status.HTTP_200_OK,
     )
-

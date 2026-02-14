@@ -14,6 +14,7 @@ django-cors-headers = "*"
 phonenumbers = "*"
 channels = "*"
 uvicorn = {extras = ["standard"], version = "*"}
+python-dateutil = "*"
 
 [dev-packages]
 django-extensions = "*"

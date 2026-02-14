@@ -130,3 +130,13 @@ export const fetchDeviceContacts = async (): Promise<Contact[]> => {
         return [];
     }
 };
+
+export const getTimeAgo = (timestamp: string) => {
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const seconds = Math.floor(diff / 1000);
+
+    if (seconds < 60) return `${seconds}s ago`;
+
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
+};

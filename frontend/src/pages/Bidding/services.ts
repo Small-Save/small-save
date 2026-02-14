@@ -33,7 +33,6 @@ export interface Bid {
     username: string;
     is_valid: boolean;
 }
-
 export interface BiddingStatus {
     status: "completed" | "active" | "scheduled" | "cancelled";
     current_lowest: number | null;
@@ -75,7 +74,7 @@ export const fetchGroupDetails = async (groupId: string): Promise<BaseResponse<G
 
 export const placeBid = async (roundId: string, bidAmount: number): Promise<BaseResponse<Bid>> => {
     try {
-        const response = await api.post(`/bidding/${roundId}/place-bid/`, {
+        const response = await api.post(`/bidding/${roundId}/place_bid/`, {
             amount: bidAmount
         });
         return response.data;

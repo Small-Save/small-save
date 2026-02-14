@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "558f8bf0977cddcf1b763e9feb12f94d4947fb91bd5251ec30109dfb909be6cc"
+            "sha256": "4fdf9200c6fdc55faff7d06f259289f50684147ae85fb9da1696071661dfcb9c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -756,12 +756,12 @@
         },
         "phonenumbers": {
             "hashes": [
-                "sha256:e5aa44844684ffb4928f25a7b8c31dbf6e3763138cb13edd2ab03bf6d4803d98",
-                "sha256:f29651fb72ba4d22d2691bb0b432f1d2c93fd49cc7b89aa6c11bd6b0e4167412"
+                "sha256:97c38e4b5b8af992c75de01bd9c0f84e61701a9c900fd84f49744714910a4dc3",
+                "sha256:fa86ab7112ef8b286a811392311bd76bbbae7d1d271c2ed26cf73f2e9fa4d3c6"
             ],
             "index": "pypi",
             "markers": "python_version >= '2.5'",
-            "version": "==9.0.23"
+            "version": "==9.0.24"
         },
         "propcache": {
             "hashes": [
@@ -974,6 +974,15 @@
             "markers": "python_version >= '3.9'",
             "version": "==2.11.0"
         },
+        "python-dateutil": {
+            "hashes": [
+                "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
+                "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "version": "==2.9.0.post0"
+        },
         "python-dotenv": {
             "hashes": [
                 "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6",
@@ -1066,6 +1075,14 @@
             ],
             "markers": "python_version >= '3.9'",
             "version": "==2.32.5"
+        },
+        "six": {
+            "hashes": [
+                "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+                "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"
+            ],
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "version": "==1.17.0"
         },
         "sqlparse": {
             "hashes": [

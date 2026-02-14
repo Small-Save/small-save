@@ -14,9 +14,7 @@ class Group(models.Model):
     ]
 
     name = models.CharField(max_length=200)
-    target_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+    target_amount = models.PositiveIntegerField(
         help_text="Target amount for the group",
         validators=[MinValueValidator(0)],  # ensures positive only data
     )

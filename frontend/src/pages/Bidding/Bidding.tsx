@@ -1,6 +1,6 @@
-import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonProgressBar } from "@ionic/react";
+import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonSpinner } from "@ionic/react";
 import { HeaderBox } from "components/HeaderBox";
-import { settingsOutline, timerOutline, chevronForwardOutline } from "ionicons/icons";
+import { settingsOutline, chevronForwardOutline, trendingDownOutline } from "ionicons/icons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import useFormInput from "Hooks/useFormInput";
@@ -8,51 +8,56 @@ import { Bid, BiddingRound, fetchBiddingDetails, fetchBiddingStatus, placeBid } 
 import { useParams } from "react-router";
 import { useGroup } from "Hooks/useGroup";
 import { useBiddingSocket } from "./useBiddingSocket";
+import { getTimeAgo } from "lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface BiddingParams {
     groupId: string;
 }
 
 const Bidding: React.FC = () => {
-    const [timeProgress, setTimeProgress] = useState(0);
     const [timeRemainingLabel, setTimeRemainingLabel] = useState("");
-
-    const [bids, setBids] = useState<Bid[]>([]);
     const bidAmountInput = useFormInput("");
-    const [round, setRound] = useState<BiddingRound>();
-    const [isRoundLoading, setIsRoundLoading] = useState(false);
-    const [roundLoadError, setRoundLoadError] = useState<string | null>(null);
     const [bidSubmitError, setBidSubmitError] = useState<string | null>(null);
     const [isSubmittingBid, setIsSubmittingBid] = useState(false);
     const { groupId } = useParams<BiddingParams>();
+    const queryClient = useQueryClient();
+
     const groupQuery = useGroup(groupId);
     const group = groupQuery.data?.data;
-
     const roundId = group?.latest_bidding_round_id ?? "";
 
     const biddingSocketRef = useBiddingSocket<Bid>(roundId, (newBid) => {
-        setBids((prevBids) => [newBid, ...prevBids]);
+        if (!roundId) return;
+        queryClient.setQueryData(["bidding-round", roundId], (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+                ...oldData,
+                bids: [newBid, ...oldData.bids]
+            };
+        });
     });
 
+    const { data, isLoading, error, refetch } = useQuery({
+        queryKey: ["bidding-round", roundId],
+        enabled: !!roundId,
+        queryFn: async () => {
+            const [detailsResponse, statusResponse] = await Promise.all([
+                fetchBiddingDetails(roundId!),
+                fetchBiddingStatus(roundId!)
+            ]);
+
+            return {
+                round: detailsResponse.data?.bidding_round,
+                bids: statusResponse.data?.bids ?? []
+            };
+        }
+    });
+
+    const bids: Bid[] = data?.bids ?? [];
+    const round: BiddingRound | undefined = data?.round;
+
     const isBiddingActive = round?.status === "active";
-
-    const lowestBid = useMemo(() => {
-        if (bids.length === 0) return null;
-        return bids.reduce<Bid | null>((lowest, candidate) => {
-            if (!lowest) return candidate;
-            const lowestAmount = Number.parseFloat(lowest.amount);
-            const candidateAmount = Number.parseFloat(candidate.amount);
-            if (Number.isNaN(lowestAmount)) return candidate;
-            if (Number.isNaN(candidateAmount)) return lowest;
-            return candidateAmount < lowestAmount ? candidate : lowest;
-        }, null);
-    }, [bids]);
-
-    const formattedSchedule = useMemo(() => {
-        if (!round?.scheduled_time) return "";
-        const date = new Date(round.scheduled_time);
-        return isNaN(date.getTime()) ? round.scheduled_time : date.toLocaleString();
-    }, [round?.scheduled_time]);
 
     useEffect(() => {
         if (!round?.end_time || !round?.start_time) return;
@@ -70,8 +75,6 @@ const Bidding: React.FC = () => {
                 });
                 return;
             }
-
-            const totalTime = endTime - startTime;
             const difference = endTime - now;
 
             if (difference > 0) {
@@ -80,11 +83,8 @@ const Bidding: React.FC = () => {
                 const seconds = Math.floor((difference / 1000) % 60);
 
                 setTimeRemainingLabel(`${hours}h ${minutes}m ${seconds}s`);
-                const rawProgress = totalTime > 0 ? 1 - difference / totalTime : 0;
-                setTimeProgress(Math.min(1, Math.max(0, rawProgress)));
             } else {
                 setTimeRemainingLabel("0h 0m 0s");
-                setTimeProgress(1);
             }
         };
 
@@ -92,28 +92,6 @@ const Bidding: React.FC = () => {
         const interval = setInterval(calculateTimeLeft, 1000);
         return () => clearInterval(interval);
     }, [round?.end_time, round?.start_time]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!roundId) return;
-            setIsRoundLoading(true);
-            setRoundLoadError(null);
-            try {
-                const detailsResponse = await fetchBiddingDetails(roundId);
-                const statusResponse = await fetchBiddingStatus(roundId);
-                setBids(statusResponse.data?.bids ?? []);
-                setRound(detailsResponse.data?.bidding_round);
-            } catch (error) {
-                console.error("Error fetching bidding details or connecting to WebSocket:", error);
-                setRoundLoadError("Failed to load bidding data. Please try again.");
-            } finally {
-                setIsRoundLoading(false);
-            }
-        };
-
-        fetchData();
-        return () => {};
-    }, [roundId]);
 
     const handlePlaceBid = useCallback(async () => {
         setBidSubmitError(null);
@@ -123,9 +101,14 @@ const Bidding: React.FC = () => {
             return;
         }
 
-        const parsedAmount = Number.parseFloat(bidAmountInput.value);
+        const parsedAmount = Number.parseInt(bidAmountInput.value);
         if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
             setBidSubmitError("Enter a valid bid amount.");
+            return;
+        }
+
+        if (group?.target_amount && parsedAmount >= group.target_amount) {
+            setBidSubmitError(`Bid must be less than the target amount of ₹${group.target_amount}.`);
             return;
         }
 
@@ -138,7 +121,14 @@ const Bidding: React.FC = () => {
                 return;
             }
 
-            setBids((prevBids) => [newBid, ...prevBids]);
+            queryClient.setQueryData(["bidding-round", roundId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    bids: [newBid, ...oldData.bids]
+                };
+            });
+
             if (biddingSocketRef.current?.readyState === WebSocket.OPEN) {
                 biddingSocketRef.current.send(
                     JSON.stringify({
@@ -152,52 +142,32 @@ const Bidding: React.FC = () => {
             setBidSubmitError("Failed to place bid. Please try again.");
         } finally {
             setIsSubmittingBid(false);
+            bidAmountInput.setValue("");
         }
     }, [bidAmountInput.value, roundId, biddingSocketRef]);
 
-    if (groupQuery.isLoading) {
-        return (
-            <IonPage>
-                <IonContent className="ion-padding">
-                    <div className="flex items-center justify-center h-full">
-                        <p>Loading.....</p>
-                    </div>
-                </IonContent>
-            </IonPage>
-        );
-    }
+    const lowestBid = useMemo(() => {
+        if (bids.length === 0) return null;
+        return bids.reduce<Bid | null>((lowest, candidate) => {
+            if (!lowest) return candidate;
+            return candidate.amount < lowest.amount ? candidate : lowest;
+        }, null);
+    }, [bids]);
 
-    if (roundLoadError) {
+    const formattedSchedule = useMemo(() => {
+        if (!round?.scheduled_time) return "";
+        const date = new Date(round.scheduled_time);
+        return isNaN(date.getTime()) ? round.scheduled_time : date.toLocaleString();
+    }, [round?.scheduled_time]);
+
+    if (error) {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
                 <IonContent className="ion-padding">
-                    <p className="text-sm text-red-600">{roundLoadError}</p>
+                    <p className="text-sm text-red-600">Failed to load bidding data. Please try again.</p>
                     <div className="mt-3">
-                        <IonButton
-                            onClick={() => {
-                                // Trigger a refetch by relying on the same roundId effect.
-                                // This keeps the logic in one place.
-                                setRoundLoadError(null);
-                                setIsRoundLoading(true);
-                                fetchBiddingDetails(roundId)
-                                    .then((detailsResponse) => {
-                                        setRound(detailsResponse.data?.bidding_round);
-                                        return fetchBiddingStatus(roundId);
-                                    })
-                                    .then((statusResponse) => {
-                                        setBids(statusResponse.data?.bids ?? []);
-                                    })
-                                    .catch((error) => {
-                                        console.error("Error fetching bidding data:", error);
-                                        setRoundLoadError("Failed to load bidding data. Please try again.");
-                                    })
-                                    .finally(() => {
-                                        setIsRoundLoading(false);
-                                    });
-                            }}
-                            disabled={!roundId || isRoundLoading}
-                        >
+                        <IonButton onClick={() => refetch()} disabled={!roundId || isLoading}>
                             Retry
                         </IonButton>
                     </div>
@@ -206,20 +176,21 @@ const Bidding: React.FC = () => {
         );
     }
 
-    if (isRoundLoading && !round) {
+    if (groupQuery.isLoading || (isLoading && !round)) {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
                 <IonContent className="ion-padding">
-                    <IonProgressBar type="indeterminate" />
-                    <p className="mt-3 text-sm">Loading bidding round…</p>
+                    <div className="flex items-center justify-center h-full">
+                        <IonSpinner />
+                    </div>
                 </IonContent>
             </IonPage>
         );
     }
 
     if (!isBiddingActive) {
-        // TODO: here check if the bidding is completed then we have to the winner and top bids etc.
+        // TODO: here check if the bidding is completed then we have to show the winner and top bids etc.
         return (
             <IonPage>
                 <HeaderBox title="Bidding Status" />
@@ -251,93 +222,136 @@ const Bidding: React.FC = () => {
                     }
                 ]}
             />
-            <IonContent className="ion-padding">
-                {isRoundLoading && <IonProgressBar type="indeterminate" />}
-                {/* winner card */}
-                <div className="bg-indigo-500 pt-2 pb-2 text-white mb-3 rounded-lg">
-                    <span className="flex flex-col items-center-safe">
-                        <p className="font-bold5">Current Round</p>
-                        <p className="text-xs">{group?.target_amount} pool</p>
-                    </span>
+            <IonContent className="ion-padding bg-slate-50">
+                <div className="max-w-3xl mx-auto space-y-4 pb-16">
+                    {/* winner card */}
+                    <div
+                        className="rounded-3xl p-6 text-white shadow-xl
+                        bg-linear-to-br from-purple-600 to-indigo-600"
+                    >
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-xs tracking-widest opacity-80">TOTAL POOL</p>
+                                <p className="text-4xl font-bold mt-2">₹{group?.target_amount ?? 0}</p>
+                            </div>
 
-                    {/* Winner Banner */}
-                    <div className="flex flex-col items-center-safe">
-                        <p className="font-bold">This round's Winner</p>
-                        <p className="text-xs">{round?.winner_username}</p>
-                    </div>
-                </div>
-                <div className="flex flex-col space-y-3.5 shadow-lg">
-                    <p>Bidding System</p>
-                    <div className="flex flex-col gap-1 rounded-lg border-2 border-solid border-orange-800 bg-amber-300 p-1">
-                        <p className="text-xs text-center">Time Until Winner Selection</p>
-                        <p className="flex items-center gap-1 justify-end-safe text-xs">
-                            <IonIcon icon={timerOutline} /> {timeRemainingLabel}
-                        </p>
-                        <IonProgressBar value={timeProgress}></IonProgressBar>
-                        <p className="text-xs text-center">Place your bid before time runs out!</p>
-                    </div>
-
-                    {/* Current Lowest Bidder */}
-                    <div className="flex flex-col space-y-1 items-center p-1 rounded-lg border-2 border-solid border-green-600 bg-green-200 ">
-                        <p>Current Lowest Bid</p>
-                        <p>{lowestBid ? `₹${lowestBid.amount}` : "—"}</p>
-                        <div className="flex items-center gap-1">
-                            <img src={profileImageTemp} width={30} height={30} className="rounded-xl" />
-                            <span>{lowestBid?.member?.username ? `${lowestBid.member.username} is leading!` : ""}</span>
+                            <div className="bg-white/20 px-4 py-2 rounded-xl text-right">
+                                <p className="text-xs opacity-80">ENDS IN</p>
+                                <p className="font-semibold text-sm">{timeRemainingLabel}</p>
+                            </div>
                         </div>
-                    </div>
-                    {/* Place your Bid */}
-                    <div className="flex p-1 ">
-                        {/* <Field label="Place Your Bid" placeholder="Enter the bid amount here" hook={bidAmount} /> */}
-                        <IonInput
-                            type={"text"}
-                            label={"Place Your Bid"}
-                            labelPlacement="stacked"
-                            placeholder={"Enter the bid amount here"}
-                            inputMode="decimal"
-                            className={`${bidAmountInput.isError && "ion-invalid"} ${bidAmountInput.touched && "ion-touched"}`}
-                            aria-invalid={bidAmountInput.isError}
-                            {...bidAmountInput.bind}
-                        />
-                        <IonButton onClick={handlePlaceBid} disabled={isSubmittingBid}>
-                            <IonIcon icon={chevronForwardOutline} />
-                        </IonButton>
-                    </div>
-                    {bidSubmitError && <p className="text-xs text-red-600">{bidSubmitError}</p>}
 
-                    {/* Leader board */}
-                    <div className="space-y-2">
-                        <p className="text-sm ">Live Bidding Leaderboard</p>
-                        <div className="space-y-3">
-                            {!isRoundLoading && bids.length === 0 && (
-                                <p className="text-sm text-gray-600">No bids yet. Be the first to place a bid.</p>
-                            )}
-                            {bids.map((bid, idx) => {
-                                return (
-                                    <div
-                                        key={bid.id}
-                                        className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 shadow-sm"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {/* TODO: here we have to show the real profile image of the user but for now we are using the temp image */}
-                                            <img
-                                                src={profileImageTemp}
-                                                alt="User Avatar"
-                                                className="h-10 w-10 rounded-full object-cover"
-                                            />
+                        {round?.winner_username && (
+                            <div className="mt-6 bg-white/10 p-3 rounded-xl flex items-center gap-3">
+                                <img src={profileImageTemp} className="w-10 h-10 rounded-full object-cover" />
+                                <div>
+                                    <p className="text-xs opacity-80">LAST WINNER</p>
+                                    <p className="font-semibold">{round.winner_username}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col space-y-5 bg-white rounded-3xl p-3 shadow-xl">
+                        {/* Current Lowest Bidder */}
+                        {bids.length > 0 && (
+                            <div className="mt-8 text-center">
+                                <p className="flex items-center gap-2 justify-center text-xs tracking-widest text-gray-400">
+                                    <IonIcon icon={trendingDownOutline} className="text-sm text-green-600" />
+                                    CURRENT LOWEST
+                                </p>
+
+                                <p className="text-5xl font-bold text-gray-900 mt-2">
+                                    ₹{lowestBid ? lowestBid.amount : "—"}
+                                </p>
+
+                                {lowestBid?.member?.username && (
+                                    <p className="text-green-600 mt-2 text-sm font-medium">
+                                        {/* TODO: add a smallll profile image here */}
+                                        {lowestBid.member.username} is leading
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                        {/* Place your Bid */}
+                        <div className="flex gap-4 bg-gray-50 rounded-2xl p-4 items-end shadow-sm">
+                            {/* <Field label="Place Your Bid" placeholder="Enter the bid amount here" hook={bidAmount} /> */}
+                            <IonInput
+                                type={"text"}
+                                label={"Place your bid"}
+                                labelPlacement="stacked"
+                                placeholder={"Enter the bid amount here"}
+                                inputMode="decimal"
+                                className={`${bidAmountInput.isError && "ion-invalid"} ${bidAmountInput.touched && "ion-touched"}`}
+                                aria-invalid={bidAmountInput.isError}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        handlePlaceBid();
+                                    }
+                                }}
+                                {...bidAmountInput.bind}
+                            />
+                            <IonButton onClick={handlePlaceBid} disabled={isSubmittingBid}>
+                                <IonIcon icon={chevronForwardOutline} />
+                            </IonButton>
+                        </div>
+                        {bidSubmitError && <p className="text-xs text-red-600">{bidSubmitError}</p>}
+
+                        {/* Leader board */}
+                        <div className="mt-8 space-y-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <p className="text-sm font-semibold text-gray-700 tracking-wide">LIVE FEED</p>
+                                <span className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full font-medium">
+                                    {bids.length} {bids.length === 1 ? "BID" : "BIDS"}
+                                </span>
+                            </div>
+                            <div className="space-y-3 max-h-112 overflow-y-auto pr-2">
+                                {!isLoading && bids.length === 0 && (
+                                    <p className="text-sm text-gray-500 text-center py-8">
+                                        No bids yet. Be the first to place a bid.
+                                    </p>
+                                )}
+                                {bids.map((bid, idx) => {
+                                    return (
+                                        <div
+                                            key={bid.id}
+                                            className={`flex justify-between items-center p-4 rounded-3xl shadow-sm transition-all ${
+                                                idx === 0
+                                                    ? "bg-linear-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-200"
+                                                    : idx === 1
+                                                      ? "bg-linear-to-r from-slate-50 to-slate-100 border-2 border-slate-200"
+                                                      : "bg-white hover:shadow-md border border-gray-200"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src={profileImageTemp}
+                                                    className="w-12 h-12 rounded-2xl object-cover shadow-sm"
+                                                />
+                                                {/* TODO: add user postion in the bid */}
+                                                <div>
+                                                    <p className="font-semibold text-gray-800 text-sm">
+                                                        {bid.member?.username}
+                                                    </p>
+                                                    <p className="text-xs font-medium text-gray-500">
+                                                        {idx === 0
+                                                            ? "🥇 LEADING"
+                                                            : idx === 1
+                                                              ? "🥈 CHALLENGING"
+                                                              : `#${idx + 1}`}
+                                                    </p>
+                                                </div>
+                                            </div>
 
                                             <div>
-                                                <p className="text-sm font-semibold text-blue-700">
-                                                    {bid.member?.username ?? "Unknown"}
+                                                <p className="text-lg font-bold text-gray-900">₹{bid.amount}</p>
+                                                <p className="text-xs text-gray-500 text-end">
+                                                    {getTimeAgo(bid.timestamp)}
                                                 </p>
-                                                <p className="text-xs text-gray-500">#{idx + 1}</p>
                                             </div>
                                         </div>
-
-                                        <div className="text-sm font-semibold text-gray-900">₹ {bid.amount}</div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>

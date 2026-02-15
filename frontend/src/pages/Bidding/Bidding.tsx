@@ -38,7 +38,7 @@ const Bidding: React.FC = () => {
         });
     });
 
-    const { data, isLoading, error, refetch } = useQuery({
+    const biddingDetailsQuery = useQuery({
         queryKey: ["bidding-round", roundId],
         enabled: !!roundId,
         queryFn: async () => {
@@ -54,8 +54,8 @@ const Bidding: React.FC = () => {
         }
     });
 
-    const bids: Bid[] = data?.bids ?? [];
-    const round: BiddingRound | undefined = data?.round;
+    const bids: Bid[] = biddingDetailsQuery.data?.bids ?? [];
+    const round: BiddingRound | undefined = biddingDetailsQuery.data?.round;
 
     const isBiddingActive = round?.status === "active";
 
@@ -160,14 +160,14 @@ const Bidding: React.FC = () => {
         return isNaN(date.getTime()) ? round.scheduled_time : date.toLocaleString();
     }, [round?.scheduled_time]);
 
-    if (error) {
+    if (biddingDetailsQuery.error) {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
                 <IonContent className="ion-padding">
                     <p className="text-sm text-red-600">Failed to load bidding data. Please try again.</p>
                     <div className="mt-3">
-                        <IonButton onClick={() => refetch()} disabled={!roundId || isLoading}>
+                        <IonButton onClick={() => biddingDetailsQuery.refetch()} disabled={!roundId || biddingDetailsQuery.isLoading}>
                             Retry
                         </IonButton>
                     </div>
@@ -176,7 +176,7 @@ const Bidding: React.FC = () => {
         );
     }
 
-    if (groupQuery.isLoading || (isLoading && !round)) {
+    if (groupQuery.isLoading || (biddingDetailsQuery.isLoading && !round)) {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
@@ -305,7 +305,7 @@ const Bidding: React.FC = () => {
                                 </span>
                             </div>
                             <div className="space-y-3 max-h-112 overflow-y-auto pr-2">
-                                {!isLoading && bids.length === 0 && (
+                                {!biddingDetailsQuery.isLoading && bids.length === 0 && (
                                     <p className="text-sm text-gray-500 text-center py-8">
                                         No bids yet. Be the first to place a bid.
                                     </p>
@@ -327,7 +327,7 @@ const Bidding: React.FC = () => {
                                                     src={profileImageTemp}
                                                     className="w-12 h-12 rounded-2xl object-cover shadow-sm"
                                                 />
-                                                {/* TODO: add user postion in the bid */}
+                                                {/* TODO: add user postion in the bid as badge */}
                                                 <div>
                                                     <p className="font-semibold text-gray-800 text-sm">
                                                         {bid.member?.username}

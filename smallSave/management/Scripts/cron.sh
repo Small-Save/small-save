@@ -1,0 +1,1 @@
+*/5 * * * * python ./manage.py process_rounds >> /tmp/rounds.log 2>&1 # every 5 minutes

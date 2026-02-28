@@ -1,7 +1,7 @@
 # models.py
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db import models
 
 User = get_user_model()
 
@@ -32,7 +32,7 @@ class Group(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    members = models.ManyToManyField(User, through="GroupMember", related_name="custom_groups")
+    members = models.ManyToManyField(User, through="GroupMember")
 
     class Meta:
         db_table = "groups"

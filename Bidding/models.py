@@ -4,6 +4,7 @@ from enum import Enum
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db import transaction
 from django.utils import timezone
 from Groups.models import Group
 from Groups.models import GroupMember
@@ -38,7 +39,11 @@ class BiddingRound(models.Model):
         related_name="won_rounds",
     )
     winning_bid = models.ForeignKey(
-        "Bid", on_delete=models.SET_NULL, null=True, blank=True, related_name="winning_rounds",
+        "Bid",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="winning_rounds",
     )
 
     class Meta:
@@ -56,7 +61,34 @@ class BiddingRound(models.Model):
         return self.status == BiddingRoundStatusEnum.ACTIVE.value
 
     def get_winning_bid(self) -> Bid | None:
-        return self.bids.filter(is_valid=True).order_by("-amount").first()
+        return self.bids.filter(is_valid=True).order_by("amount", "timestamp").first()
+
+    def start_bidding(self):
+        if self.can_start():
+            self.status = BiddingRoundStatusEnum.ACTIVE.value
+            self.start_time = timezone.now()
+            self.save()
+            return True
+        return False
+
+    def end_bidding(self) -> bool:
+        with transaction.atomic():
+            winning_bid = self.get_winning_bid()
+            if not winning_bid:
+                random_winner = self.group.members.filter(has_won=False).order_by("?").first()
+                winning_bid = Bid.objects.create(
+                    bidding_round=self,
+                    member=random_winner,
+                    amount=self.group.target_amount,
+                )
+            self.status = BiddingRoundStatusEnum.COMPLETED.value
+            self.end_time = timezone.now()
+            self.winner = winning_bid.member
+            self.winning_bid = winning_bid
+            self.save()
+        # TODO: send notification to the winner
+        # TODO: send notification to the group members
+        return True
 
 
 class Bid(models.Model):
@@ -68,6 +100,7 @@ class Bid(models.Model):
 
     class Meta:
         ordering = ["-amount", "timestamp"]
+        constraints = [models.UniqueConstraint(fields=["bidding_round", "amount"], name="unique_bid_per_round")]
 
     def __str__(self):
-        return f"{self.member.user.username} - ₹{self.amount}"
+        return f"timestamp: {self.timestamp} - user: {self.member.user.username} - amount: ₹{self.amount}"

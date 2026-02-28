@@ -20,7 +20,6 @@ export interface BiddingRound {
 
 export interface BiddingRoomData {
     bidding_round: BiddingRound;
-    current_lowest_bid: number;
     can_bid: boolean;
 }
 
@@ -33,13 +32,6 @@ export interface Bid {
     username: string;
     is_valid: boolean;
 }
-export interface BiddingStatus {
-    status: "completed" | "active" | "scheduled" | "cancelled";
-    current_lowest: number | null;
-    lowest_bidder: string | null;
-    bids: Bid[];
-    time_remaining: number | null;
-}
 
 export const fetchBiddingDetails = async (roundId: string): Promise<BaseResponse<BiddingRoomData>> => {
     try {
@@ -51,9 +43,9 @@ export const fetchBiddingDetails = async (roundId: string): Promise<BaseResponse
     }
 };
 
-export const fetchBiddingStatus = async (roundId: string): Promise<BaseResponse<BiddingStatus>> => {
+export const fetchAllBids = async (roundId: string): Promise<BaseResponse<Bid[]>> => {
     try {
-        const response = await api.get(`/bidding/${roundId}/status/`);
+        const response = await api.get(`/bidding/${roundId}/bids/all/`);
         return response.data;
     } catch (error) {
         console.error(error);

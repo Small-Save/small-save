@@ -4,7 +4,7 @@ import { settingsOutline, chevronForwardOutline, trendingDownOutline } from "ion
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import useFormInput from "Hooks/useFormInput";
-import { Bid, BiddingRound, fetchBiddingDetails, fetchBiddingStatus, placeBid } from "./services";
+import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
 import { useParams } from "react-router";
 import { useGroup } from "Hooks/useGroup";
 import { useBiddingSocket } from "./useBiddingSocket";
@@ -47,12 +47,13 @@ const Bidding: React.FC = () => {
         queryFn: async () => {
             const [detailsResponse, statusResponse] = await Promise.all([
                 fetchBiddingDetails(roundId!),
-                fetchBiddingStatus(roundId!)
+                fetchAllBids(roundId!)
             ]);
 
             return {
                 round: detailsResponse.data?.bidding_round,
-                bids: statusResponse.data?.bids ?? []
+                can_bid: detailsResponse.data?.can_bid,
+                bids: statusResponse.data ?? []
             };
         }
     });
@@ -155,6 +156,30 @@ const Bidding: React.FC = () => {
         return isNaN(date.getTime()) ? round.scheduled_time : date.toLocaleString();
     }, [round?.scheduled_time]);
 
+    if (groupQuery.isLoading || (biddingDetailsQuery.isLoading && !round)) {
+        return (
+            <IonPage>
+                <HeaderBox title={group?.name ?? "Bidding"} />
+                <IonContent className="ion-padding">
+                    <div className="flex items-center justify-center h-full">
+                        <IonSpinner />
+                    </div>
+                </IonContent>
+            </IonPage>
+        );
+    }
+
+    if (!biddingDetailsQuery.data?.can_bid) {
+        return (
+            <IonPage>
+                <HeaderBox title={group?.name ?? "Bidding"} />
+                <IonContent className="ion-padding">
+                    <p className="text-sm text-red-600">You are not allowed to bid in this round.</p>
+                </IonContent>
+            </IonPage>
+        );
+    }
+
     if (biddingDetailsQuery.error) {
         return (
             <IonPage>
@@ -168,19 +193,6 @@ const Bidding: React.FC = () => {
                         >
                             Retry
                         </IonButton>
-                    </div>
-                </IonContent>
-            </IonPage>
-        );
-    }
-
-    if (groupQuery.isLoading || (biddingDetailsQuery.isLoading && !round)) {
-        return (
-            <IonPage>
-                <HeaderBox title={group?.name ?? "Bidding"} />
-                <IonContent className="ion-padding">
-                    <div className="flex items-center justify-center h-full">
-                        <IonSpinner />
                     </div>
                 </IonContent>
             </IonPage>

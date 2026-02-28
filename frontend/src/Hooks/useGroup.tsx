@@ -6,7 +6,7 @@ export const useGroup = (groupId: string) => {
         queryKey: ["group", groupId],
         queryFn: () => fetchGroupDetails(groupId),
         enabled: Boolean(groupId), // only run when groupId exists
-        staleTime: 1000 * 60 * 5, // cache for 5 mins
+        staleTime: 1000 * 60 * 15, // cache for 5 mins
         gcTime: 1000 * 60 * 10
     });
 };

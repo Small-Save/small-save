@@ -1,3 +1,4 @@
+from Authentication.serializers import BaseUserSerializer
 from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -24,14 +25,14 @@ from Bidding.serializers import BidSerializer
 @authentication_classes([JWTAuthentication])
 def bidding_room(request, round_id):
     """Get bidding room details"""
-    bidding_round = get_object_or_404(BiddingRound, id=round_id)
+    bidding_round: BiddingRound = get_object_or_404(BiddingRound, id=round_id)
 
     # Check if user is a member
     try:
         # TODO add a check to check if the bidding has started ??
         # This can be added if this is a joining request else if just view then no need to add is_acrive()
 
-        member = GroupMember.objects.get(group=bidding_round.group, user=request.user)
+        member: GroupMember = GroupMember.objects.get(group=bidding_round.group, user=request.user)
     except GroupMember.DoesNotExist:
         return CustomResponse(
             error="You are not a member of this group",
@@ -122,7 +123,7 @@ def get_bidding_status(request, round_id):
 @permission_classes([IsAuthenticated])
 def start_bidding(request, round_id):
     """Start a bidding round (admin only)"""
-    bidding_round = get_object_or_404(BiddingRound, id=round_id)
+    bidding_round: BiddingRound = get_object_or_404(BiddingRound, id=round_id)
 
     permission = IsGroupAdmin()
     if not permission.has_object_permission(request, None, bidding_round.group):
@@ -148,7 +149,7 @@ def start_bidding(request, round_id):
 @permission_classes([IsAuthenticated])
 def end_bidding(request, round_id):
     """End bidding and determine winner"""
-    bidding_round = get_object_or_404(BiddingRound, id=round_id)
+    bidding_round: BiddingRound = get_object_or_404(BiddingRound, id=round_id)
 
     permission = IsGroupAdmin()
     if not permission.has_object_permission(request, None, bidding_round.group):
@@ -158,7 +159,7 @@ def end_bidding(request, round_id):
         return CustomResponse(error="Bidding is not active", status_code=status.HTTP_400_BAD_REQUEST)
 
     # Get winning bid (lowest amount, earliest timestamp)
-    winning_bid = bidding_round.bids.filter(is_valid=True).order_by("amount", "timestamp").first()
+    winning_bid = bidding_round.get_winning_bid()
 
     if not winning_bid:
         return CustomResponse(error="No valid bids", status_code=status.HTTP_400_BAD_REQUEST)
@@ -167,16 +168,16 @@ def end_bidding(request, round_id):
     bidding_round.status = BiddingRoundStatusEnum.COMPLETED.value
     bidding_round.end_time = timezone.now()
     bidding_round.winner = winning_bid.member
-    bidding_round.winning_bid = winning_bid.amount
+    bidding_round.winning_bid = winning_bid
     bidding_round.save()
 
     # Mark member as having won
     winning_bid.member.has_won = True
-    winning_bid.member.save()
+    winning_bid.save()
 
     return CustomResponse(
         data={
-            "winner": winning_bid.member.user,
+            "winner": BaseUserSerializer(winning_bid.member.user).data,
             "winning_amount": float(winning_bid.amount),
             "bidding_round": BiddingRoundSerializer(bidding_round).data,
         },

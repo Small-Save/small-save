@@ -8,8 +8,9 @@ import { Bid, BiddingRound, fetchBiddingDetails, fetchBiddingStatus, placeBid } 
 import { useParams } from "react-router";
 import { useGroup } from "Hooks/useGroup";
 import { useBiddingSocket } from "./useBiddingSocket";
-import { getTimeAgo } from "lib/utils";
+import { formatAmount, getTimeAgo } from "lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ScheduledBiddingRound } from "./ScheduledBiddingRound";
 
 interface BiddingParams {
     groupId: string;
@@ -31,9 +32,11 @@ const Bidding: React.FC = () => {
         if (!roundId) return;
         queryClient.setQueryData(["bidding-round", roundId], (oldData: any) => {
             if (!oldData) return oldData;
+            const newBids = [newBid, ...oldData.bids];
+            newBids.sort((a: Bid, b: Bid) => Number(a.amount) - Number(b.amount));
             return {
                 ...oldData,
-                bids: [newBid, ...oldData.bids]
+                bids: newBids
             };
         });
     });
@@ -121,14 +124,6 @@ const Bidding: React.FC = () => {
                 return;
             }
 
-            queryClient.setQueryData(["bidding-round", roundId], (oldData: any) => {
-                if (!oldData) return oldData;
-                return {
-                    ...oldData,
-                    bids: [newBid, ...oldData.bids]
-                };
-            });
-
             if (biddingSocketRef.current?.readyState === WebSocket.OPEN) {
                 biddingSocketRef.current.send(
                     JSON.stringify({
@@ -167,7 +162,10 @@ const Bidding: React.FC = () => {
                 <IonContent className="ion-padding">
                     <p className="text-sm text-red-600">Failed to load bidding data. Please try again.</p>
                     <div className="mt-3">
-                        <IonButton onClick={() => biddingDetailsQuery.refetch()} disabled={!roundId || biddingDetailsQuery.isLoading}>
+                        <IonButton
+                            onClick={() => biddingDetailsQuery.refetch()}
+                            disabled={!roundId || biddingDetailsQuery.isLoading}
+                        >
                             Retry
                         </IonButton>
                     </div>
@@ -196,7 +194,14 @@ const Bidding: React.FC = () => {
                 <HeaderBox title="Bidding Status" />
                 <IonContent className="ion-padding">
                     {round?.status === "scheduled" ? (
-                        <p>This Bidding round is scheduled at {formattedSchedule}</p>
+                        <ScheduledBiddingRound
+                            formattedSchedule={formattedSchedule}
+                            group={group ?? undefined}
+                            round={round ?? undefined}
+                            onNotifyMe={() => {
+                                console.log("notify me");
+                            }}
+                        />
                     ) : (
                         <p>This Bidding round is currently not active</p>
                     )}
@@ -232,7 +237,7 @@ const Bidding: React.FC = () => {
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-xs tracking-widest opacity-80">TOTAL POOL</p>
-                                <p className="text-4xl font-bold mt-2">₹{group?.target_amount ?? 0}</p>
+                                <p className="text-4xl font-bold mt-2">₹{formatAmount(group?.target_amount ?? 0)}</p>
                             </div>
 
                             <div className="bg-white/20 px-4 py-2 rounded-xl text-right">
@@ -261,7 +266,7 @@ const Bidding: React.FC = () => {
                                 </p>
 
                                 <p className="text-5xl font-bold text-gray-900 mt-2">
-                                    ₹{lowestBid ? lowestBid.amount : "—"}
+                                    ₹{lowestBid ? formatAmount(lowestBid.amount) : "—"}
                                 </p>
 
                                 {lowestBid?.member?.username && (
@@ -343,7 +348,9 @@ const Bidding: React.FC = () => {
                                             </div>
 
                                             <div>
-                                                <p className="text-lg font-bold text-gray-900">₹{bid.amount}</p>
+                                                <p className="text-lg font-bold text-gray-900">
+                                                    ₹{formatAmount(bid.amount)}
+                                                </p>
                                                 <p className="text-xs text-gray-500 text-end">
                                                     {getTimeAgo(bid.timestamp)}
                                                 </p>

@@ -175,11 +175,11 @@ class UserGroupRetrieveAPIView(generics.RetrieveAPIView):
                 "groupmember_set__user",
                 Prefetch(
                     "bidding_rounds",
-                    queryset=BiddingRound.objects.only("id", "group").order_by("-round_number", "-scheduled_time"),
+                    queryset=BiddingRound.objects.only("id", "group").order_by("round_number", "scheduled_time"),
                     to_attr="prefetched_bidding_rounds",
                 ),
             )
-            .order_by("-created_at")
+            .order_by("created_at")
         )
 
     def retrieve(self, request, *args, **kwargs):

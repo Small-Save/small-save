@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from django.core.validators import MinValueValidator
@@ -53,6 +55,9 @@ class BiddingRound(models.Model):
     def is_active(self):
         return self.status == BiddingRoundStatusEnum.ACTIVE.value
 
+    def get_winning_bid(self) -> Bid | None:
+        return self.bids.filter(is_valid=True).order_by("-amount").first()
+
 
 class Bid(models.Model):
     bidding_round = models.ForeignKey(BiddingRound, on_delete=models.CASCADE, related_name="bids")
@@ -62,7 +67,7 @@ class Bid(models.Model):
     is_valid = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["amount", "timestamp"]
+        ordering = ["-amount", "timestamp"]
 
     def __str__(self):
         return f"{self.member.user.username} - ₹{self.amount}"

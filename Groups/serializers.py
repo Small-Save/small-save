@@ -43,7 +43,7 @@ class GroupReadSerializer(serializers.ModelSerializer):
         # Fallback if not prefetched (e.g. admin usage)
         latest = (
             obj.bidding_rounds
-            .order_by("-round_number", "-scheduled_time")
+            .order_by("round_number", "scheduled_time")
             .only("id")
             .first()
         )

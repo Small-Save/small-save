@@ -25,6 +25,8 @@ import { fetchUserGroups } from "pages/CreateGroup/services";
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;
     const [groupDetails, setGroupDetails] = useState<BaseResponse<Group[]> | null>(null);
+
+    // TODO:  change this to tenStackQuery
     const fetchGroupDetails = async () => {
         const response = await fetchUserGroups();
         setGroupDetails(response);

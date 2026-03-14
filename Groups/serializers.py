@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from .models import Group
 from .models import GroupMember
-
+from Bidding.models import BiddingRoundStatusEnum
 
 class GroupMemberSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="user.id", read_only=True)
@@ -35,14 +35,9 @@ class GroupReadSerializer(serializers.ModelSerializer):
         )
 
     def get_latest_bidding_round_id(self, obj):
-        rounds = getattr(obj, "prefetched_bidding_rounds", None)
-
-        if rounds is not None:
-            return rounds[0].id if rounds else None
-
         # Fallback if not prefetched (e.g. admin usage)
         latest = (
-            obj.bidding_rounds
+            obj.bidding_rounds.exclude(status=BiddingRoundStatusEnum.COMPLETED.value)
             .order_by("round_number", "scheduled_time")
             .only("id")
             .first()

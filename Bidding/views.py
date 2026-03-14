@@ -30,7 +30,6 @@ def bidding_room(request, round_id):
 
     # Check if user is a member
     try:
-
         member: GroupMember = GroupMember.objects.get(group=bidding_round.group, user=request.user)
     except GroupMember.DoesNotExist:
         return CustomResponse(
@@ -84,7 +83,7 @@ def place_bid(request, round_id):
         )
 
     # Validate bid amount (must be less than total amount)
-    if bid_amount <= 0 or bid_amount >= int(bidding_round.group.target_amount):
+    if bid_amount <= 0 or bid_amount > int(bidding_round.group.target_amount):
         return CustomResponse(
             is_success=False,
             error="Invalid bid amount. Must be between 0 and group target amount.",
@@ -159,30 +158,30 @@ def start_bidding(request, round_id):
         status_code=status.HTTP_200_OK,
     )
 
-
+# * not to be used in PRODUCTION
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def end_bidding(request, round_id):
     """End bidding and determine winner"""
-    bidding_round: BiddingRound = get_object_or_404(BiddingRound, id=round_id)
+    bidding_round: BiddingRound = get_object_or_404(
+        BiddingRound.objects.select_related("group"), id=round_id,
+    )
 
     permission = IsGroupAdmin()
     if not permission.has_object_permission(request, None, bidding_round.group):
         raise PermissionDenied(permission.message)
 
-    winning_bid = bidding_round.get_winning_bid()
-    if not winning_bid:
-        return CustomResponse(error="No valid bids", status_code=status.HTTP_400_BAD_REQUEST)
+    if not bidding_round.is_active():
+        return CustomResponse(error="Bidding round is not active", status_code=status.HTTP_400_BAD_REQUEST)
 
     if not bidding_round.end_bidding():
-        return CustomResponse(error="Failed to end bidding", status_code=status.HTTP_400_BAD_REQUEST)
+        return CustomResponse(error="No eligible members to select a winner", status_code=status.HTTP_400_BAD_REQUEST)
 
+    bidding_round.refresh_from_db()
     return CustomResponse(
-        data={
-            "winner": BaseUserSerializer(winning_bid.member.user).data,
-            "winning_amount": float(winning_bid.amount),
-            "bidding_round": BiddingRoundSerializer(bidding_round).data,
-        },
+        data={"bidding_round": BiddingRoundSerializer(bidding_round).data},
+        message="Bidding ended successfully",
+        status_code=status.HTTP_200_OK,
     )
 
 

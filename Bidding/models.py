@@ -72,20 +72,34 @@ class BiddingRound(models.Model):
         return False
 
     def end_bidding(self) -> bool:
+        if not self.is_active():
+            return False
+
         with transaction.atomic():
             winning_bid = self.get_winning_bid()
+
             if not winning_bid:
-                random_winner = self.group.members.filter(has_won=False).order_by("?").first()
+                random_winner = (
+                    GroupMember.objects.filter(group=self.group, has_won=False)
+                    .order_by("?")
+                    .first()
+                )
+                if not random_winner:
+                    return False
                 winning_bid = Bid.objects.create(
                     bidding_round=self,
                     member=random_winner,
                     amount=self.group.target_amount,
                 )
+
             self.status = BiddingRoundStatusEnum.COMPLETED.value
             self.end_time = timezone.now()
             self.winner = winning_bid.member
             self.winning_bid = winning_bid
             self.save()
+
+            GroupMember.objects.filter(pk=winning_bid.member_id).update(has_won=True)
+
         # TODO: send notification to the winner
         # TODO: send notification to the group members
         return True

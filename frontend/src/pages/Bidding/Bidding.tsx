@@ -111,8 +111,8 @@ const Bidding: React.FC = () => {
             return;
         }
 
-        if (group?.target_amount && parsedAmount >= group.target_amount) {
-            setBidSubmitError(`Bid must be less than the target amount of ₹${group.target_amount}.`);
+        if (group?.target_amount && parsedAmount > group.target_amount) {
+            setBidSubmitError(`Bid must be less than or equal to the target amount of ₹${group.target_amount}.`);
             return;
         }
 
@@ -169,16 +169,16 @@ const Bidding: React.FC = () => {
         );
     }
 
-    if (!biddingDetailsQuery.data?.can_bid) {
-        return (
-            <IonPage>
-                <HeaderBox title={group?.name ?? "Bidding"} />
-                <IonContent className="ion-padding">
-                    <p className="text-sm text-red-600">You are not allowed to bid in this round.</p>
-                </IonContent>
-            </IonPage>
-        );
-    }
+    // if (!biddingDetailsQuery.data?.can_bid) {
+    //     return (
+    //         <IonPage>
+    //             <HeaderBox title={group?.name ?? "Bidding"} />
+    //             <IonContent className="ion-padding">
+    //                 <p className="text-sm text-red-600">You are not allowed to bid in this round.</p>
+    //             </IonContent>
+    //         </IonPage>
+    //     );
+    // }
 
     if (biddingDetailsQuery.error) {
         return (

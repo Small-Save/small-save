@@ -75,7 +75,7 @@ const App: React.FC = () => (
                                 <ProtectedRoute component={AddMembers} />
                             </Route>
                         </GroupCreationProvider>
-                        <Route exact path="/groupdetail/:groupName">
+                        <Route exact path="/groupdetail/:groupId/:groupName">
                             <ProtectedRoute component={GroupDetail} />
                         </Route>
 

@@ -30,8 +30,6 @@ const Payment: React.FC = () => {
   const [paymentData, setPaymentData] = useState<PaymentDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isConfirming, setIsConfirming] = useState(false);
-
-  // Fetch the payment details when the page loads
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -55,7 +53,7 @@ const Payment: React.FC = () => {
   const handleCancel = () => {
     if (paymentData) {
       const encodedGroupName = encodeURIComponent(paymentData.group_name);
-      history.replace(`/groupdetail/${encodedGroupName}`);
+      history.replace(`/groupdetail/${paymentData.group_id}/${encodedGroupName}`);
     } else {
       history.goBack();
     }
@@ -69,7 +67,7 @@ const Payment: React.FC = () => {
       
       // Navigate back to the group details page after success
       const encodedGroupName = encodeURIComponent(paymentData!.group_name);
-      history.replace(`/groupdetail/${encodedGroupName}`);
+      history.replace(`/groupdetail/${paymentData!.group_id}/${encodedGroupName}`);
     } catch (error) {
       console.error("Failed to confirm payment", error);
     } finally {

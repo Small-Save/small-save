@@ -14,7 +14,7 @@ import {
   IonSpinner
 } from "@ionic/react";
 import { settingsOutline, ellipsisHorizontalCircleOutline, chevronBackCircleOutline, personAddOutline, diamondOutline } from "ionicons/icons";
-import { useHistory } from "react-router";
+import { useHistory, useParams } from "react-router";
 import "./GroupDetail.css";
 import { fetchUserGroups } from "pages/CreateGroup/services";
 import { fetchCurrentPaymentStatus, fetchGroupPaymentHistory, confirmReceiverPayment } from "services/payments"; // Import receiver API if needed later
@@ -29,6 +29,7 @@ import RoundTransactions from "./History/RoundTransactions/RoundTransactions";
 const GroupDetail: React.FC = () => {
   const { user } = useContext(AuthContext)!;
   const history = useHistory();
+  const { groupId } = useParams<{ groupId: string; groupName: string }>();
 
   const [activeRoundView, setActiveRoundView] = useState<{ name: string, data: paymentStatus[] } | null>(null);
   const [selectedOption, setSelectedOption] = useState<"Overview" | "Status" | "History">("Overview");
@@ -50,12 +51,11 @@ const GroupDetail: React.FC = () => {
   // Payment Status State
   const [paymentStatus, setPaymentStatus] = useState<BaseResponse<paymentStatus> | null>(null);
   const getCurrentPaymentStatus = async () => {
-    const response = await fetchCurrentPaymentStatus(11,1); // Added {} assuming it might expect optional params based on previous setup
+    const response = await fetchCurrentPaymentStatus(Number(groupId), 1); 
     setPaymentStatus(response);
   }
 
   useEffect(() => {
-
     getCurrentPaymentStatus();
   }, [])
 
@@ -63,7 +63,7 @@ const GroupDetail: React.FC = () => {
   const [paymentHistory, setPaymentHistory] = useState<BaseResponse<GroupPaymentHistoryResponse> | null>(null);
   const getPaymentHistory = async () => {
     try {
-      const response = await fetchGroupPaymentHistory(11);
+      const response = await fetchGroupPaymentHistory(Number(groupId));
       setPaymentHistory(response);
     } catch (error) {
       console.error("Failed to fetch payment history", error);
@@ -92,11 +92,12 @@ const GroupDetail: React.FC = () => {
     }
   };
 
-  const group = groupDetails?.data?.[0];
+  const group = groupDetails?.data?.find(g => g.id === Number(groupId));
   const {
     size = 0,
     members = [],
     start_date = null,
+    latest_bidding_round_id = 0
   } = group ?? {};
 
   const groupMemberSize = members.length;

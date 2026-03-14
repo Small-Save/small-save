@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db import transaction
 from django.utils import timezone
-
 from Groups.models import Group
 from Groups.models import GroupMember
 
@@ -36,7 +38,13 @@ class BiddingRound(models.Model):
         blank=True,
         related_name="won_rounds",
     )
-    winning_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    winning_bid = models.ForeignKey(
+        "Bid",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="winning_rounds",
+    )
 
     class Meta:
         db_table = "BiddingRound"
@@ -52,16 +60,61 @@ class BiddingRound(models.Model):
     def is_active(self):
         return self.status == BiddingRoundStatusEnum.ACTIVE.value
 
+    def get_winning_bid(self) -> Bid | None:
+        return self.bids.filter(is_valid=True).order_by("amount", "timestamp").first()
+
+    def start_bidding(self):
+        if self.can_start():
+            self.status = BiddingRoundStatusEnum.ACTIVE.value
+            self.start_time = timezone.now()
+            self.save()
+            return True
+        return False
+
+    def end_bidding(self) -> bool:
+        if not self.is_active():
+            return False
+
+        with transaction.atomic():
+            winning_bid = self.get_winning_bid()
+
+            if not winning_bid:
+                random_winner = (
+                    GroupMember.objects.filter(group=self.group, has_won=False)
+                    .order_by("?")
+                    .first()
+                )
+                if not random_winner:
+                    return False
+                winning_bid = Bid.objects.create(
+                    bidding_round=self,
+                    member=random_winner,
+                    amount=self.group.target_amount,
+                )
+
+            self.status = BiddingRoundStatusEnum.COMPLETED.value
+            self.end_time = timezone.now()
+            self.winner = winning_bid.member
+            self.winning_bid = winning_bid
+            self.save()
+
+            GroupMember.objects.filter(pk=winning_bid.member_id).update(has_won=True)
+
+        # TODO: send notification to the winner
+        # TODO: send notification to the group members
+        return True
+
 
 class Bid(models.Model):
     bidding_round = models.ForeignKey(BiddingRound, on_delete=models.CASCADE, related_name="bids")
     member = models.ForeignKey(GroupMember, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    amount = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     timestamp = models.DateTimeField(auto_now_add=True)
     is_valid = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["amount", "timestamp"]
+        ordering = ["-amount", "timestamp"]
+        constraints = [models.UniqueConstraint(fields=["bidding_round", "amount"], name="unique_bid_per_round")]
 
     def __str__(self):
-        return f"{self.member.user.username} - ₹{self.amount}"
+        return f"timestamp: {self.timestamp} - user: {self.member.user.username} - amount: ₹{self.amount}"

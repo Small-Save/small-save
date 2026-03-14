@@ -1,3 +1,4 @@
+from Authentication.serializers import BaseUserSerializer
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -6,7 +7,6 @@ from Bidding.models import BiddingRound
 
 
 class BiddingRoundSerializer(serializers.ModelSerializer):
-    group_name = serializers.CharField(source="group.name", read_only=True)
     winner_username = serializers.CharField(source="winner.user.username", read_only=True)
     total_bids = serializers.SerializerMethodField()
 
@@ -15,7 +15,6 @@ class BiddingRoundSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "group",
-            "group_name",
             "round_number",
             "scheduled_time",
             "start_time",
@@ -56,6 +55,8 @@ class CreateBiddingRoundSerializer(serializers.ModelSerializer):
         return value
 
 class BidSerializer(serializers.ModelSerializer):
+    #TODO: redduce few detail which are coming from the member details
+    member = BaseUserSerializer(source="member.user", read_only=True)
 
     class Meta:
         model = Bid

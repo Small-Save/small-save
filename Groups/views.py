@@ -1,10 +1,15 @@
 # views.py
 import logging
 
+from Authentication.serializers import BaseUserSerializer
+from Bidding.models import BiddingRound
+from Bidding.serializers import CreateBiddingRoundSerializer
+from Bidding.services import create_bidding_rounds
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db import transaction
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework import status
@@ -14,11 +19,10 @@ from rest_framework.decorators import permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from utils.exceptions import BadRequestError
+from utils.exceptions import ConflictError
+from utils.response import CustomResponse
 
-from Authentication.serializers import BaseUserSerializer
-from Bidding.models import BiddingRound
-from Bidding.serializers import BiddingRoundSerializer
-from Bidding.serializers import CreateBiddingRoundSerializer
 from Groups.models import Group
 from Groups.models import GroupMember
 from Groups.permissions import IsGroupAdmin
@@ -26,9 +30,6 @@ from Groups.serializers import GroupCreateSerializer
 from Groups.serializers import GroupReadSerializer
 from Groups.serializers import GroupUpdateSerializer
 from Groups.services import validate_contact_data
-from utils.exceptions import BadRequestError
-from utils.exceptions import ConflictError
-from utils.response import CustomResponse
 
 logger = logging.getLogger("api")
 User = get_user_model()
@@ -91,16 +92,7 @@ class GroupCreateAPIView(generics.CreateAPIView):
                 ]
                 GroupMember.objects.bulk_create(gm_instances)
 
-                from dateutil.relativedelta import relativedelta
-
-                for i in range(1, group.duration + 1):
-                    scheduled_time = group.start_date + relativedelta(months=i)
-                    BiddingRound.objects.create(
-                        group=group,
-                        round_number=i,
-                        scheduled_time=scheduled_time,
-                        status="scheduled",
-                    )
+                create_bidding_rounds(request, group)
 
                 group.refresh_from_db()  # reload with members
                 logger.info(
@@ -161,6 +153,56 @@ class UserGroupListAPIView(generics.ListAPIView):
             message="Groups fetched",
         )
         return response
+
+
+class UserGroupRetrieveAPIView(generics.RetrieveAPIView):
+    """
+    Retrieve a single group the authenticated user is a member of.
+    URL should include the group ID (or slug if you prefer).
+    """
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupReadSerializer
+    lookup_field = "id"  # change to 'uuid' or 'slug' if your model uses that
+
+    def get_queryset(self):
+        return (
+            Group.objects.filter(groupmember__user=self.request.user)
+            .distinct()
+            .select_related("created_by")
+            .prefetch_related(
+                "groupmember_set__user",
+                Prefetch(
+                    "bidding_rounds",
+                    queryset=BiddingRound.objects.only("id", "group").order_by("round_number", "scheduled_time"),
+                    to_attr="prefetched_bidding_rounds",
+                ),
+            )
+            .order_by("created_at")
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        logger.info(
+            "UserGroupRetrieveAPIView called by user_id=%s for group_id=%s",
+            request.user.id,
+            kwargs.get(self.lookup_field),
+        )
+
+        instance = self.get_object()  # Automatically checks queryset restrictions
+        serializer = self.get_serializer(instance)
+
+        logger.info(
+            "UserGroupRetrieveAPIView success user_id=%s group_id=%s",
+            request.user.id,
+            instance.id,
+        )
+
+        return CustomResponse(
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+            message="Group fetched",
+        )
 
 
 class GroupUpdateAPIView(generics.UpdateAPIView):
@@ -339,6 +381,7 @@ def verify_contacts(request):
         raise BadRequestError(msg) from exc
 
 
+# * not to be used in PRODUCTION
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_bidding_round(request, group_id):
@@ -352,7 +395,10 @@ def create_bidding_round(request, group_id):
     serializer = CreateBiddingRoundSerializer(data=request.data, context={"group": group})
 
     if serializer.is_valid():
-        bidding_round = serializer.save(group=group, status="scheduled")
-        return CustomResponse(data=BiddingRoundSerializer(bidding_round).data, status_code=status.HTTP_201_CREATED)
+        serializer.save(group=group, status="scheduled")
+        return CustomResponse(
+            status_code=status.HTTP_201_CREATED,
+            message="Successfully created bidding round",
+        )
 
     return CustomResponse(is_success=False, error=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)

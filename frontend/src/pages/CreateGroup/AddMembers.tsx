@@ -117,6 +117,7 @@ const AddMembers: React.FC = () => {
         try {
             await createGroup(payload);
             // TODO: Navigate to success page or group details
+            ionRouter.push("/home", "none");
         } catch (error) {
             console.error("Error creating group:", error);
         } finally {
@@ -142,7 +143,7 @@ const AddMembers: React.FC = () => {
                 if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
                     copy.add(id);
                 }else{
-                    // TODO show a toast saying grop is full
+                    // TODO show a toast saying group is full
                 }
             }
             return copy;

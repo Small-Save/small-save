@@ -130,3 +130,31 @@ export const fetchDeviceContacts = async (): Promise<Contact[]> => {
         return [];
     }
 };
+
+export const formatAmount = (amount: number | string) =>
+    Number(amount).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+
+export const formatAmountCompact = (amount: number | string): string => {
+    const n = Number(amount);
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+    return String(n);
+};
+
+export const getInitials = (name: string) =>
+    name
+        .split(/\s+/)
+        .map((s) => s[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+
+export const getTimeAgo = (timestamp: string) => {
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const seconds = Math.floor(diff / 1000);
+
+    if (seconds < 60) return `${seconds}s ago`;
+
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
+};

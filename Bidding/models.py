@@ -8,6 +8,8 @@ from django.db import transaction
 from django.utils import timezone
 from Groups.models import Group
 from Groups.models import GroupMember
+from Payment.models import Payment
+from Payment.constants import PaymentStatus
 
 
 class BiddingRoundStatusEnum(Enum):
@@ -97,8 +99,21 @@ class BiddingRound(models.Model):
             self.winner = winning_bid.member
             self.winning_bid = winning_bid
             self.save()
-
             GroupMember.objects.filter(pk=winning_bid.member_id).update(has_won=True)
+            
+            payments = [
+                Payment(
+                    group_id=self.group_id,
+                    round_id=self.id,
+                    giver_id=gm.user_id,
+                    receiver_id=winning_bid.member.user_id,
+                    amount=winning_bid.amount,
+                    status=PaymentStatus.PENDING
+                )
+                for gm in self.group.groupmember_set.all()
+                if gm.user_id != winning_bid.member.user_id
+            ]
+            Payment.objects.bulk_create(payments)
 
         # TODO: send notification to the winner
         # TODO: send notification to the group members

@@ -1,6 +1,5 @@
 # payments/views.py
 import logging
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
@@ -21,61 +20,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 logger = logging.getLogger("api")
 
 User = get_user_model()
-
-@api_view(["POST"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def initiate_payments(request):
-    """
-    Bulk create payment records for a round
-    """
-    data = request.data
-    serializer = InitiatePaymentSerializer(data = request.data)
-    if not serializer.is_valid():
-        logger.error(
-            "Payment initiation validation failed",
-            extra={"errors": serializer.errors}
-        )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    try:
-        group = Group.objects.prefetch_related("members").get(id = data["group_id"])
-
-        payments = [
-            Payment(group_id=data["group_id"],
-                round_id=data["round_id"],
-                giver_id=member.id,
-                receiver_id=data["receiver_id"],
-                amount=data["amount"],
-                status=PaymentStatus.PENDING)
-             for member in group.members.all()
-            if member.id != data["receiver_id"]
-        ]
-        with transaction.atomic():
-            Payment.objects.bulk_create(payments)
-        logger.info(
-            "Bulk payments initiated",
-            extra={
-                "group": data["group_id"],
-                "round": data["round_id"],
-                "count": len(payments)
-            }
-        )
-        return Response(
-            {"message": "Payments initiated", "count": len(payments)},
-            status=status.HTTP_201_CREATED
-        )
-    except Exception:
-        logger.exception("Payment intiation failed")
-
-        return Response (
-            {"error": "Something went wrong"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-    
     
 
 

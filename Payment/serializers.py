@@ -32,32 +32,6 @@ class PaymentStatusSerializer(serializers.ModelSerializer):
         ]
 
 
-class InitiatePaymentSerializer(serializers.Serializer):
-    group_id = serializers.IntegerField()
-    round_id = serializers.IntegerField()
-    receiver_id = serializers.UUIDField()
-
-    def validate(self, attrs):
-        group_id = attrs["group_id"]
-        round_id = attrs["round_id"]
-        receiver_id = attrs["receiver_id"]
-        
-        if not Group.objects.filter(id = group_id).exists():
-            raise serializers.ValidationError("Invalid group")
-        
-        if not BiddingRound.objects.filter( id = round_id).exists():
-            raise serializers.ValidationError("Round Does not exist")
-
-        group = Group.objects.prefetch_related("members").get(id = group_id )
-
-        if receiver_id not in group.members.values_list("id", flat=True):
-            raise serializers.ValidationError("Receiver must be a member of the group")
-            
-        return attrs
-    
-
-
-
 class PaymentDetailSerializer(serializers.ModelSerializer):
     # Use 'source' to traverse the relationships and pull out specific fields
     group_name = serializers.CharField(source='group.name', read_only=True)

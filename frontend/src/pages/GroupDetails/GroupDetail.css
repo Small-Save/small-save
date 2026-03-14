@@ -1,14 +1,14 @@
-.group-header {
+.payment-header {
   --background: #000;
   --color: #fff;
 }
 
-.group-header ion-icon {
+.payment-header ion-icon {
   color: #fff;
   font-size: 22px;
 }
 
-.group-title {
+.payment-title {
   text-align: center;
   font-size: 18px;
   font-weight: 600;
@@ -38,7 +38,7 @@
 
 .group-options {
   position: relative;
-  margin-top: 16px;
+  margin: 10px;
 }
 
 .group-option-header {
@@ -79,4 +79,27 @@
 .group-option-card {
   margin-top: 16px;
   border-radius: 14px;
+}
+
+
+.history-list-scroll-container {
+  max-height: 400px; /* Adjust based on your UI needs */
+  overflow-y: auto;
+  padding-right: 4px; 
+}
+
+.history-list-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  color: #64748b;
 }

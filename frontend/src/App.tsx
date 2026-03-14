@@ -32,6 +32,8 @@ import AddMembers from "./pages/CreateGroup/AddMembers";
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
 import GroupDetail from "pages/GroupDetails/GroupDetails";
 import Bidding from "pages/Bidding/Bidding";
+import Payment from "pages/Payment/Payment"
+import RoundTransactions from "pages/GroupDetails/History/RoundTransactions/RoundTransactions";
 
 setupIonicReact({
     mode: "md"
@@ -60,7 +62,7 @@ const App: React.FC = () => (
 
                     {/* Protected pages */}
                     <Route exact path="/home">
-                        <PublicRoute component={Home} />
+                        <ProtectedRoute component={Home} />
                     </Route>
 
                     <Route exact path="/onboard">
@@ -77,12 +79,18 @@ const App: React.FC = () => (
                         </Route>
                     </GroupCreationProvider>
                      <Route exact  path="/groupdetail/:groupName">
-                        <PublicRoute component={GroupDetail} />
+                        <ProtectedRoute component={GroupDetail} />
                         </Route>
 
                     {/* Bidding routes */}
                     <Route exact path="/bidding">
                         <ProtectedRoute component={Bidding} />
+                    </Route>
+                    <Route exact path = "/payment/:paymentId">
+                    <ProtectedRoute component={Payment} />
+                    </Route>
+                    <Route exact path="/round-transactions">
+                    <ProtectedRoute component={RoundTransactions} />
                     </Route>
                 </IonRouterOutlet>
             </IonReactRouter>

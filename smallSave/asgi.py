@@ -9,8 +9,18 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 
 import os
 
+# Set Django settings BEFORE importing Django modules
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smallSave.settings")
+
+from channels.routing import ProtocolTypeRouter
+from channels.routing import URLRouter
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'smallSave.settings')
+import smallSave.urls
 
-application = get_asgi_application()
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": URLRouter(smallSave.urls.websocket_urlpatterns),
+    },
+)

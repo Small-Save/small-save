@@ -1,5 +1,5 @@
-import React from "react";
-import { IonCard, IonCardContent, IonGrid, IonRow, IonCol, IonAvatar, IonIcon } from "@ionic/react";
+import React, { useCallback } from "react";
+import { IonCard, IonCardContent, IonGrid, IonRow, IonCol, IonAvatar, IonIcon, useIonRouter } from "@ionic/react";
 import { calendarClearOutline, peopleOutline } from "ionicons/icons";
 import "./Home.css";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
@@ -10,10 +10,20 @@ interface GroupCardProps {
 }
 
 const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
+    const ionRouter = useIonRouter();
+
     const progress = Math.min((group.members.length / group.size) * 100, 100);
 
+    const handleOnclick = useCallback(() => {
+        try {
+            ionRouter.push(`/group/${group.id}/bidding`, "forward");
+        } catch (error) {
+            console.error("Navigation error:", error);
+        }
+    }, [group, ionRouter]);
+
     return (
-        <IonCard className="group-card">
+        <IonCard className="group-card" onClick={handleOnclick}>
             <IonCardContent>
                 <IonGrid>
                     <IonRow className="ion-align-items-center group-row-margin">

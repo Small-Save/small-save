@@ -2,20 +2,18 @@ import React from "react";
 import { Redirect, Route } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 
-/* Core CSS required for Ionic components to work properly */
+/* Ionic CSS imports */
 import "@ionic/react/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 import "@ionic/react/css/normalize.css";
 import "@ionic/react/css/structure.css";
 import "@ionic/react/css/typography.css";
 import "./theme/variables.css";
-
-/* Optional CSS utils that can be commented out */
 import "@ionic/react/css/padding.css";
 import "@ionic/react/css/float-elements.css";
 import "@ionic/react/css/text-alignment.css";
@@ -30,40 +28,40 @@ import PublicRoute from "./components/PublicRoutes";
 import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
 import AddMembers from "./pages/CreateGroup/AddMembers";
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
+import Bidding from "pages/Bidding/Bidding";
 
-setupIonicReact({
-    mode: "md"
-});
-
+setupIonicReact({ mode: "md" });
+const queryClient = new QueryClient();
 const App: React.FC = () => (
     <IonApp>
-        <AuthProvider>
-            <IonReactRouter>
-                <IonRouterOutlet>
-                    {/* TODO: add login to check if user is authenticated if yes take hime to home page */}
+        <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+                <IonReactRouter>
+                    <IonRouterOutlet>
+                        {/* Default */}
+                        <Route exact path="/">
+                            <Redirect to="/login" />
+                        </Route>
 
-                    {/* Public pages → redirect if already logged in */}
-                    <Route exact path="/">
-                        <Redirect to="/login" />
-                    </Route>
-                    <Route exact path="/login">
-                        <PublicRoute component={Login} />
-                    </Route>
-                    <Route exact path="/verify_otp">
-                        <PublicRoute component={OtpVerificationPage} />
-                    </Route>
-                    <Route exact path="/register">
-                        <PublicRoute component={Register} />
-                    </Route>
+                        {/* Public */}
+                        <Route exact path="/login">
+                            <PublicRoute component={Login} />
+                        </Route>
+                        <Route exact path="/verify_otp">
+                            <PublicRoute component={OtpVerificationPage} />
+                        </Route>
+                        <Route exact path="/register">
+                            <PublicRoute component={Register} />
+                        </Route>
 
-                    {/* Protected pages → must be logged in */}
-                    <Route exact path="/home">
-                        <ProtectedRoute component={Home} />
-                    </Route>
+                        {/* Protected */}
+                        <Route exact path="/home">
+                            <ProtectedRoute component={Home} />
+                        </Route>
 
-                    <Route exact path="/onboard">
-                        <ProtectedRoute component={OnBoard} />
-                    </Route>
+                        <Route exact path="/onboard">
+                            <ProtectedRoute component={OnBoard} />
+                        </Route>
 
                     {/* Group routes - shared context */}
                     <GroupCreationProvider>
@@ -74,9 +72,14 @@ const App: React.FC = () => (
                             <ProtectedRoute component={AddMembers} />
                         </Route>
                     </GroupCreationProvider>
-                </IonRouterOutlet>
-            </IonReactRouter>
-        </AuthProvider>
+
+                        <Route exact path="/group/:groupId/bidding">
+                            <ProtectedRoute component={Bidding} />
+                        </Route>
+                    </IonRouterOutlet>
+                </IonReactRouter>
+            </AuthProvider>
+        </QueryClientProvider>
     </IonApp>
 );
 

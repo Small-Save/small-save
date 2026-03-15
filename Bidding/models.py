@@ -100,10 +100,10 @@ class BiddingRound(models.Model):
             self.winning_bid = winning_bid
             self.save()
             GroupMember.objects.filter(pk=winning_bid.member_id).update(has_won=True)
-            
+
             payments = [
                 Payment(
-                    group_id=self.group_id,
+                    group_id=self.group.id,
                     round_id=self.id,
                     giver_id=gm.user_id,
                     receiver_id=winning_bid.member.user_id,
@@ -113,6 +113,7 @@ class BiddingRound(models.Model):
                 for gm in self.group.groupmember_set.all()
                 if gm.user_id != winning_bid.member.user_id
             ]
+
             Payment.objects.bulk_create(payments)
 
         # TODO: send notification to the winner

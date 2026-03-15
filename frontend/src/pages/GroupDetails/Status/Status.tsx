@@ -1,12 +1,12 @@
 import React from "react";
 import { IonText } from "@ionic/react";
-import { payments } from "types"; // Adjust import if needed
+import { payments } from "types";
 import "./Status.css";
 
 interface Props {
   payments: payments[];
   isReceiver: boolean;
-  onConfirmPayment?: (paymentId: number) => void; // Pass your API confirm function here
+  onConfirmPayment?: (paymentId: number) => void;
 }
 
 const PaymentStatusList: React.FC<Props> = ({ payments, isReceiver, onConfirmPayment }) => {
@@ -15,7 +15,6 @@ const PaymentStatusList: React.FC<Props> = ({ payments, isReceiver, onConfirmPay
   }
 
   // Helper to generate the subtext under the name based on status
-  // You can replace this with actual dates if your backend provides them
   const getSubtext = (status: string) => {
     switch (status) {
       case "COMPLETED":
@@ -36,7 +35,7 @@ const PaymentStatusList: React.FC<Props> = ({ payments, isReceiver, onConfirmPay
         // 1. Check if we should show the Action Button
         const isConfirmable = isReceiver && payment.status === "GIVER_CONFIRMED";
 
-        // 2. Determine Badge Styles & Text
+      
         let badgeClass = "badge-pending";
         let badgeText = "PENDING";
 

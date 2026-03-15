@@ -13,7 +13,16 @@ import {
   IonText,
   IonSpinner
 } from "@ionic/react";
-import { settingsOutline, ellipsisHorizontalCircleOutline, chevronBackCircleOutline, personAddOutline, diamondOutline } from "ionicons/icons";
+import { 
+  settingsOutline, 
+  ellipsisHorizontalCircleOutline, 
+  chevronBackCircleOutline, 
+  personAddOutline, 
+  diamondOutline,
+  readerOutline,
+  checkmarkDoneOutline,
+  timeOutline
+} from "ionicons/icons";
 import { useHistory, useParams } from "react-router";
 import "./GroupDetail.css";
 import { fetchUserGroups } from "pages/CreateGroup/services";
@@ -31,13 +40,15 @@ const GroupDetail: React.FC = () => {
   const history = useHistory();
   const { groupId } = useParams<{ groupId: string; groupName: string }>();
 
-  const [activeRoundView, setActiveRoundView] = useState<{ name: string, data: paymentStatus[] } | null>(null);
   const [selectedOption, setSelectedOption] = useState<"Overview" | "Status" | "History">("Overview");
   const [showOptions, setShowOptions] = useState(false);
 
-  const groupOptions = ["Overview", "Status", "History"] as const;
+  const groupOptions: { value: "Overview" | "Status" | "History"; icon: string }[] = [
+    { value: "Overview", icon: readerOutline },
+    { value: "Status", icon: checkmarkDoneOutline },
+    { value: "History", icon: timeOutline },
+  ];
 
-  // Group Details State
   const [groupDetails, setGroupDetails] = useState<BaseResponse<Group[]> | null>(null);
   const fetchGroupDetails = async () => {
     const response = await fetchUserGroups();
@@ -45,6 +56,14 @@ const GroupDetail: React.FC = () => {
   };
 
   useEffect(() => {
+    const fetchGroupDetails = async () => {
+      try {
+        const response = await fetchUserGroups();
+        setGroupDetails(response);
+      } catch (error) {
+        console.error("Failed to fetch group details", error);
+      }
+    };
     fetchGroupDetails();
   }, []);
 
@@ -53,19 +72,17 @@ const GroupDetail: React.FC = () => {
   const paymentData = paymentHistory?.data?.rounds.filter(round => round.winner !== null)
     .sort((a, b) => a.round_number - b.round_number); // remove rounds which are not completed and sort them in ascending to
 
-
-  const getPaymentHistory = async () => {
-    try {
-      const response = await fetchGroupPaymentHistory(Number(groupId));
-      setPaymentHistory(response);
-    } catch (error) {
-      console.error("Failed to fetch payment history", error);
-    }
-  };
-
   useEffect(() => {
+    const getPaymentHistory = async () => {
+      try {
+        const response = await fetchGroupPaymentHistory(Number(groupId));
+        setPaymentHistory(response);
+      } catch (error) {
+        console.error("Failed to fetch payment history", error);
+      }
+    };
     getPaymentHistory();
-  }, []);
+  }, [groupId]);
 
   // Group Details
   const group = groupDetails?.data?.find(g => g.id === Number(groupId));
@@ -76,8 +93,12 @@ const GroupDetail: React.FC = () => {
   const getCurrentPaymentStatus = async () => {
     // Safely get the round number, falling back to the group's latest round or 1
     const currentRoundId = paymentData?.[paymentData.length - 1]?.round_number || group?.latest_bidding_round_id || 1;
-    const response = await fetchCurrentPaymentStatus(Number(groupId), Number(currentRoundId));
-    setPaymentStatus(response);
+    try {
+      const response = await fetchCurrentPaymentStatus(Number(groupId), Number(currentRoundId));
+      setPaymentStatus(response);
+    } catch (error) {
+      console.error("Failed to fetch payment status", error);
+    }
   };
 
   useEffect(() => {
@@ -90,7 +111,6 @@ const GroupDetail: React.FC = () => {
   // --- NEW: Handle Confirm Payment Logic ---
   const handleConfirmPayment = async (paymentId: number) => {
     try {
-      // 1. Call the API (Note: If this is for the receiver, you might want to swap this to confirmReceiverPayment)
       await confirmReceiverPayment(paymentId);
 
       // 2. Refresh the payment status data
@@ -101,7 +121,7 @@ const GroupDetail: React.FC = () => {
 
     } catch (error) {
       console.error("Failed to confirm payment", error);
-      // You can add an Ionic Toast here later to show the error to the user
+      //TODO: add an Ionic Toast here later to show the error to the user
     }
   };
 
@@ -121,7 +141,7 @@ const GroupDetail: React.FC = () => {
   const isReceiver = receiverInfo?.receiver_name === user?.user_name && receiverInfo?.receiver === user?.id;
 
   // Calculate Bidding Info Props
-  const currentRoundWinner = receiverInfo?.receiver_name || "TBD";
+  const currentRoundWinner = receiverInfo?.receiver_name || "N/A";
   const paidCount = paymentStatus?.data?.payments?.filter(p => p.status === "COMPLETED").length || 0;
 
   const getGiverPaymentId = () => {
@@ -153,7 +173,7 @@ const GroupDetail: React.FC = () => {
 
           <IonTitle className="group-title">
             <div className="group-name-text">{group?.name}</div>
-            <IonText className=" group-round-text">
+            <IonText className="group-round-text">
               ROUND {latest_bidding_round_id} OF {size}
             </IonText>
           </IonTitle>
@@ -183,9 +203,8 @@ const GroupDetail: React.FC = () => {
         )}
 
         <div className="action-button">
-          {isGroupFull && !isReceiver ? (
+          {isGroupFull ? (
             <IonButton onClick={() => {
-              // We must call the function to get its return value (the ID)
               const paymentId = getGiverPaymentId();
               if (paymentId) {
                 history.push(`/payment/${paymentId}`);
@@ -232,14 +251,15 @@ const GroupDetail: React.FC = () => {
               <IonCardContent>
                 {groupOptions.map((option) => (
                   <div
-                    key={option}
+                    key={option.value}
                     className="dropdown-item"
                     onClick={() => {
-                      setSelectedOption(option);
+                      setSelectedOption(option.value);
                       setShowOptions(false);
                     }}
                   >
-                    <IonText>{option}</IonText>
+                    <IonIcon icon={option.icon} className="dropdown-icon" />
+                    <IonText>{option.value}</IonText>
                   </div>
                 ))}
               </IonCardContent>
@@ -256,7 +276,7 @@ const GroupDetail: React.FC = () => {
             {selectedOption === "Status" && (
               <Status
                 isReceiver={isReceiver} // Passes the dynamic variable we calculated above
-                onConfirmPayment={handleConfirmPayment} // Hooks up the API call
+                onConfirmPayment={handleConfirmPayment}
                 payments={paymentStatus?.data?.payments ?? []}
               />
             )}
@@ -267,20 +287,16 @@ const GroupDetail: React.FC = () => {
                   <div className="loading-container">
                     <IonSpinner name="crescent" />
                   </div>
-                ) : /* 1. Check if the array is empty */
+                ) :
                   (paymentData?.length ?? 0) === 0 ? (
                     <HistoryCard isEmpty={true} />
                   ) : (
-                    /* 2. Map through the array directly */
                     paymentData?.map((round) => {
                       return (
-                        // Inside GroupDetail.tsx where you map the history cards:
-
                         <HistoryCard
                           key={round.round_number}
                           round={round}
                           onClick={() => {
-                            // Navigate to the Round Transactions page and pass lightweight data
                             history.push("/round-transactions", {
                               roundNumber: round.round_number,
                               groupName: group?.name || "Group",

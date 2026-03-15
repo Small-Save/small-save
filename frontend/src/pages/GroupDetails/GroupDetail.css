@@ -70,10 +70,17 @@
 .dropdown-item {
   padding: 10px 8px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dropdown-item:hover {
   background: rgba(var(--ion-color-primary-rgb), 0.1);
+}
+
+.dropdown-icon {
+  font-size: 18px;
 }
 
 .group-option-card {

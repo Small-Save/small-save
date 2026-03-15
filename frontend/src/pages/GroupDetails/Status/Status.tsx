@@ -24,7 +24,7 @@ const PaymentStatusList: React.FC<Props> = ({ payments, isReceiver, onConfirmPay
         return "Overdue";
       case "PENDING":
       case "GIVER_CONFIRMED":
-        return "Due soon";
+        return "Send Verified";
       default:
         return "";
     }
@@ -58,7 +58,7 @@ const PaymentStatusList: React.FC<Props> = ({ payments, isReceiver, onConfirmPay
             <div className="card-left">
               <div className="avatar-container">
                 <img
-                  src={`https://ui-avatars.com/api/?name=${payment.giver_name}&background=E1C8B4&color=fff`}
+                  src={`https://ui-avatars.com/api/?name=${payment.giver_name}&background=E1C8B4&color=fff`} // replace with profile pic
                   alt={payment.giver_name}
                   className="avatar-img"
                 />

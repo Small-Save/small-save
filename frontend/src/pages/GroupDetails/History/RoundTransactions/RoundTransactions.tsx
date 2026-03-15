@@ -13,19 +13,16 @@ import {
 import { arrowBackOutline, checkmarkCircle, ribbon } from "ionicons/icons";
 import { useHistory, useLocation } from "react-router";
 
-// Adjust this import path based on your folder structure
 import { fetchCurrentPaymentStatus } from "services/payments"; 
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import "./RoundTransactions.css";
-
-// Interface matching your new mock response
 export interface PaymentItem {
   id: number;
   giver: string;
   giver_name: string;
   receiver: string;
   receiver_name: string;
-  amount: string; // "5000.00"
+  amount: string;
   status: "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
   created_at: string;
 }
@@ -40,14 +37,13 @@ const RoundTransactions: React.FC = () => {
   const history = useHistory();
   const location = useLocation<LocationState>();
 
-  // 1. Extract router state (with fallbacks just in case)
   const roundNumber = location.state?.roundNumber || 1;
   const groupName = location.state?.groupName || "Group";
   const roundName = `Round ${roundNumber}`;
   const groupID = location.state?.groupID || 0;
 
 
-  // 2. Component State for the API data
+
   const [transactions, setTransactions] = useState<PaymentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -56,7 +52,6 @@ const RoundTransactions: React.FC = () => {
     const loadRoundData = async () => {
       setIsLoading(true);
       try {
-        // Here you might eventually pass the roundNumber to the API to get that specific round
         const response = await fetchCurrentPaymentStatus(groupID,roundNumber); 
         if (response.is_success && response.data) {
           setTransactions(response.data.payments);
@@ -70,8 +65,6 @@ const RoundTransactions: React.FC = () => {
 
     loadRoundData();
   }, [roundNumber]);
-
-  // 4. Derived calculations from the fetched array
   const totalAmount = transactions.reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
   const paidTransactions = transactions.filter((tx) => tx.status === "COMPLETED");
   const paidCount = paidTransactions.length;

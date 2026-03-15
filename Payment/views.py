@@ -13,7 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
 from rest_framework.decorators import permission_classes
-from .serializers import PaymentStatusSerializer,InitiatePaymentSerializer,PaymentDetailSerializer
+from .serializers import PaymentStatusSerializer,PaymentDetailSerializer
 from Groups.models import Group
 from Bidding.models import BiddingRound
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -283,8 +283,9 @@ def get_payment_details(request, payment_id):
         #     logger.warning(
         #         f"Unauthorized payment fetch attempt | user={request.user.id} payment_id={payment_id}"
         #     )
-        #     return Response(
-        #         {"error": "You do not have permission to view this payment"}, 
+        #     return CustomResponse(
+        #         is_success=False,
+        #         error="You do not have permission to view this payment",
         #         status=status.HTTP_403_FORBIDDEN
         #     )
 
@@ -294,18 +295,24 @@ def get_payment_details(request, payment_id):
         logger.info(f"Fetched payment details | payment_id={payment_id} user={request.user.id}")
         
         # Return the strictly defined serializer.data
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return CustomResponse(
+            data=serializer.data,
+            message="Payment details fetched successfully.",
+            status_code=status.HTTP_200_OK,
+        )
 
     except ObjectDoesNotExist:
         logger.warning(f"Payment not found | payment_id={payment_id} user={request.user.id}")
-        return Response(
-            {"error": "Payment not found"},
+        return CustomResponse(
+            is_success=False,
+            error="Payment not found",
             status=status.HTTP_404_NOT_FOUND
         )
 
     except Exception as e:
         logger.exception(f"Unexpected error fetching payment | payment_id={payment_id} user={request.user.id}")
-        return Response(
-            {"error": "Something went wrong"},
+        return CustomResponse(
+            is_success=False,
+            error="Something went wrong",
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

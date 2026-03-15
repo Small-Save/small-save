@@ -3,13 +3,12 @@ from django.db import models
 from django.conf import settings
 from .constants import PaymentStatus
 from Groups.models import Group
-from Bidding.models import BiddingRound
 
 User = settings.AUTH_USER_MODEL
 
 class Payment(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    round = models.ForeignKey(BiddingRound, on_delete=models.CASCADE)
+    round = models.ForeignKey("Bidding.BiddingRound", on_delete=models.CASCADE)
 
     giver = models.ForeignKey(
         User, related_name="payments_given", on_delete=models.CASCADE

@@ -33,6 +33,7 @@ export interface PaymentItem {
 interface LocationState {
   roundNumber: number;
   groupName: string;
+  groupID: number;
 }
 
 const RoundTransactions: React.FC = () => {
@@ -43,6 +44,8 @@ const RoundTransactions: React.FC = () => {
   const roundNumber = location.state?.roundNumber || 1;
   const groupName = location.state?.groupName || "Group";
   const roundName = `Round ${roundNumber}`;
+  const groupID = location.state?.groupID || 0;
+
 
   // 2. Component State for the API data
   const [transactions, setTransactions] = useState<PaymentItem[]>([]);
@@ -54,7 +57,7 @@ const RoundTransactions: React.FC = () => {
       setIsLoading(true);
       try {
         // Here you might eventually pass the roundNumber to the API to get that specific round
-        const response = await fetchCurrentPaymentStatus(11,1); 
+        const response = await fetchCurrentPaymentStatus(groupID,roundNumber); 
         if (response.is_success && response.data) {
           setTransactions(response.data.payments);
         }

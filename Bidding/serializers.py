@@ -54,8 +54,9 @@ class CreateBiddingRoundSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(msg)
         return value
 
+
 class BidSerializer(serializers.ModelSerializer):
-    #TODO: redduce few detail which are coming from the member details
+    # TODO: redduce few detail which are coming from the member details
     member = BaseUserSerializer(source="member.user", read_only=True)
 
     class Meta:
@@ -69,4 +70,3 @@ class BidSerializer(serializers.ModelSerializer):
             "is_valid",
         ]
         read_only_fields = ["id", "timestamp", "is_valid"]
-

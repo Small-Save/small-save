@@ -31,7 +31,7 @@ from Groups.serializers import GroupReadSerializer
 from Groups.serializers import GroupUpdateSerializer
 from Groups.services import validate_contact_data
 
-logger = logging.getLogger("api")
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -316,14 +316,14 @@ def verify_contacts(request):
             existing_users_qs = existing_users_qs.union(
                 User.objects.filter(phone_number__in=phones)
                 .select_related()
-                .only("id", "phone_number", "email", "first_name", "last_name")
+                .only("id", "phone_number", "email", "first_name", "last_name"),
             )
 
         if emails:
             existing_users_qs = existing_users_qs.union(
                 User.objects.filter(email__in=emails)
                 .select_related()
-                .only("id", "phone_number", "email", "first_name", "last_name")
+                .only("id", "phone_number", "email", "first_name", "last_name"),
             )
 
         existing_users_list = list(existing_users_qs)

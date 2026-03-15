@@ -1,10 +1,11 @@
 # serializers.py
+from Bidding.models import BiddingRoundStatusEnum
 from django.utils import timezone
 from rest_framework import serializers
 
 from .models import Group
 from .models import GroupMember
-from Bidding.models import BiddingRoundStatusEnum
+
 
 class GroupMemberSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="user.id", read_only=True)
@@ -17,7 +18,7 @@ class GroupMemberSerializer(serializers.ModelSerializer):
 
 class GroupReadSerializer(serializers.ModelSerializer):
     members = GroupMemberSerializer(source="groupmember_set", many=True, read_only=True)
-    latest_bidding_round_id  = serializers.SerializerMethodField()
+    latest_bidding_round_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Group
@@ -97,7 +98,7 @@ class GroupCreateSerializer(serializers.ModelSerializer):
 
         if len(member_ids) != size:
             raise serializers.ValidationError(
-                {"size": "size must equal the number of distinct member IDs plus the creator (auto-added if missing)."}
+                {"size": "size must equal the number of distinct member IDs plus the creator (auto-added if missing)."},
             )
 
         data["member_ids"] = final_ids
@@ -139,7 +140,7 @@ class GroupUpdateSerializer(serializers.ModelSerializer):
 
         if data.get("size") < self.instance.members.count():
             raise serializers.ValidationError(
-                {"size": "size must be greater than or equal to the number of existing members."}
+                {"size": "size must be greater than or equal to the number of existing members."},
             )
 
         target_amount = data.get("target_amount") or self.instance.target_amount

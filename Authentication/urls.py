@@ -1,7 +1,10 @@
 from django.urls import path
 
-from .Views.otp_views import SendOtp, VerifyOtp
-from .Views.register_views import LogoutView, RegisterUser, TokenRefreshView
+from .Views.otp_views import SendOtp
+from .Views.otp_views import VerifyOtp
+from .Views.register_views import LogoutView
+from .Views.register_views import RegisterUser
+from .Views.register_views import TokenRefreshView
 
 urlpatterns = [
     path("send_otp/", SendOtp.as_view(), name="send_otp"),

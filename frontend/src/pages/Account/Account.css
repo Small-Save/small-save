@@ -1,0 +1,237 @@
+/* Page Background */
+.account-page {
+  --ion-background-color: #f8fafc; /* Very light slate background */
+}
+
+.account-header {
+  --background: transparent;
+  padding: 0 8px;
+}
+
+.header-icon {
+  color: #1e293b;
+  font-size: 24px;
+}
+
+.account-title {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 18px;
+  text-align: center;
+}
+
+.account-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 40px; /* Space at bottom */
+}
+
+/* Profile Card */
+.profile-card {
+  background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 100%);
+  border-radius: 24px;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.avatar-container {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 16px;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.edit-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #0b57d0; /* Deep blue from design */
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #ffffff;
+}
+
+.edit-icon {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.user-role {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b57d0;
+  letter-spacing: 1.2px;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+}
+
+.user-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.contact-icon {
+  font-size: 16px;
+  color: #475569;
+}
+
+/* Management Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.settings-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.8px;
+}
+
+/* Management List Card */
+.management-list-card {
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  margin-bottom: 32px;
+}
+
+.management-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+}
+
+.management-item:last-child {
+  border-bottom: none;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.item-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #f1f5f9; /* Light gray-blue bg */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.item-icon {
+  font-size: 20px;
+  color: #64748b;
+}
+
+.item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-text h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.item-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.chevron-icon {
+  color: #cbd5e1;
+  font-size: 18px;
+}
+
+/* Logout Button */
+.logout-btn {
+  width: 100%;
+  background-color: #e2e8f0;
+  color: #0f172a;
+  border: none;
+  border-radius: 30px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:active {
+  background-color: #cbd5e1;
+}
+
+.logout-icon {
+  font-size: 20px;
+}
+
+/* App Version */
+.app-version {
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin: 0;
+}

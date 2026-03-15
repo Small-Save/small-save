@@ -32,6 +32,7 @@ import GroupDetail from "pages/GroupDetails/GroupDetails";
 import Bidding from "pages/Bidding/Bidding";
 import Payment from "pages/Payment/Payment"
 import RoundTransactions from "pages/GroupDetails/History/RoundTransactions/RoundTransactions";
+import Account from "pages/Account/Account";
 
 setupIonicReact({ mode: "md" });
 const queryClient = new QueryClient();
@@ -89,6 +90,9 @@ const App: React.FC = () => (
                         {/* Bidding routes */}
                         <Route exact path="/group/:groupId/bidding">
                             <ProtectedRoute component={Bidding} />
+                        </Route>
+                        <Route exact path="/account">
+                            <ProtectedRoute component={Account} />
                         </Route>
                     </IonRouterOutlet>
                 </IonReactRouter>

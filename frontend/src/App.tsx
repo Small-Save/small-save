@@ -29,6 +29,7 @@ import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
 import AddMembers from "./pages/CreateGroup/AddMembers";
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
 import Bidding from "pages/Bidding/Bidding";
+import { Toaster } from "components/Toaster";
 
 setupIonicReact({ mode: "md" });
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App: React.FC = () => (
                 </IonReactRouter>
             </AuthProvider>
         </QueryClientProvider>
+        <Toaster />
     </IonApp>
 );
 

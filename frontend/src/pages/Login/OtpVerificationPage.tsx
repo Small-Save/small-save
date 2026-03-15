@@ -4,6 +4,7 @@ import useFormInput from "Hooks/useFormInput";
 import { formatTime, validateOtp } from "lib/utils";
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "contexts/AuthProvider";
+import { toast } from "Hooks/useToast";
 
 interface RouteParams {
     phone: string;
@@ -26,10 +27,13 @@ const OtpVerificationPage: React.FC = () => {
     };
 
     const handleVerifyOtp = async () => {
-        if (!otp.isValid) return; // TODO: maybe show toast here
+        if (!otp.isValid) {
+            toast({ message: "Please enter a valid 6-digit OTP.", color: "warning" });
+            return;
+        }
 
         const numericOtp = Number(otp.value);
-        if (Number.isNaN(numericOtp)) return; // guard: invalid numeric value
+        if (Number.isNaN(numericOtp)) return;
 
         try {
             setIsLoading(true);
@@ -41,6 +45,8 @@ const OtpVerificationPage: React.FC = () => {
                     history.push("/home");
                 }
             }
+        } catch {
+            toast({ message: "Verification failed. Please try again.", color: "danger" });
         } finally {
             otp.setValue("");
             setIsLoading(false);

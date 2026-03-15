@@ -2,6 +2,7 @@ import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonSpinner } from "@
 import { HeaderBox } from "components/HeaderBox";
 import { settingsOutline, chevronForwardOutline, trendingDownOutline } from "ionicons/icons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "Hooks/useToast";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import useFormInput from "Hooks/useFormInput";
 import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
@@ -101,18 +102,21 @@ const Bidding: React.FC = () => {
         setBidSubmitError(null);
 
         if (!roundId) {
-            setBidSubmitError("No active bidding round found for this group.");
+            toast({ message: "No active bidding round found for this group.", color: "warning" });
             return;
         }
 
         const parsedAmount = Number.parseInt(bidAmountInput.value);
         if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-            setBidSubmitError("Enter a valid bid amount.");
+            toast({ message: "Enter a valid bid amount.", color: "warning" });
             return;
         }
 
         if (group?.target_amount && parsedAmount > group.target_amount) {
-            setBidSubmitError(`Bid must be less than or equal to the target amount of ₹${group.target_amount}.`);
+            toast({
+                message: `Bid must be ≤ target amount of ₹${formatAmount(group.target_amount)}.`,
+                color: "warning",
+            });
             return;
         }
 
@@ -121,9 +125,11 @@ const Bidding: React.FC = () => {
             const response = await placeBid(roundId, parsedAmount);
             const newBid = response.data;
             if (!newBid) {
-                setBidSubmitError("Bid could not be placed. Please try again.");
+                toast({ message: "Bid could not be placed. Please try again.", color: "danger" });
                 return;
             }
+
+            toast({ message: `Bid of ₹${formatAmount(parsedAmount)} placed!`, color: "success" });
 
             if (biddingSocketRef.current?.readyState === WebSocket.OPEN) {
                 biddingSocketRef.current.send(
@@ -133,9 +139,8 @@ const Bidding: React.FC = () => {
                     })
                 );
             }
-        } catch (error) {
-            console.error("Error placing bid:", error);
-            setBidSubmitError("Failed to place bid. Please try again.");
+        } catch {
+            toast({ message: "Failed to place bid. Please try again.", color: "danger" });
         } finally {
             setIsSubmittingBid(false);
             bidAmountInput.setValue("");

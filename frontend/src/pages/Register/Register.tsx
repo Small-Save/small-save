@@ -16,6 +16,7 @@ import "./Register.css";
 import { AuthContext } from "../../contexts/AuthProvider";
 import { useHistory, useLocation } from "react-router-dom";
 import { useIonRouter } from "@ionic/react";
+import { toast } from "Hooks/useToast";
 
 interface RouteParams {
     phone: string;
@@ -32,7 +33,8 @@ const Register: React.FC = () => {
     const router = useIonRouter();
 
     const handleRegister = async () => {
-        if (!firstName.isValid && !lastName.isValid) {
+        if (!firstName.isValid || !lastName.isValid) {
+            toast({ message: "Please fill in both first and last name.", color: "warning" });
             return;
         }
 
@@ -42,7 +44,7 @@ const Register: React.FC = () => {
                 router.push("/onboard", "forward");
             }
         } catch {
-        } finally {
+            toast({ message: "Registration failed. Please try again.", color: "danger" });
         }
     };
 

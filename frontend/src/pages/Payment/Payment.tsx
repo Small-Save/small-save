@@ -18,13 +18,12 @@ import {
   lockClosed,
 } from "ionicons/icons";
 import { useHistory, useParams } from "react-router";
-import { getPaymentDetails, confirmGiverPayment } from "services/payments"; // Adjust import path
+import { getPaymentDetails, confirmGiverPayment } from "services/payments";
 import type { PaymentDetail } from "types";
 import "./Payment.css";
 
 const Payment: React.FC = () => {
-  // Assuming your route is set up like <Route path="/payment/:paymentId" ... />
-  const { paymentId } = useParams<{ paymentId: string }>()
+  const { paymentId } = useParams<{ paymentId: string }>();
   const history = useHistory();
 
   const [paymentData, setPaymentData] = useState<PaymentDetail | null>(null);
@@ -60,16 +59,19 @@ const Payment: React.FC = () => {
   };
 
   const handleConfirm = async () => {
+    if (!paymentData) return;
+
     try {
       setIsConfirming(true);
       // Call the giver confirm API
       await confirmGiverPayment(paymentId);
       
       // Navigate back to the group details page after success
-      const encodedGroupName = encodeURIComponent(paymentData!.group_name);
-      history.replace(`/groupdetail/${paymentData!.group_id}/${encodedGroupName}`);
+      const encodedGroupName = encodeURIComponent(paymentData.group_name);
+      history.replace(`/groupdetail/${paymentData.group_id}/${encodedGroupName}`);
     } catch (error) {
       console.error("Failed to confirm payment", error);
+      // TODO: Add an Ionic Toast here to notify the user that the payment confirmation failed
     } finally {
       setIsConfirming(false);
     }

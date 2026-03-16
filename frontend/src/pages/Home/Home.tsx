@@ -17,7 +17,7 @@ import { add, homeOutline, home, notificationsOutline, personOutline, ellipsisVe
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { BaseResponse, Group } from "types";
 import GroupCard from "./GroupCard";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import "./Home.css";
 import { AuthContext } from "contexts/AuthProvider";
 import { fetchUserGroups } from "pages/CreateGroup/services";
@@ -38,6 +38,7 @@ const Home: React.FC = () => {
     const activeGroups = groupDetails?.data?.length || 0;
     const location = useLocation();
     const isHome = location.pathname === "/home";
+    const history = useHistory();
     const totalSpend = groupDetails?.data?.reduce((sum, group) => sum + Number(group.target_amount), 0) || 0;
 
     return (
@@ -117,7 +118,7 @@ const Home: React.FC = () => {
                                 <IonIcon icon={notificationsOutline} size="large" />
                                 <p>Notifications</p>
                             </IonCol>
-                            <IonCol>
+                            <IonCol onClick={() => history.push("/account")}>
                                 <IonIcon icon={personOutline} size="large" />
                                 <p>Account</p>
                             </IonCol>

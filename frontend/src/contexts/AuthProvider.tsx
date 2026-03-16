@@ -5,6 +5,7 @@ import { Preferences } from "@capacitor/preferences";
 import { jwtDecode } from "jwt-decode";
 import URLS from "lib/constants";
 import type { BaseResponse } from "types";
+import { logoutUser } from "services/account";
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------
@@ -182,10 +183,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const logout = async (): Promise<void> => {
         try {
+            const { value: refreshToken } = await Preferences.get({ key: "refresh_token" });
+            if (refreshToken) {
+                await logoutUser(refreshToken);
+            }
+        } catch (error) {
+            // Even if backend logout fails, we proceed with local logout
+            console.error("Server logout failed:", error);
+        } finally {
+            // Always clear local storage and reset state
             await clearAuthData();
             setUser(null);
-        } catch (error) {
-            console.error("Logout error:", error);
         }
     };
 

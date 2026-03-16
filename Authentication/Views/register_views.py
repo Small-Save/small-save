@@ -102,7 +102,6 @@ class RegisterUser(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    logger.info("")
 
     def post(self, request):
         try:
@@ -116,6 +115,7 @@ class LogoutView(APIView):
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
+            logger.info(f"User logout  user_id={request.user.id}")
             token = RefreshToken(refresh_token)
             token.blacklist()
 
@@ -138,6 +138,7 @@ class LogoutView(APIView):
 
 
 class TokenRefreshView(APIView):
+
     def post(self, request):
         refresh_token = request.data.get("refresh")
         if not refresh_token:

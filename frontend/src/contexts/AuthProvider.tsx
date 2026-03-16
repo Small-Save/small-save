@@ -191,7 +191,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Even if backend logout fails, we proceed with local logout
             console.error("Server logout failed:", error);
         } finally {
-            // Always clear local storage and reset state
             await clearAuthData();
             setUser(null);
         }

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from datetime import time
 from datetime import timedelta
@@ -9,16 +10,25 @@ from Groups.models import Group
 from Bidding.models import BiddingRound
 from Bidding.models import BiddingRoundStatusEnum
 
+logger = logging.getLogger(__name__)
+
 
 def create_bidding_rounds(request, group: Group):
+    tz_name = request.headers.get("X-Timezone", "Asia/Kolkata")
+    logger.info(
+        "Creating %d bidding rounds for group_id=%s (tz=%s)",
+        group.duration,
+        group.id,
+        tz_name,
+    )
+
     for i in range(1, group.duration + 1):
         scheduled_date = group.start_date + relativedelta(months=i)
         start_time = datetime.combine(
             scheduled_date.date() if hasattr(scheduled_date, "date") else scheduled_date,
-            time(0, 0, 0),  # 12am (midnight)
-            tzinfo=ZoneInfo(request.headers.get("X-Timezone", "Asia/Kolkata")),  # TODO: test this
+            time(0, 0, 0),
+            tzinfo=ZoneInfo(tz_name),  # TODO: test this
         )
-        # End time is exactly 1 day after start time
         end_time = start_time + timedelta(days=1)
         BiddingRound.objects.create(
             group=group,
@@ -28,3 +38,5 @@ def create_bidding_rounds(request, group: Group):
             end_time=end_time,
             status=BiddingRoundStatusEnum.SCHEDULED.value,
         )
+
+    logger.info("Created %d bidding rounds for group_id=%s", group.duration, group.id)

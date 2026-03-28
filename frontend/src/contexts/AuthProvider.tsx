@@ -5,6 +5,7 @@ import { Preferences } from "@capacitor/preferences";
 import { jwtDecode } from "jwt-decode";
 import URLS from "lib/constants";
 import type { BaseResponse } from "types";
+import { toast } from "Hooks/useToast";
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------
@@ -118,9 +119,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
             setLoading(true);
             const response = await api.post(URLS.SEND_OTP, { phone_number });
+            toast({ message: "OTP sent!", duration: 2000 });
             return response.status === 200 || response.status === 201;
-        } catch (error) {
-            console.error("Send OTP error:", error);
+        } catch {
+            toast({ message: "Failed to send OTP. Please try again.", color: "danger" });
             return false;
         } finally {
             setLoading(false);
@@ -140,9 +142,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
                 return response.data;
             }
+            toast({ message: "Invalid OTP. Please try again.", color: "danger" });
             return false;
-        } catch (error) {
-            console.error("Verify OTP error:", error);
+        } catch {
+            toast({ message: "Could not verify OTP. Please try again.", color: "danger" });
             return false;
         } finally {
             setLoading(false);
@@ -168,12 +171,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const { access, refresh, user } = response.data.data;
                 await saveAuthData(access, refresh, user);
                 setUser(user);
+                toast({ message: "Registration successful!", color: "success" });
                 return true;
             }
-            // TODO: Handle invalid otp case
+            toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
-        } catch (error) {
-            console.error("Registration error:", error);
+        } catch {
+            toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
         } finally {
             setLoading(false);
@@ -184,8 +188,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
             await clearAuthData();
             setUser(null);
-        } catch (error) {
-            console.error("Logout error:", error);
+        } catch {
+            toast({ message: "Logout failed. Please try again.", color: "danger" });
         }
     };
 

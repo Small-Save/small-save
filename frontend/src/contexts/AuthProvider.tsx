@@ -2,10 +2,11 @@
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 
 import { Preferences } from "@capacitor/preferences";
-import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { useHistory } from "react-router-dom";
 
 import { toast } from "Hooks/useToast";
+import { api, publicApi } from "lib/axios";
 import URLS from "lib/constants";
 import type { BaseResponse } from "types";
 
@@ -54,12 +55,6 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
-// ----------------- API Client -----------------
-const api = axios.create({
-    baseURL: URLS.BASE_URL,
-    timeout: 5000
-});
-
 // ----------------- Helpers -----------------
 const saveAuthData = async (access: string, refresh: string, user: User) => {
     await Preferences.set({ key: "access_token", value: access });
@@ -83,11 +78,17 @@ const getStoredUser = async (): Promise<User | null> => {
     }
 };
 
+export const logoutUser = async (refreshToken: string): Promise<BaseResponse<null>> => {
+    const response = await api.post(URLS.LOGOUT, { refresh: refreshToken });
+    return response.data;
+};
+
 // ----------------- Provider -----------------
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // TODO: remove this user | null type
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const history = useHistory();
 
     // Check for stored token on mount
     useEffect(() => {
@@ -121,7 +122,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const sendOtp = async (phone_number: string): Promise<boolean> => {
         try {
             setLoading(true);
-            const response = await api.post(URLS.SEND_OTP, { phone_number });
+            const response = await publicApi.post(URLS.SEND_OTP, { phone_number });
             toast({ message: "OTP sent!", duration: 2000 });
             return response.status === 200 || response.status === 201;
         } catch {
@@ -135,7 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const verifyOtp = async (phone_number: string, otp_code: number): Promise<VerifyOtpResponse | false> => {
         try {
             setLoading(true);
-            const response = await api.post(URLS.VERIFY_OTP, { phone_number, otp_code });
+            const response = await publicApi.post(URLS.VERIFY_OTP, { phone_number, otp_code });
 
             if (response.status === 200 && response.data.is_success) {
                 if (response.data.data?.user.is_registered) {
@@ -163,7 +164,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ): Promise<boolean> => {
         try {
             setLoading(true);
-            const response = await api.post(URLS.REGISTER, {
+            const response = await publicApi.post(URLS.REGISTER, {
                 phone_number,
                 first_name,
                 last_name,
@@ -189,9 +190,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const logout = async (): Promise<void> => {
         try {
+            const { value: refreshToken } = await Preferences.get({ key: "refresh_token" });
+            await logoutUser(refreshToken || "");
             await clearAuthData();
             setUser(null);
-        } catch {
+            history.replace("/login");
+            toast({ message: "You have been logged out.", color: "success" });
+        } catch (error) {
+            console.error(error);
             toast({ message: "Logout failed. Please try again.", color: "danger" });
         }
     };

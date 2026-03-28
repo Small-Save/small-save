@@ -1,6 +1,7 @@
-import axios from "axios";
-import URLS from "./constants";
 import { Preferences } from "@capacitor/preferences";
+import axios from "axios";
+
+import URLS from "./constants";
 
 const api = axios.create({
     baseURL: URLS.BASE_URL,

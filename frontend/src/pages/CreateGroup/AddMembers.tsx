@@ -1,15 +1,19 @@
-import { IonPage, IonButton, IonIcon, IonContent, IonSearchbar, IonFooter } from "@ionic/react";
-import { checkmarkDoneSharp, arrowRedoOutline, personAddOutline } from "ionicons/icons";
-import { useIonRouter } from "@ionic/react";
-import { fetchDeviceContacts } from "lib/utils";
-import React, { useEffect, useState, useMemo, useCallback, useDeferredValue, useContext } from "react";
-import { verifyContacts, createGroup } from "./services";
-import { useGroupCreation } from "contexts/GroupCreationContext";
+import React, { useCallback, useContext, useDeferredValue, useEffect, useMemo, useState } from "react";
+
+import { IonButton, IonContent, IonFooter, IonIcon, IonPage, IonSearchbar, useIonRouter } from "@ionic/react";
+import { arrowRedoOutline, checkmarkDoneSharp, personAddOutline } from "ionicons/icons";
+
 import { HeaderBox } from "components/HeaderBox";
+import { useGroupCreation } from "contexts/GroupCreationContext";
+import { fetchDeviceContacts } from "lib/utils";
+
+import { createGroup, verifyContacts } from "./services";
+
 import "./AddMembers.css";
-import type { User, Contact } from "types";
+
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { AuthContext } from "contexts/AuthProvider";
+import type { Contact, User } from "types";
 
 type MemberMode = "existing" | "invite";
 interface AddUserComponentProps {
@@ -134,21 +138,24 @@ const AddMembers: React.FC = () => {
         handleFetchContacts();
     }, [handleFetchContacts]);
 
-    const toggleMember = useCallback((id: string) => {
-        setSelectedMembers((prev) => {
-            const copy = new Set(prev);
-            if (copy.has(id)) {
-                copy.delete(id);
-            } else {
-                if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
-                    copy.add(id);
-                }else{
-                    // TODO show a toast saying group is full
+    const toggleMember = useCallback(
+        (id: string) => {
+            setSelectedMembers((prev) => {
+                const copy = new Set(prev);
+                if (copy.has(id)) {
+                    copy.delete(id);
+                } else {
+                    if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
+                        copy.add(id);
+                    } else {
+                        // TODO show a toast saying group is full
+                    }
                 }
-            }
-            return copy;
-        });
-    }, [groupInfo?.groupSize]);
+                return copy;
+            });
+        },
+        [groupInfo?.groupSize]
+    );
 
     const deferredSearch = useDeferredValue(searchText.trim().toLowerCase());
     const filteredExistingUsers = useMemo(

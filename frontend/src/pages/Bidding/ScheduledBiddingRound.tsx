@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
+
 import { IonButton, IonIcon } from "@ionic/react";
 import { notificationsOutline } from "ionicons/icons";
+
 import { formatAmount, formatAmountCompact, getInitials } from "lib/utils";
-import { useEffect, useState } from "react";
-import { BiddingRound } from "./services";
 import { Group } from "types";
+
+import { BiddingRound } from "./services";
 
 interface ScheduledBiddingRoundProps {
     formattedSchedule: string;
@@ -118,10 +121,7 @@ export const ScheduledBiddingRound: React.FC<ScheduledBiddingRoundProps> = ({
                 </div>
                 {onNotifyMe && (
                     <div className="w-full space-y-2">
-                        <IonButton
-                            className="w-full h-12"
-                            onClick={onNotifyMe}
-                        >
+                        <IonButton className="w-full h-12" onClick={onNotifyMe}>
                             <IonIcon icon={notificationsOutline} className="mr-2" />
                             NOTIFY ME
                         </IonButton>

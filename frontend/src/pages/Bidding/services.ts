@@ -53,7 +53,6 @@ export const fetchAllBids = async (roundId: string): Promise<BaseResponse<Bid[]>
     }
 };
 
-
 export const fetchGroupDetails = async (groupId: string): Promise<BaseResponse<Group>> => {
     try {
         const response = await api.get(`/groups/${groupId}`);

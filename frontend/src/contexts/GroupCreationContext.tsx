@@ -24,7 +24,9 @@ export const GroupCreationProvider: React.FC<{ children: React.ReactNode }> = ({
     const reset = () => setDetailsState(null);
 
     return (
-        <GroupCreationContext.Provider value={{ groupInfo: details, setDetails, reset }}>{children}</GroupCreationContext.Provider>
+        <GroupCreationContext.Provider value={{ groupInfo: details, setDetails, reset }}>
+            {children}
+        </GroupCreationContext.Provider>
     );
 };
 

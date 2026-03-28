@@ -1,5 +1,6 @@
-import URLS from "lib/constants";
 import { useEffect, useRef } from "react";
+
+import URLS from "lib/constants";
 
 type BidUpdateMessage<TBid> = {
     type: "bid_update";

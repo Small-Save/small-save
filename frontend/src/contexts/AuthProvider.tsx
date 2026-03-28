@@ -1,10 +1,13 @@
 // src/contexts/AuthProvider.tsx
-import React, { createContext, useState, useEffect, ReactNode } from "react";
-import axios from "axios";
+import React, { createContext, ReactNode, useEffect, useState } from "react";
+
 import { Preferences } from "@capacitor/preferences";
+import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+
 import URLS from "lib/constants";
 import type { BaseResponse } from "types";
+
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------

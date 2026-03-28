@@ -1,9 +1,11 @@
+import React, { useContext, useEffect, useState } from "react";
+
 import { IonButton, IonContent, IonInput, IonPage, IonText } from "@ionic/react";
 import { useHistory, useLocation } from "react-router-dom";
+
+import { AuthContext } from "contexts/AuthProvider";
 import useFormInput from "Hooks/useFormInput";
 import { formatTime, validateOtp } from "lib/utils";
-import React, { useContext, useEffect, useState } from "react";
-import { AuthContext } from "contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;

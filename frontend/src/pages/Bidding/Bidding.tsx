@@ -1,17 +1,20 @@
-import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonSpinner } from "@ionic/react";
-import { HeaderBox } from "components/HeaderBox";
-import { settingsOutline, chevronForwardOutline, trendingDownOutline } from "ionicons/icons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "Hooks/useToast";
-import profileImageTemp from "assets/images/profileImageTemp.jpg";
-import useFormInput from "Hooks/useFormInput";
-import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
-import { useParams } from "react-router";
-import { useGroup } from "Hooks/useGroup";
-import { useBiddingSocket } from "./useBiddingSocket";
-import { formatAmount, getTimeAgo } from "lib/utils";
+
+import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonSpinner } from "@ionic/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { chevronForwardOutline, settingsOutline, trendingDownOutline } from "ionicons/icons";
+import { useParams } from "react-router";
+
+import profileImageTemp from "assets/images/profileImageTemp.jpg";
+import { HeaderBox } from "components/HeaderBox";
+import useFormInput from "Hooks/useFormInput";
+import { useGroup } from "Hooks/useGroup";
+import { formatAmount, getTimeAgo } from "lib/utils";
+
 import { ScheduledBiddingRound } from "./ScheduledBiddingRound";
+import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
+import { useBiddingSocket } from "./useBiddingSocket";
+import { toast } from "Hooks/useToast";
 
 interface BiddingParams {
     groupId: string;

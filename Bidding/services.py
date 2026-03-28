@@ -5,10 +5,9 @@ from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
-from Groups.models import Group
 
-from Bidding.models import BiddingRound
-from Bidding.models import BiddingRoundStatusEnum
+from Bidding.models import BiddingRound, BiddingRoundStatusEnum
+from Groups.models import Group
 
 logger = logging.getLogger(__name__)
 

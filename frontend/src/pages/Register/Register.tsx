@@ -1,3 +1,5 @@
+import React, { useContext } from "react";
+
 import {
     IonButton,
     IonContent,
@@ -8,15 +10,19 @@ import {
     IonSegment,
     IonSegmentButton
 } from "@ionic/react";
-import React, { useContext } from "react";
+import { checkmarkCircle } from "ionicons/icons";
+
 import ProfileImageInput from "../../components/CaptureImage/ProfileImageInput";
 import useFormInput from "../../Hooks/useFormInput";
-import { checkmarkCircle } from "ionicons/icons";
+
 import "./Register.css";
-import { AuthContext } from "../../contexts/AuthProvider";
-import { useHistory, useLocation } from "react-router-dom";
+
 import { useIonRouter } from "@ionic/react";
+import { useHistory, useLocation } from "react-router-dom";
+
 import { toast } from "Hooks/useToast";
+
+import { AuthContext } from "../../contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;

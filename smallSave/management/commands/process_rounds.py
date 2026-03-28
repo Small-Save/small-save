@@ -1,9 +1,9 @@
 import logging
 
-from Bidding.models import BiddingRound
-from Bidding.models import BiddingRoundStatusEnum
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
+from Bidding.models import BiddingRound, BiddingRoundStatusEnum
 
 logger = logging.getLogger(__name__)
 

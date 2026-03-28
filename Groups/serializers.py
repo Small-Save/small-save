@@ -1,10 +1,10 @@
 # serializers.py
-from Bidding.models import BiddingRoundStatusEnum
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Group
-from .models import GroupMember
+from Bidding.models import BiddingRoundStatusEnum
+
+from .models import Group, GroupMember
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):
@@ -87,10 +87,14 @@ class GroupCreateSerializer(serializers.ModelSerializer):
 
         if target_amount is not None and size is not None:
             if target_amount % size != 0:
-                raise serializers.ValidationError({"target_amount": "target_amount should be a multiple of size."})
+                raise serializers.ValidationError(
+                    {"target_amount": "target_amount should be a multiple of size."}
+                )
 
         if len(set(member_ids)) != len(member_ids):
-            raise serializers.ValidationError({"member_ids": "Duplicate user IDs are not allowed."})
+            raise serializers.ValidationError(
+                {"member_ids": "Duplicate user IDs are not allowed."}
+            )
         # Ensure creator is part of final list (append if absent)
         final_ids = list(member_ids)
         if creator.id not in final_ids:
@@ -98,7 +102,9 @@ class GroupCreateSerializer(serializers.ModelSerializer):
 
         if len(member_ids) != size:
             raise serializers.ValidationError(
-                {"size": "size must equal the number of distinct member IDs plus the creator (auto-added if missing)."},
+                {
+                    "size": "size must equal the number of distinct member IDs plus the creator (auto-added if missing)."
+                },
             )
 
         data["member_ids"] = final_ids
@@ -107,7 +113,9 @@ class GroupCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # View handles creation under transaction; serializer.create not used.
-        raise NotImplementedError("GroupCreateSerializer.create should not be called directly.")
+        raise NotImplementedError(
+            "GroupCreateSerializer.create should not be called directly."
+        )
 
 
 class GroupUpdateSerializer(serializers.ModelSerializer):
@@ -136,11 +144,15 @@ class GroupUpdateSerializer(serializers.ModelSerializer):
         if self.instance:
             today = timezone.localdate()
             if self.instance.start_date <= today:
-                raise serializers.ValidationError({"start_date": "Group cannot be updated once the group is started."})
+                raise serializers.ValidationError(
+                    {"start_date": "Group cannot be updated once the group is started."}
+                )
 
         if data.get("size") < self.instance.members.count():
             raise serializers.ValidationError(
-                {"size": "size must be greater than or equal to the number of existing members."},
+                {
+                    "size": "size must be greater than or equal to the number of existing members."
+                },
             )
 
         target_amount = data.get("target_amount") or self.instance.target_amount
@@ -148,6 +160,8 @@ class GroupUpdateSerializer(serializers.ModelSerializer):
 
         if target_amount is not None and size is not None:
             if target_amount % size != 0:
-                raise serializers.ValidationError({"target_amount": "target_amount should be a multiple of size."})
+                raise serializers.ValidationError(
+                    {"target_amount": "target_amount should be a multiple of size."}
+                )
 
         return data

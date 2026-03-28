@@ -1,14 +1,13 @@
 import logging
 import random
 
-from Authentication.models import Register
-from Authentication.models import User
-from Authentication.serializers import SendOtpSerializer
-from Authentication.serializers import VerifyOtpSerializer
-from Authentication.services.twilio_service import send_otp  # noqa: F401
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from Authentication.models import Register, User
+from Authentication.serializers import SendOtpSerializer, VerifyOtpSerializer
+from Authentication.services.twilio_service import send_otp  # noqa: F401
 from utils.response import CustomResponse
 
 logger = logging.getLogger(__name__)

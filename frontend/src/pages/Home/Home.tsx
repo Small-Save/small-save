@@ -1,24 +1,29 @@
 import React, { useContext, useEffect, useState } from "react";
+
 import {
-    IonPage,
-    IonHeader,
-    IonToolbar,
-    IonContent,
-    IonGrid,
-    IonRow,
-    IonCol,
     IonAvatar,
+    IonCol,
+    IonContent,
     IonFab,
     IonFabButton,
+    IonFooter,
+    IonGrid,
+    IonHeader,
     IonIcon,
-    IonFooter
+    IonPage,
+    IonRow,
+    IonToolbar
 } from "@ionic/react";
-import { add, homeOutline, home, notificationsOutline, personOutline, ellipsisVertical } from "ionicons/icons";
+import { add, ellipsisVertical, home, homeOutline, notificationsOutline, personOutline } from "ionicons/icons";
+import { useLocation } from "react-router-dom";
+
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { BaseResponse, Group } from "types";
+
 import GroupCard from "./GroupCard";
-import { useLocation } from "react-router-dom";
+
 import "./Home.css";
+
 import { AuthContext } from "contexts/AuthProvider";
 import { fetchUserGroups } from "pages/CreateGroup/services";
 import { toast } from "Hooks/useToast";

@@ -1,13 +1,13 @@
 import logging
 
-from Authentication.models import Register
-from Authentication.models import User
-from Authentication.serializers import RegisterUserSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from Authentication.models import Register, User
+from Authentication.serializers import RegisterUserSerializer
 from utils.response import CustomResponse
 
 logger = logging.getLogger(__name__)

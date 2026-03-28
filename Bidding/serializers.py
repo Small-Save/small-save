@@ -1,9 +1,8 @@
-from Authentication.serializers import BaseUserSerializer
 from django.utils import timezone
 from rest_framework import serializers
 
-from Bidding.models import Bid
-from Bidding.models import BiddingRound
+from Authentication.serializers import BaseUserSerializer
+from Bidding.models import Bid, BiddingRound
 
 
 class BiddingRoundSerializer(serializers.ModelSerializer):

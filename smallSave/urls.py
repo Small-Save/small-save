@@ -17,9 +17,7 @@ Including another URLconf
 
 import django
 from django.contrib import admin
-from django.urls import include
-from django.urls import path
-from django.urls import re_path
+from django.urls import include, path, re_path
 
 from .consumer import BiddingConsumer
 

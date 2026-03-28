@@ -1,6 +1,7 @@
-import axios from "axios";
-import URLS from "./constants";
 import { Preferences } from "@capacitor/preferences";
+import axios from "axios";
+
+import URLS from "./constants";
 import { toast } from "Hooks/useToast";
 
 const api = axios.create({

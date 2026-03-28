@@ -1,5 +1,7 @@
 from rest_framework.permissions import BasePermission
+
 from Groups.models import GroupMember
+
 
 class IsGroupAdmin(BasePermission):
     """
@@ -11,7 +13,5 @@ class IsGroupAdmin(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.user and request.user.is_authenticated:
-            return GroupMember.objects.filter(
-                group=obj, user=request.user, role="admin"
-            ).exists()
+            return GroupMember.objects.filter(group=obj, user=request.user, role="admin").exists()
         return False

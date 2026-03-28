@@ -2,11 +2,13 @@
 from django.conf import settings
 from django.urls import path
 
-from Groups.views import GroupCreateAPIView
-from Groups.views import UserGroupListAPIView
-from Groups.views import UserGroupRetrieveAPIView
-from Groups.views import create_bidding_round
-from Groups.views import verify_contacts
+from Groups.views import (
+    GroupCreateAPIView,
+    UserGroupListAPIView,
+    UserGroupRetrieveAPIView,
+    create_bidding_round,
+    verify_contacts,
+)
 
 urlpatterns = [
     path("<int:id>/", UserGroupRetrieveAPIView.as_view(), name="group-detail"),

@@ -1,16 +1,15 @@
+import logging
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from Authentication.serializers import RegisterUserSerializer
 from utils.response import CustomResponse
 
 from ..models import Register, User
-from Authentication.serializers import RegisterUserSerializer
-
-import logging
-
 
 logger = logging.getLogger("api")
 
@@ -36,9 +35,7 @@ class RegisterUser(APIView):
         gender = serializer.validated_data["gender"]
         logger.debug(f"Validated phone_number={phone_number}")
 
-        otp_verified = Register.objects.filter(
-            phone_number=phone_number, is_verified=True
-        ).exists()
+        otp_verified = Register.objects.filter(phone_number=phone_number, is_verified=True).exists()
 
         if not otp_verified:
             logger.warning(f"Registration blocked: phone={phone_number} not verified via OTP")
@@ -77,9 +74,7 @@ class RegisterUser(APIView):
 
         if not created:
             logger.info(f"User already exists: phone={phone_number}, id={user.id}")
-            return CustomResponse(
-                message="User already exists", data={}, status_code=status.HTTP_400_BAD_REQUEST
-            )
+            return CustomResponse(message="User already exists", data={}, status_code=status.HTTP_400_BAD_REQUEST)
 
         refresh = RefreshToken.for_user(user)
         logger.info(f"Registration successful: user_id={user.id}, phone={phone_number}")
@@ -94,11 +89,12 @@ class RegisterUser(APIView):
                     "email": user.email,
                     "userName": user.username,
                 },
-                 "access": str(refresh.access_token),
-                 "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
             },
             status_code=status.HTTP_201_CREATED,
         )
+
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -141,9 +137,7 @@ class TokenRefreshView(APIView):
     def post(self, request):
         refresh_token = request.data.get("refresh")
         if not refresh_token:
-            return Response(
-                is_success=False, message="Refresh token required", data={}, status=400
-            )
+            return Response(is_success=False, message="Refresh token required", data={}, status=400)
 
         try:
             token = RefreshToken(refresh_token)

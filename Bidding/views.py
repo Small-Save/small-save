@@ -1,24 +1,21 @@
-from Authentication.serializers import BaseUserSerializer
-from django.db import IntegrityError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from Groups.models import GroupMember
-from Groups.permissions import IsGroupAdmin
 from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.decorators import authentication_classes
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from utils.response import CustomResponse
 
-from Bidding.models import Bid
-from Bidding.models import BiddingRound
-from Bidding.models import BiddingRoundStatusEnum
-from Bidding.serializers import BiddingRoundSerializer
-from Bidding.serializers import BidSerializer
+from Bidding.models import Bid, BiddingRound, BiddingRoundStatusEnum
+from Bidding.serializers import BiddingRoundSerializer, BidSerializer
+from Groups.models import GroupMember
+from Groups.permissions import IsGroupAdmin
+from utils.response import CustomResponse
 
 
 @api_view(["GET"])
@@ -158,13 +155,15 @@ def start_bidding(request, round_id):
         status_code=status.HTTP_200_OK,
     )
 
+
 # * not to be used in PRODUCTION
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def end_bidding(request, round_id):
     """End bidding and determine winner"""
     bidding_round: BiddingRound = get_object_or_404(
-        BiddingRound.objects.select_related("group"), id=round_id,
+        BiddingRound.objects.select_related("group"),
+        id=round_id,
     )
 
     permission = IsGroupAdmin()

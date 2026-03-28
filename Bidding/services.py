@@ -1,13 +1,10 @@
-from datetime import datetime
-from datetime import time
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
-from Groups.models import Group
 
-from Bidding.models import BiddingRound
-from Bidding.models import BiddingRoundStatusEnum
+from Bidding.models import BiddingRound, BiddingRoundStatusEnum
+from Groups.models import Group
 
 
 def create_bidding_rounds(request, group: Group):

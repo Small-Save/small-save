@@ -2,9 +2,10 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Group
-from .models import GroupMember
 from Bidding.models import BiddingRoundStatusEnum
+
+from .models import Group, GroupMember
+
 
 class GroupMemberSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="user.id", read_only=True)
@@ -17,7 +18,7 @@ class GroupMemberSerializer(serializers.ModelSerializer):
 
 class GroupReadSerializer(serializers.ModelSerializer):
     members = GroupMemberSerializer(source="groupmember_set", many=True, read_only=True)
-    latest_bidding_round_id  = serializers.SerializerMethodField()
+    latest_bidding_round_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Group

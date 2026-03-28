@@ -1,7 +1,7 @@
-from rest_framework.exceptions import APIException
 from rest_framework import status
-
+from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler
+
 from utils.response import CustomResponse
 
 
@@ -22,7 +22,7 @@ def custom_exception_handler(exc, context):
             status_code=response.status_code,
             message="Request failed",
             toast_message=None,
-            error=response.data,   # include DRF's error details
+            error=response.data,  # include DRF's error details
         )
 
     # If DRF could not handle the exception, treat it as 500
@@ -34,6 +34,7 @@ def custom_exception_handler(exc, context):
         toast_message=None,
         error=str(exc),
     )
+
 
 class CustomAPIException(APIException):
     def __init__(self, detail=None, toast_message=None, status_code=status.HTTP_400_BAD_REQUEST):
@@ -60,4 +61,3 @@ class BadRequestError(CustomAPIException):
 class ConflictError(CustomAPIException):
     def __init__(self, detail="Conflict", toast_message="Conflict occurred"):
         super().__init__(detail=detail, toast_message=toast_message, status_code=status.HTTP_409_CONFLICT)
-

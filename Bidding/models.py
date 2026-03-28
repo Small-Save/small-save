@@ -3,11 +3,10 @@ from __future__ import annotations
 from enum import Enum
 
 from django.core.validators import MinValueValidator
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
-from Groups.models import Group
-from Groups.models import GroupMember
+
+from Groups.models import Group, GroupMember
 
 
 class BiddingRoundStatusEnum(Enum):
@@ -79,11 +78,7 @@ class BiddingRound(models.Model):
             winning_bid = self.get_winning_bid()
 
             if not winning_bid:
-                random_winner = (
-                    GroupMember.objects.filter(group=self.group, has_won=False)
-                    .order_by("?")
-                    .first()
-                )
+                random_winner = GroupMember.objects.filter(group=self.group, has_won=False).order_by("?").first()
                 if not random_winner:
                     return False
                 winning_bid = Bid.objects.create(

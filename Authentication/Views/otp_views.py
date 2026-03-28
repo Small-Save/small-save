@@ -1,14 +1,13 @@
+import logging
+import random
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from utils.response import CustomResponse
-
 from Authentication.models import Register, User
 from Authentication.serializers import SendOtpSerializer, VerifyOtpSerializer
-from Authentication.services.twilio_service import send_otp
-import logging
-import random
+from utils.response import CustomResponse
 
 logger = logging.getLogger("api")
 
@@ -86,9 +85,7 @@ class VerifyOtp(APIView):
         register_obj.is_verified = True
         register_obj.save()
 
-        user_obj = User.objects.filter(
-            phone_number=phone_number, is_verified=True
-        ).first()
+        user_obj = User.objects.filter(phone_number=phone_number, is_verified=True).first()
 
         if not user_obj:
             logger.info("user does not exist proceed with registration process")

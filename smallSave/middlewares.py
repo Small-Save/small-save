@@ -1,6 +1,7 @@
 # myapp/middleware.py
 from django.utils import timezone
 
+
 class TimezoneMiddleware:
     """
     Sets timezone per request based on user's timezone.

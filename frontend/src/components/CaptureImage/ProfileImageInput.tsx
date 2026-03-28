@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
+
 import { IonIcon } from "@ionic/react";
 import { camera } from "ionicons/icons";
+
 import "./ProfileImageInput.css";
 
 interface ProfileImageInputProps {
@@ -26,7 +28,11 @@ const ProfileImageInput: React.FC<ProfileImageInputProps> = ({onFileSelect}) => 
     return (
         <div className="profile-container">
             <div className="profile-wrapper">
-                <img src={preview || "/src/assets/images/profileImageTemp.jpg"} alt="Profile" className="profile-image" />
+                <img
+                    src={preview || "/src/assets/images/profileImageTemp.jpg"}
+                    alt="Profile"
+                    className="profile-image"
+                />
                 <div className="camera-button" onClick={() => fileInputRef.current?.click()}>
                     <IonIcon icon={camera} />
                 </div>

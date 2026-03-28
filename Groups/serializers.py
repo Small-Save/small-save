@@ -1,8 +1,10 @@
 # serializers.py
-from rest_framework import serializers
-from .models import Group, GroupMember
-
 from django.utils import timezone
+from rest_framework import serializers
+
+from Bidding.models import BiddingRoundStatusEnum
+
+from .models import Group, GroupMember
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):
@@ -16,6 +18,7 @@ class GroupMemberSerializer(serializers.ModelSerializer):
 
 class GroupReadSerializer(serializers.ModelSerializer):
     members = GroupMemberSerializer(source="groupmember_set", many=True, read_only=True)
+    latest_bidding_round_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Group
@@ -29,7 +32,18 @@ class GroupReadSerializer(serializers.ModelSerializer):
             "start_date",
             "created_at",
             "members",
+            "latest_bidding_round_id",
         )
+
+    def get_latest_bidding_round_id(self, obj):
+        # Fallback if not prefetched (e.g. admin usage)
+        latest = (
+            obj.bidding_rounds.exclude(status=BiddingRoundStatusEnum.COMPLETED.value)
+            .order_by("round_number", "scheduled_time")
+            .only("id")
+            .first()
+        )
+        return latest.id if latest else None
 
 
 class GroupCreateSerializer(serializers.ModelSerializer):
@@ -43,7 +57,7 @@ class GroupCreateSerializer(serializers.ModelSerializer):
             "winner_selection_method",
             "start_date",
             "members",
-            "member_ids"
+            "member_ids",
         )
         choices = Group.WINNER_SELECTION_CHOICES
 
@@ -90,7 +104,7 @@ class GroupCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {
                     "size": "size must equal the number of distinct member IDs plus the creator (auto-added if missing)."
-                }
+                },
             )
 
         data["member_ids"] = final_ids
@@ -138,7 +152,7 @@ class GroupUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {
                     "size": "size must be greater than or equal to the number of existing members."
-                }
+                },
             )
 
         target_amount = data.get("target_amount") or self.instance.target_amount

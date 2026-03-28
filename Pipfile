@@ -15,6 +15,9 @@ phonenumbers = "*"
 boto3 = "*"
 django-storages = "*"
 pillow = "*"
+channels = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+python-dateutil = "*"
 
 [dev-packages]
 django-extensions = "*"

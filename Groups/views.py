@@ -1,32 +1,37 @@
 # views.py
-from rest_framework import generics, status
-from Groups.models import Group, GroupMember
-from Groups.serializers import (
-    GroupCreateSerializer,
-    GroupReadSerializer,
-    GroupUpdateSerializer,
-)
-from Authentication.serializers import BaseUserSerializer
-from Groups.permissions import IsGroupAdmin
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.db import IntegrityError, transaction
-from django.contrib.auth import get_user_model
+import logging
 
-from utils.exceptions import BadRequestError, ConflictError
-from utils.response import CustomResponse
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, status
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
     permission_classes,
 )
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from django.core.exceptions import ValidationError
+from Authentication.serializers import BaseUserSerializer
+from Bidding.models import BiddingRound
+from Bidding.serializers import CreateBiddingRoundSerializer
+from Bidding.services import create_bidding_rounds
+from Groups.models import Group, GroupMember
+from Groups.permissions import IsGroupAdmin
+from Groups.serializers import (
+    GroupCreateSerializer,
+    GroupReadSerializer,
+    GroupUpdateSerializer,
+)
 from Groups.services import validate_contact_data
+from utils.exceptions import BadRequestError, ConflictError
+from utils.response import CustomResponse
 
-import logging
-
-logger = logging.getLogger("api")
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -87,6 +92,8 @@ class GroupCreateAPIView(generics.CreateAPIView):
                 ]
                 GroupMember.objects.bulk_create(gm_instances)
 
+                create_bidding_rounds(request, group)
+
                 group.refresh_from_db()  # reload with members
                 logger.info(
                     "Group created successfully: group_id=%s with %d members",
@@ -106,7 +113,7 @@ class GroupCreateAPIView(generics.CreateAPIView):
             logger.exception("Integrity error creating group or members: %s", exc)
             raise ConflictError(
                 "Database integrity error while creating group/members."
-            )
+            ) from exc
         except Exception as exc:
             logger.exception("Unexpected error creating group: %s", exc)
             raise
@@ -152,6 +159,58 @@ class UserGroupListAPIView(generics.ListAPIView):
         return response
 
 
+class UserGroupRetrieveAPIView(generics.RetrieveAPIView):
+    """
+    Retrieve a single group the authenticated user is a member of.
+    URL should include the group ID (or slug if you prefer).
+    """
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupReadSerializer
+    lookup_field = "id"  # change to 'uuid' or 'slug' if your model uses that
+
+    def get_queryset(self):
+        return (
+            Group.objects.filter(groupmember__user=self.request.user)
+            .distinct()
+            .select_related("created_by")
+            .prefetch_related(
+                "groupmember_set__user",
+                Prefetch(
+                    "bidding_rounds",
+                    queryset=BiddingRound.objects.only("id", "group").order_by(
+                        "round_number", "scheduled_time"
+                    ),
+                    to_attr="prefetched_bidding_rounds",
+                ),
+            )
+            .order_by("created_at")
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        logger.info(
+            "UserGroupRetrieveAPIView called by user_id=%s for group_id=%s",
+            request.user.id,
+            kwargs.get(self.lookup_field),
+        )
+
+        instance = self.get_object()  # Automatically checks queryset restrictions
+        serializer = self.get_serializer(instance)
+
+        logger.info(
+            "UserGroupRetrieveAPIView success user_id=%s group_id=%s",
+            request.user.id,
+            instance.id,
+        )
+
+        return CustomResponse(
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+            message="Group fetched",
+        )
+
+
 class GroupUpdateAPIView(generics.UpdateAPIView):
     """
     Admin-only update of a group.
@@ -182,7 +241,9 @@ class GroupUpdateAPIView(generics.UpdateAPIView):
                 )
         except IntegrityError as exc:
             logger.exception("Integrity error updating group: %s", exc)
-            raise ConflictError("Could not update group due to integrity error.")
+            raise ConflictError(
+                "Could not update group due to integrity error."
+            ) from exc
         except Exception as exc:
             logger.exception("Unexpected error updating group: %s", exc)
             raise
@@ -267,14 +328,14 @@ def verify_contacts(request):
             existing_users_qs = existing_users_qs.union(
                 User.objects.filter(phone_number__in=phones)
                 .select_related()
-                .only("id", "phone_number", "email", "first_name", "last_name")
+                .only("id", "phone_number", "email", "first_name", "last_name"),
             )
 
         if emails:
             existing_users_qs = existing_users_qs.union(
                 User.objects.filter(email__in=emails)
                 .select_related()
-                .only("id", "phone_number", "email", "first_name", "last_name")
+                .only("id", "phone_number", "email", "first_name", "last_name"),
             )
 
         existing_users_list = list(existing_users_qs)
@@ -327,8 +388,37 @@ def verify_contacts(request):
         raise
     except Exception as exc:
         logger.exception(
-            "Unexpected error in verify_contacts for user_id=%s: %s",
+            "Unexpected error in verify_contacts for user_id=%s",
             request.user.id,
-            exc,
         )
-        raise BadRequestError("Failed to verify contacts. Please try again.")
+        msg = "Failed to verify contacts. Please try again."
+        raise BadRequestError(msg) from exc
+
+
+# * not to be used in PRODUCTION
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_bidding_round(request, group_id):
+    """Create a bidding round for a chit group"""
+    group = get_object_or_404(Group, id=group_id)
+
+    permission = IsGroupAdmin()
+    if not permission.has_object_permission(request, None, group):
+        raise PermissionDenied(permission.message)
+
+    serializer = CreateBiddingRoundSerializer(
+        data=request.data, context={"group": group}
+    )
+
+    if serializer.is_valid():
+        serializer.save(group=group, status="scheduled")
+        return CustomResponse(
+            status_code=status.HTTP_201_CREATED,
+            message="Successfully created bidding round",
+        )
+
+    return CustomResponse(
+        is_success=False,
+        error=serializer.errors,
+        status_code=status.HTTP_400_BAD_REQUEST,
+    )

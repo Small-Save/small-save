@@ -1,11 +1,12 @@
+from typing import Any
+
 import phonenumbers
-from phonenumbers import NumberParseException
-from typing import Optional, Dict, Any
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from phonenumbers import NumberParseException
 
 
-def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
+def normalize_phone_number(phone: str, region: str = None) -> str | None:
     """
     Normalize phone number using phonenumbers library for international support.
     Returns E164 format if valid, None if invalid.
@@ -30,7 +31,7 @@ def normalize_phone_number(phone: str, region: str = None) -> Optional[str]:
         return None
 
 
-def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
+def validate_contact_data(contact: dict[str, Any]) -> dict[str, Any]:
     """
     Validate and normalize contact data.
     Returns validated contact or raises ValidationError.
@@ -62,7 +63,7 @@ def validate_contact_data(contact: Dict[str, Any]) -> Dict[str, Any]:
         try:
             validate_email(email)
             validated_contact["email"] = email.lower().strip()
-        except ValidationError:
-            raise ValidationError(f"Invalid email address: {email}")
+        except ValidationError as err:
+            raise ValidationError(f"Invalid email address: {email}") from err
 
     return validated_contact

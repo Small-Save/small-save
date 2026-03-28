@@ -1,7 +1,8 @@
 import uuid
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 from datetime import timedelta
+
+from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.utils import timezone
 
 # Create your models here.
@@ -13,10 +14,10 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     email = models.EmailField(unique=True, null=True, blank=True)
     username = models.CharField(max_length=150, unique=False, blank=True, null=True)
-    gender = models.CharField(max_length=100, blank = True , null = False)
+    gender = models.CharField(max_length=100, blank=True, null=False)
     profile_pic = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
     USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = ["first_name", "last_name","gender"]
+    REQUIRED_FIELDS = ["first_name", "last_name", "gender"]
 
     @property
     def profile_pic_url(self):

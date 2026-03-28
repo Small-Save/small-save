@@ -21,6 +21,24 @@ export type BaseResponse<T> = {
     error: string | null;
 };
 
+export interface Group {
+    id: number;
+    name: string;
+    target_amount: number;
+    size: number;
+    duration: number;
+    winner_selection_method: string;
+    start_date: string;
+    created_at: string;
+    members: Member[];
+    latest_bidding_round_id: string;
+}
+
+export interface Member {
+    id: string;
+    username: string;
+}
+
 export type Contact = {
     id?: string;
     username: string;

@@ -15,16 +15,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+import django
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include
-from django.urls import path
+from django.urls import include, path, re_path
+
+from .consumer import BiddingConsumer
+
+# Ensure Django is setup before accessing admin.site
+if not django.apps.apps.ready:
+    django.setup()
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("Authentication.urls")),
     path("groups/", include("Groups.urls")),
+    path("bidding/", include("Bidding.urls")),
+]
+
+
+websocket_urlpatterns = [
+    re_path(r"ws/bidding/(?P<round_id>\w+)/$", BiddingConsumer.as_asgi()),
 ]
 
 

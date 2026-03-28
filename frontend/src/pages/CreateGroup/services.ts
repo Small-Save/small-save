@@ -1,6 +1,6 @@
 import api from "lib/axios";
 import URLS from "lib/constants";
-import type { User, Contact, BaseResponse } from "types";
+import type { BaseResponse, Contact, Group, User } from "types";
 
 type VerifyContactsResponse = {
     existing_users: User[];
@@ -20,23 +20,6 @@ export const verifyContacts = async (
     }
 };
 
-export interface Group {
-    id: number;
-    name: string;
-    target_amount: string;
-    size: number;
-    duration: number;
-    winner_selection_method: string;
-    start_date: string;
-    created_at: string;
-    members: Member[];
-}
-
-export interface Member {
-    user: User;
-    joined_at: string;
-}
-
 export const createGroup = async (data: any): Promise<BaseResponse<Group>> => {
     try {
         const response = await api.post(URLS.GROUP.CREATE_GROUP, {
@@ -47,4 +30,9 @@ export const createGroup = async (data: any): Promise<BaseResponse<Group>> => {
         console.error(error);
         throw error;
     }
+};
+
+export const fetchUserGroups = async (): Promise<BaseResponse<Group[]>> => {
+    const response = await api.get<BaseResponse<Group[]>>(URLS.GROUP.GET_USER_GROUPS);
+    return response.data;
 };

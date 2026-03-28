@@ -1,7 +1,9 @@
 // src/components/ProtectedRoute.tsx
 import React, { useContext } from "react";
-import { IonPage, IonContent, IonSpinner } from "@ionic/react";
+
+import { IonContent, IonPage, IonSpinner } from "@ionic/react";
 import { Redirect, RouteProps } from "react-router-dom";
+
 import { AuthContext } from "../contexts/AuthProvider";
 
 interface ProtectedRouteProps extends RouteProps {

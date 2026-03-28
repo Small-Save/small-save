@@ -35,31 +35,55 @@
 
 /* Selected avatar horizontal strip */
 .selected-strip {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.6rem;
-  padding: 0.4rem 0.75rem;
-  margin: 0.5rem 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
 }
-.selected-strip::-webkit-scrollbar { display: none; }
+.selected-strip::-webkit-scrollbar {
+    display: none;
+}
 
-.selected-item { position: relative; flex: 0 0 auto; width: 64px; }
-.selected-img { width: 64px; height: 64px; object-fit: cover; border-radius: 14px; display: block; }
-.remove-selected {
-  position: absolute;
-  right: 4px; bottom: 4px;
-  width: 20px; height: 20px;
-  border: none;
-  background: rgba(255,255,255,0.9);
-  color: #111; font-size: 14px; line-height: 1;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.18);
-  cursor: pointer;
+.selected-item {
+    position: relative;
+    flex: 0 0 auto;
+    width: 64px;
 }
-.remove-selected:hover { background: #fff; }
-.remove-selected:active { transform: scale(0.92); }
+.selected-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 14px;
+    display: block;
+}
+.remove-selected {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #111;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+}
+.remove-selected:hover {
+    background: #fff;
+}
+.remove-selected:active {
+    transform: scale(0.92);
+}

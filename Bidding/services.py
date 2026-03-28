@@ -1,14 +1,11 @@
 import logging
-from datetime import datetime
-from datetime import time
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
-from Groups.models import Group
 
-from Bidding.models import BiddingRound
-from Bidding.models import BiddingRoundStatusEnum
+from Bidding.models import BiddingRound, BiddingRoundStatusEnum
+from Groups.models import Group
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +22,9 @@ def create_bidding_rounds(request, group: Group):
     for i in range(1, group.duration + 1):
         scheduled_date = group.start_date + relativedelta(months=i)
         start_time = datetime.combine(
-            scheduled_date.date() if hasattr(scheduled_date, "date") else scheduled_date,
+            scheduled_date.date()
+            if hasattr(scheduled_date, "date")
+            else scheduled_date,
             time(0, 0, 0),
             tzinfo=ZoneInfo(tz_name),  # TODO: test this
         )

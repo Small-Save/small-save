@@ -1,7 +1,10 @@
 import React, { useCallback } from "react";
-import { IonCard, IonCardContent, IonGrid, IonRow, IonCol, IonAvatar, IonIcon, useIonRouter } from "@ionic/react";
+
+import { IonAvatar, IonCard, IonCardContent, IonCol, IonGrid, IonIcon, IonRow, useIonRouter } from "@ionic/react";
 import { calendarClearOutline, peopleOutline } from "ionicons/icons";
+
 import "./Home.css";
+
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { Group } from "types";
 

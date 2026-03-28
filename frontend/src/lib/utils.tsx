@@ -1,6 +1,7 @@
 import { Contacts } from "@capacitor-community/contacts";
 import { Capacitor } from "@capacitor/core";
-import type { ValidationResult, Contact } from "types";
+
+import type { Contact, ValidationResult } from "types";
 
 export const validatePhoneNumber = (phone: string): ValidationResult => {
     if (/^\d{10}$/.test(phone)) {

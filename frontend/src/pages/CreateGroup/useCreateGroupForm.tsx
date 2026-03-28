@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+
 import useFormInput from "Hooks/useFormInput";
 import { validateDuration, validateGroupSize, validateTargetAmount } from "lib/utils";
 import type { ValidationResult } from "types";

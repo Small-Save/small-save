@@ -1,10 +1,12 @@
-import { IonPage, IonContent, IonInput, IonButton, IonRouterLink } from "@ionic/react";
-import useFormInput from "Hooks/useFormInput";
 import { useContext, useState } from "react";
+
+import { IonButton, IonContent, IonInput, IonPage, IonRouterLink } from "@ionic/react";
 import { useHistory } from "react-router-dom";
+
 import { AuthContext } from "contexts/AuthProvider";
-import { validatePhoneNumber } from "lib/utils";
+import useFormInput from "Hooks/useFormInput";
 import { toast } from "Hooks/useToast";
+import { validatePhoneNumber } from "lib/utils";
 
 const Login: React.FC = () => {
     const history = useHistory();

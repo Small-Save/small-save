@@ -1,9 +1,9 @@
 import logging
 
-from Bidding.models import BiddingRound
-from Bidding.models import BiddingRoundStatusEnum
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
+from Bidding.models import BiddingRound, BiddingRoundStatusEnum
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,9 @@ class Command(BaseCommand):
         started = self.start_scheduled_rounds(now)
         completed = self.complete_expired_rounds(now)
 
-        logger.info("process_rounds finished: %d started, %d completed", started, completed)
+        logger.info(
+            "process_rounds finished: %d started, %d completed", started, completed
+        )
 
     def start_scheduled_rounds(self, now):
         scheduled_rounds = BiddingRound.objects.filter(
@@ -29,7 +31,11 @@ class Command(BaseCommand):
         for bidding_round in scheduled_rounds:
             if bidding_round.start_bidding():
                 count += 1
-                logger.info("Started bidding: round_id=%s group_id=%s", bidding_round.pk, bidding_round.group_id)
+                logger.info(
+                    "Started bidding: round_id=%s group_id=%s",
+                    bidding_round.pk,
+                    bidding_round.group_id,
+                )
             else:
                 logger.warning("Failed to start bidding: round_id=%s", bidding_round.pk)
         return count
@@ -43,7 +49,13 @@ class Command(BaseCommand):
         for bidding_round in active_rounds:
             if bidding_round.end_bidding():
                 count += 1
-                logger.info("Completed bidding: round_id=%s group_id=%s", bidding_round.pk, bidding_round.group_id)
+                logger.info(
+                    "Completed bidding: round_id=%s group_id=%s",
+                    bidding_round.pk,
+                    bidding_round.group_id,
+                )
             else:
-                logger.warning("Failed to complete bidding: round_id=%s", bidding_round.pk)
+                logger.warning(
+                    "Failed to complete bidding: round_id=%s", bidding_round.pk
+                )
         return count

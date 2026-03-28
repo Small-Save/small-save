@@ -1,13 +1,13 @@
 import logging
 
-from Authentication.models import Register
-from Authentication.models import User
-from Authentication.serializers import RegisterUserSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from Authentication.models import Register, User
+from Authentication.serializers import RegisterUserSerializer
 from utils.response import CustomResponse
 
 logger = logging.getLogger(__name__)
@@ -34,10 +34,14 @@ class RegisterUser(APIView):
         gender = serializer.validated_data["gender"]
         logger.debug("Validated registration data: phone=%s", phone_number)
 
-        otp_verified = Register.objects.filter(phone_number=phone_number, is_verified=True).exists()
+        otp_verified = Register.objects.filter(
+            phone_number=phone_number, is_verified=True
+        ).exists()
 
         if not otp_verified:
-            logger.warning("Registration blocked: phone=%s not verified via OTP", phone_number)
+            logger.warning(
+                "Registration blocked: phone=%s not verified via OTP", phone_number
+            )
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -61,7 +65,9 @@ class RegisterUser(APIView):
                 },
             )
         except Exception:
-            logger.exception("Database error during user creation for phone=%s", phone_number)
+            logger.exception(
+                "Database error during user creation for phone=%s", phone_number
+            )
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -72,11 +78,21 @@ class RegisterUser(APIView):
             )
 
         if not created:
-            logger.info("Registration skipped: user already exists phone=%s user_id=%s", phone_number, user.id)
-            return CustomResponse(message="User already exists", data={}, status_code=status.HTTP_400_BAD_REQUEST)
+            logger.info(
+                "Registration skipped: user already exists phone=%s user_id=%s",
+                phone_number,
+                user.id,
+            )
+            return CustomResponse(
+                message="User already exists",
+                data={},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
         refresh = RefreshToken.for_user(user)
-        logger.info("Registration successful: user_id=%s phone=%s", user.id, phone_number)
+        logger.info(
+            "Registration successful: user_id=%s phone=%s", user.id, phone_number
+        )
 
         return CustomResponse(
             is_success=True,
@@ -102,7 +118,10 @@ class LogoutView(APIView):
         try:
             refresh_token = request.data.get("refresh")
             if not refresh_token:
-                logger.warning("Logout failed: missing refresh token for user_id=%s", request.user.id)
+                logger.warning(
+                    "Logout failed: missing refresh token for user_id=%s",
+                    request.user.id,
+                )
                 return CustomResponse(
                     is_success=False,
                     message="Refresh token is required.",
@@ -139,7 +158,9 @@ class TokenRefreshView(APIView):
         refresh_token = request.data.get("refresh")
         if not refresh_token:
             logger.warning("Token refresh failed: missing refresh token")
-            return Response(is_success=False, message="Refresh token required", data={}, status=400)
+            return Response(
+                is_success=False, message="Refresh token required", data={}, status=400
+            )
 
         try:
             token = RefreshToken(refresh_token)

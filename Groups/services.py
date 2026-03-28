@@ -63,7 +63,7 @@ def validate_contact_data(contact: dict[str, Any]) -> dict[str, Any]:
         try:
             validate_email(email)
             validated_contact["email"] = email.lower().strip()
-        except ValidationError:
-            raise ValidationError(f"Invalid email address: {email}")
+        except ValidationError as err:
+            raise ValidationError(f"Invalid email address: {email}") from err
 
     return validated_contact

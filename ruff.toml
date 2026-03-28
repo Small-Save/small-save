@@ -1,0 +1,42 @@
+# https://docs.astral.sh/ruff/configuration/
+
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "migrations",
+    "node_modules",
+    "venv",
+]
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line length — keep formatter-friendly; long strings stay explicit
+]
+
+[lint.per-file-ignores]
+"**/migrations/*.py" = ["ALL"]
+
+[lint.isort]
+known-first-party = ["Authentication", "Bidding", "Groups", "smallSave", "utils"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

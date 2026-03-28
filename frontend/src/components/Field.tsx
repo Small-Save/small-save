@@ -1,7 +1,8 @@
 import { IonInput } from "@ionic/react";
+
 import useFormInput from "Hooks/useFormInput";
 
-type InputType = 'text' | 'number' | 'email' | 'tel' | 'date';
+type InputType = "text" | "number" | "email" | "tel" | "date";
 interface FieldProps {
     label: string;
     placeholder?: string;

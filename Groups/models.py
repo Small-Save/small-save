@@ -18,8 +18,12 @@ class Group(models.Model):
         help_text="Target amount for the group",
         validators=[MinValueValidator(0)],  # ensures positive only data
     )
-    size = models.PositiveIntegerField(help_text="Number of members in the group", validators=[MinValueValidator(5)])
-    duration = models.PositiveIntegerField(help_text="Duration of the group in periods (e.g., months)")
+    size = models.PositiveIntegerField(
+        help_text="Number of members in the group", validators=[MinValueValidator(5)]
+    )
+    duration = models.PositiveIntegerField(
+        help_text="Duration of the group in periods (e.g., months)"
+    )
     winner_selection_method = models.CharField(
         max_length=50,
         choices=WINNER_SELECTION_CHOICES,
@@ -28,7 +32,9 @@ class Group(models.Model):
     )
     start_date = models.DateTimeField(help_text="Start date of the group")
 
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="Admins", null=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name="Admins", null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

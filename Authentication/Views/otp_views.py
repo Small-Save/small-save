@@ -1,14 +1,13 @@
 import logging
 import random
 
-from Authentication.models import Register
-from Authentication.models import User
-from Authentication.serializers import SendOtpSerializer
-from Authentication.serializers import VerifyOtpSerializer
-from Authentication.services.twilio_service import send_otp  # noqa: F401
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from Authentication.models import Register, User
+from Authentication.serializers import SendOtpSerializer, VerifyOtpSerializer
+from Authentication.services.twilio_service import send_otp  # noqa: F401
 from utils.response import CustomResponse
 
 logger = logging.getLogger(__name__)
@@ -46,7 +45,9 @@ class VerifyOtp(APIView):
         serializer = VerifyOtpSerializer(data=request.data)
 
         if not serializer.is_valid():
-            logger.warning("OTP verification failed: invalid input %s", serializer.errors)
+            logger.warning(
+                "OTP verification failed: invalid input %s", serializer.errors
+            )
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -60,10 +61,14 @@ class VerifyOtp(APIView):
 
         try:
             register_obj = Register.objects.filter(
-                phone_number=phone_number, otp_code=otp_code, is_verified=False,
+                phone_number=phone_number,
+                otp_code=otp_code,
+                is_verified=False,
             ).latest("created_at")
         except Register.DoesNotExist:
-            logger.warning("OTP verification failed: no matching record for phone=%s", phone_number)
+            logger.warning(
+                "OTP verification failed: no matching record for phone=%s", phone_number
+            )
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -87,10 +92,15 @@ class VerifyOtp(APIView):
         register_obj.is_verified = True
         register_obj.save()
 
-        user_obj = User.objects.filter(phone_number=phone_number, is_verified=True).first()
+        user_obj = User.objects.filter(
+            phone_number=phone_number, is_verified=True
+        ).first()
 
         if not user_obj:
-            logger.info("OTP verified for phone=%s, new user — proceeding to registration", phone_number)
+            logger.info(
+                "OTP verified for phone=%s, new user — proceeding to registration",
+                phone_number,
+            )
             return CustomResponse(
                 is_success=True,
                 data={
@@ -109,7 +119,11 @@ class VerifyOtp(APIView):
             )
 
         refresh = RefreshToken.for_user(user_obj)
-        logger.info("OTP verified for phone=%s, existing user_id=%s — logged in", phone_number, user_obj.id)
+        logger.info(
+            "OTP verified for phone=%s, existing user_id=%s — logged in",
+            phone_number,
+            user_obj.id,
+        )
         return CustomResponse(
             is_success=True,
             data={

@@ -1,11 +1,21 @@
 import React, { useCallback, useMemo } from "react";
-import { IonPage, IonButton, IonContent, IonLabel, IonDatetime, IonDatetimeButton, IonModal } from "@ionic/react";
-import { useIonRouter } from "@ionic/react";
+
+import {
+    IonButton,
+    IonContent,
+    IonDatetime,
+    IonDatetimeButton,
+    IonLabel,
+    IonModal,
+    IonPage,
+    useIonRouter
+} from "@ionic/react";
+
+import { Field } from "components/Field";
+import { HeaderBox } from "components/HeaderBox";
+import { GroupDetails, useGroupCreation } from "contexts/GroupCreationContext";
 import useFormInput from "Hooks/useFormInput";
 import { validateDuration, validateGroupSize, validateTargetAmount } from "lib/utils";
-import { useGroupCreation, GroupDetails } from "contexts/GroupCreationContext";
-import { HeaderBox } from "components/HeaderBox";
-import { Field } from "components/Field";
 
 type WinnerMethod = GroupDetails["winnerMethod"];
 

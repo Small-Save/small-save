@@ -33,16 +33,6 @@ export const createGroup = async (data: any): Promise<BaseResponse<Group>> => {
 };
 
 export const fetchUserGroups = async (): Promise<BaseResponse<Group[]>> => {
-    try {
-        const response = await api.get<BaseResponse<Group[]>>(URLS.GROUP.GET_USER_GROUPS);
-        return response.data;
-    } catch (error: any) {
-        return {
-            is_success: false,
-            data: null,
-            toast_message: null,
-            message: null,
-            error: error?.response?.data?.error || "Failed to fetch groups"
-        };
-    }
+    const response = await api.get<BaseResponse<Group[]>>(URLS.GROUP.GET_USER_GROUPS);
+    return response.data;
 };

@@ -26,6 +26,7 @@ import "./Home.css";
 
 import { AuthContext } from "contexts/AuthProvider";
 import { fetchUserGroups } from "pages/CreateGroup/services";
+import { toast } from "Hooks/useToast";
 
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;
@@ -33,8 +34,12 @@ const Home: React.FC = () => {
 
     // TODO:  change this to tenStackQuery
     const fetchGroupDetails = async () => {
-        const response = await fetchUserGroups();
-        setGroupDetails(response);
+        try {
+            const response = await fetchUserGroups();
+            setGroupDetails(response);
+        } catch {
+            toast({ message: "Failed to load groups.", color: "danger" });
+        }
     };
 
     useEffect(() => {

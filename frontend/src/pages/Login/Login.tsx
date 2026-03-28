@@ -6,27 +6,27 @@ import { useHistory } from "react-router-dom";
 import { AuthContext } from "contexts/AuthProvider";
 import useFormInput from "Hooks/useFormInput";
 import { validatePhoneNumber } from "lib/utils";
+import { toast } from "Hooks/useToast";
 
 const Login: React.FC = () => {
     const history = useHistory();
-    const { sendOtp } = useContext(AuthContext)!;
+    const { sendOtp, loading } = useContext(AuthContext)!;
     const phone = useFormInput<string>("", validatePhoneNumber);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleLogin = async () => {
         if (!phone.isValid) {
+            toast({ message: "Please enter a valid phone number.", color: "warning" });
             return;
         }
         try {
-            setIsLoading(true);
             const response = await sendOtp(phone.value);
             if (response) {
                 history.push("/verify_otp", { phone: phone.value });
             }
         } catch {
+            toast({ message: "Login failed. Please try again.", color: "danger" });
         } finally {
             phone.setValue("");
-            setIsLoading(false);
         }
     };
 

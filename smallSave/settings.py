@@ -164,6 +164,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -179,27 +182,75 @@ LOGGING = {
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
-    "handlers": {
-        "file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs/api.log"),
-            "formatter": "verbose",
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
         },
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
+    },
+    "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "simple",
+            "filters": ["require_debug_true"],
         },
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOG_DIR / "api.log",
+            "formatter": "verbose",
+            "maxBytes": 5 * 1024 * 1024,  # 5 MB
+            "backupCount": 5,
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOG_DIR / "error.log",
+            "formatter": "verbose",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 10,
+        },
+    },
+    "root": {
+        "handlers": ["console", "file", "error_file"],
+        "level": "INFO",
     },
     "loggers": {
         "django": {
             "handlers": ["console", "file"],
             "level": "INFO",
-            "propagate": True,
+            "propagate": False,
         },
-        "api": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
+        "django.request": {
+            "handlers": ["file", "error_file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["file", "error_file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "Authentication": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "Groups": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "Bidding": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,
         },
     },

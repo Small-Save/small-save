@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from Groups.services import normalize_phone_number
 from rest_framework import serializers
 
 User = get_user_model()

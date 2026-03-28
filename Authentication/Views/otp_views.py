@@ -7,9 +7,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from Authentication.models import Register, User
 from Authentication.serializers import SendOtpSerializer, VerifyOtpSerializer
+from Authentication.services.twilio_service import send_otp  # noqa: F401
 from utils.response import CustomResponse
 
-logger = logging.getLogger("api")
+logger = logging.getLogger(__name__)
 
 
 class SendOtp(APIView):
@@ -22,16 +23,16 @@ class SendOtp(APIView):
             otp = str(random.randint(100000, 999999))
             # otp = send_otp(phone)
             Register.objects.create(phone_number=phone, otp_code=otp)
-            logger.info(f"OTP request received for phone={phone}")
+            logger.info("OTP sent for phone=%s", phone)
             return CustomResponse(
                 True,
                 message="OTP sent successfully",
                 toast_message="OTP sent successfully.",
                 status_code=status.HTTP_201_CREATED,
             )
-        logger.error("OTP request failed: phone number missing")
+        logger.warning("OTP request failed: invalid data %s", serializers.errors)
         return CustomResponse(
-            False,
+            is_success=False,
             error=serializers.errors,
             message="Phone Number required",
             toast_message="Invalid Data",
@@ -44,7 +45,7 @@ class VerifyOtp(APIView):
         serializer = VerifyOtpSerializer(data=request.data)
 
         if not serializer.is_valid():
-            logger.error("Invalid input")
+            logger.warning("OTP verification failed: invalid input %s", serializer.errors)
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -58,10 +59,10 @@ class VerifyOtp(APIView):
 
         try:
             register_obj = Register.objects.filter(
-                phone_number=phone_number, otp_code=otp_code, is_verified=False
+                phone_number=phone_number, otp_code=otp_code, is_verified=False,
             ).latest("created_at")
         except Register.DoesNotExist:
-            logger.error("No data exists with the otp and phone number")
+            logger.warning("OTP verification failed: no matching record for phone=%s", phone_number)
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -72,7 +73,7 @@ class VerifyOtp(APIView):
             )
 
         if register_obj.is_expired():
-            logger.error("otp is expired")
+            logger.warning("OTP expired for phone=%s", phone_number)
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -88,7 +89,7 @@ class VerifyOtp(APIView):
         user_obj = User.objects.filter(phone_number=phone_number, is_verified=True).first()
 
         if not user_obj:
-            logger.info("user does not exist proceed with registration process")
+            logger.info("OTP verified for phone=%s, new user — proceeding to registration", phone_number)
             return CustomResponse(
                 is_success=True,
                 data={
@@ -106,9 +107,8 @@ class VerifyOtp(APIView):
                 status_code=status.HTTP_200_OK,
             )
 
-        # Generate JWT tokens for existing user
         refresh = RefreshToken.for_user(user_obj)
-        logger.info("User already exists proceed with login")
+        logger.info("OTP verified for phone=%s, existing user_id=%s — logged in", phone_number, user_obj.id)
         return CustomResponse(
             is_success=True,
             data={

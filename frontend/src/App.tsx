@@ -23,6 +23,7 @@ import "@ionic/react/css/display.css";
 
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
 import Bidding from "pages/Bidding/Bidding";
+import { Toaster } from "components/Toaster";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
@@ -82,6 +83,7 @@ const App: React.FC = () => (
                 </IonReactRouter>
             </AuthProvider>
         </QueryClientProvider>
+        <Toaster />
     </IonApp>
 );
 

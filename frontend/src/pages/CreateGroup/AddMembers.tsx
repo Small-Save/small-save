@@ -14,6 +14,7 @@ import "./AddMembers.css";
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { AuthContext } from "contexts/AuthProvider";
 import type { Contact, User } from "types";
+import { toast } from "Hooks/useToast";
 
 type MemberMode = "existing" | "invite";
 interface AddUserComponentProps {
@@ -88,8 +89,8 @@ const AddMembers: React.FC = () => {
                     }
                 }
             }
-        } catch (err: any) {
-            console.error(err);
+        } catch {
+            toast({ message: "Failed to load contacts.", color: "danger" });
             setError("Failed to load contacts");
         } finally {
             setLoading(false);
@@ -104,7 +105,10 @@ const AddMembers: React.FC = () => {
             return;
         }
         if (selectedMembers.size !== groupInfo.groupSize) {
-            // TODO show some error
+            toast({
+                message: `Please select exactly ${groupInfo.groupSize} members. Currently ${selectedMembers.size} selected.`,
+                color: "warning",
+            });
             return;
         }
 
@@ -120,10 +124,10 @@ const AddMembers: React.FC = () => {
 
         try {
             await createGroup(payload);
-            // TODO: Navigate to success page or group details
+            toast({ message: "Group created successfully!", color: "success" });
             ionRouter.push("/home", "none");
-        } catch (error) {
-            console.error("Error creating group:", error);
+        } catch {
+            toast({ message: "Failed to create group. Please try again.", color: "danger" });
         } finally {
             reset();
         }
@@ -138,21 +142,18 @@ const AddMembers: React.FC = () => {
         handleFetchContacts();
     }, [handleFetchContacts]);
 
-    const toggleMember = useCallback(
-        (id: string) => {
-            setSelectedMembers((prev) => {
-                const copy = new Set(prev);
-                if (copy.has(id)) {
-                    copy.delete(id);
-                } else {
-                    if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
-                        copy.add(id);
-                    } else {
-                        // TODO show a toast saying group is full
-                    }
-                }
-                return copy;
-            });
+    const toggleMember = useCallback((id: string) => {
+        setSelectedMembers((prev) => {
+            const copy = new Set(prev);
+            if (copy.has(id)) {
+                copy.delete(id);
+            } else if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
+                copy.add(id);
+            } else {
+                toast({ message: "Group is full. Remove a member to add someone else.", color: "warning" });
+            }
+            return copy;
+        });
         },
         [groupInfo?.groupSize]
     );

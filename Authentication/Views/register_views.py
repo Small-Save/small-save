@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from Authentication.models import Register, User
@@ -115,42 +116,73 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        try:
-            refresh_token = request.data.get("refresh")
-            if not refresh_token:
-                logger.warning(
-                    "Logout failed: missing refresh token for user_id=%s",
-                    request.user.id,
-                )
-                return CustomResponse(
-                    is_success=False,
-                    message="Refresh token is required.",
-                    toast_message="Logout failed.",
-                    error="MissingRefreshToken",
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                )
-
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-
-            logger.info("Logout successful: user_id=%s", request.user.id)
-            return CustomResponse(
-                is_success=True,
-                message="Logout successful.",
-                toast_message="You have been logged out.",
-                status_code=status.HTTP_200_OK,
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            logger.warning(
+                "Logout failed: missing refresh token for user_id=%s",
+                request.user.id,
             )
-
-        except Exception:
-            logger.exception("Logout failed for user_id=%s", request.user.id)
             return CustomResponse(
                 is_success=False,
-                data={},
-                message="Logout failed.",
-                toast_message="Something went wrong.",
-                error="Logout failed",
+                message="Refresh token is required.",
+                toast_message="Logout failed.",
+                error="MissingRefreshToken",
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
+
+        try:
+            token = RefreshToken(refresh_token)
+        except TokenError as exc:
+            logger.warning(
+                "Logout failed: invalid refresh token for user_id=%s: %s",
+                request.user.id,
+                exc,
+            )
+            return CustomResponse(
+                is_success=False,
+                message="Invalid or expired refresh token.",
+                toast_message="Logout failed.",
+                error="InvalidRefreshToken",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if str(token["user_id"]) != str(request.user.id):
+            logger.warning(
+                "Logout rejected: refresh token user mismatch session_user=%s token_user=%s",
+                request.user.id,
+                token["user_id"],
+            )
+            return CustomResponse(
+                is_success=False,
+                message="Refresh token does not belong to the current session.",
+                toast_message="Logout failed.",
+                error="RefreshTokenUserMismatch",
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            token.blacklist()
+        except TokenError as exc:
+            logger.warning(
+                "Logout failed while blacklisting for user_id=%s: %s",
+                request.user.id,
+                exc,
+            )
+            return CustomResponse(
+                is_success=False,
+                message="Could not complete logout.",
+                toast_message="Logout failed.",
+                error="BlacklistFailed",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger.info("Logout successful: user_id=%s", request.user.id)
+        return CustomResponse(
+            is_success=True,
+            message="Logout successful.",
+            toast_message="You have been logged out.",
+            status_code=status.HTTP_200_OK,
+        )
 
 
 class TokenRefreshView(APIView):

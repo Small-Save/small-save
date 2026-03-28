@@ -9,12 +9,12 @@ import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { HeaderBox } from "components/HeaderBox";
 import useFormInput from "Hooks/useFormInput";
 import { useGroup } from "Hooks/useGroup";
+import { toast } from "Hooks/useToast";
 import { formatAmount, getTimeAgo } from "lib/utils";
 
 import { ScheduledBiddingRound } from "./ScheduledBiddingRound";
 import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
 import { useBiddingSocket } from "./useBiddingSocket";
-import { toast } from "Hooks/useToast";
 
 interface BiddingParams {
     groupId: string;
@@ -118,7 +118,7 @@ const Bidding: React.FC = () => {
         if (group?.target_amount && parsedAmount > group.target_amount) {
             toast({
                 message: `Bid must be ≤ target amount of ₹${formatAmount(group.target_amount)}.`,
-                color: "warning",
+                color: "warning"
             });
             return;
         }

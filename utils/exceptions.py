@@ -71,7 +71,9 @@ def custom_exception_handler(exc, context):
 
 
 class CustomAPIException(APIException):
-    def __init__(self, detail=None, toast_message=None, status_code=status.HTTP_400_BAD_REQUEST):
+    def __init__(
+        self, detail=None, toast_message=None, status_code=status.HTTP_400_BAD_REQUEST
+    ):
         self.toast_message = toast_message or "Something went wrong"
         self.status_code = status_code
         super().__init__(detail=detail)
@@ -89,9 +91,17 @@ class CustomAPIException(APIException):
 
 class BadRequestError(CustomAPIException):
     def __init__(self, detail="Bad request", toast_message="Invalid input"):
-        super().__init__(detail=detail, toast_message=toast_message, status_code=status.HTTP_400_BAD_REQUEST)
+        super().__init__(
+            detail=detail,
+            toast_message=toast_message,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class ConflictError(CustomAPIException):
     def __init__(self, detail="Conflict", toast_message="Conflict occurred"):
-        super().__init__(detail=detail, toast_message=toast_message, status_code=status.HTTP_409_CONFLICT)
+        super().__init__(
+            detail=detail,
+            toast_message=toast_message,
+            status_code=status.HTTP_409_CONFLICT,
+        )

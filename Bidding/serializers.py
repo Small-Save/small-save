@@ -6,7 +6,9 @@ from Bidding.models import Bid, BiddingRound
 
 
 class BiddingRoundSerializer(serializers.ModelSerializer):
-    winner_username = serializers.CharField(source="winner.user.username", read_only=True)
+    winner_username = serializers.CharField(
+        source="winner.user.username", read_only=True
+    )
     total_bids = serializers.SerializerMethodField()
 
     class Meta:

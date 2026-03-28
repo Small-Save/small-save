@@ -45,43 +45,43 @@ export type Contact = {
     email: string;
 };
 
-export type status =  "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE"
+export type status = "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
 
 export type paymentStatus = {
-    group_id: number
+    group_id: number;
     round_id: number;
-    payments:payments[]
-}
+    payments: payments[];
+};
 
 export interface payments {
     id: number;
     giver: string;
-    giver_name:string;
-    receiver:string
-    receiver_name:string          
-    amount :string           
-    status  : status
-    created_at: string        
+    giver_name: string;
+    receiver: string;
+    receiver_name: string;
+    amount: string;
+    status: status;
+    created_at: string;
 }
 
 export interface PaymentDetail {
-  group_id: number;
-  group_name: string;
-  giver_id: string;
-  giver_name: string;
-  receiver_id: string;
-  receiver_name: string;
-  amount: number;
-  status: 'PENDING' | 'GIVER_CONFIRMED' | 'COMPLETED' | 'DUE';
+    group_id: number;
+    group_name: string;
+    giver_id: string;
+    giver_name: string;
+    receiver_id: string;
+    receiver_name: string;
+    amount: number;
+    status: "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
 }
 
 export interface Round {
-  round_number: number;
-  winner: string;
-  scheduled_time: string;
+    round_number: number;
+    winner: string;
+    scheduled_time: string;
 }
 
 export interface GroupPaymentHistoryResponse {
-  group_name: string;
-  rounds: Round[]; // Changed from object to Array
+    group_name: string;
+    rounds: Round[]; // Changed from object to Array
 }

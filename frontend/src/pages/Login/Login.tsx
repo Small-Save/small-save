@@ -5,8 +5,8 @@ import { useHistory } from "react-router-dom";
 
 import { AuthContext } from "contexts/AuthProvider";
 import useFormInput from "Hooks/useFormInput";
-import { validatePhoneNumber } from "lib/utils";
 import { toast } from "Hooks/useToast";
+import { validatePhoneNumber } from "lib/utils";
 
 const Login: React.FC = () => {
     const history = useHistory();

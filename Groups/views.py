@@ -111,7 +111,9 @@ class GroupCreateAPIView(generics.CreateAPIView):
                 )
         except IntegrityError as exc:
             logger.exception("Integrity error creating group or members: %s", exc)
-            raise ConflictError("Database integrity error while creating group/members.") from exc
+            raise ConflictError(
+                "Database integrity error while creating group/members."
+            ) from exc
         except Exception as exc:
             logger.exception("Unexpected error creating group: %s", exc)
             raise
@@ -140,7 +142,9 @@ class UserGroupListAPIView(generics.ListAPIView):
         logger.info("UserGroupListAPIView called by user_id=%s", request.user.id)
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        serializer = self.get_serializer(
+            page if page is not None else queryset, many=True
+        )
         logger.info(
             "UserGroupListAPIView success user_id=%s groups_returned=%d",
             request.user.id,
@@ -175,7 +179,9 @@ class UserGroupRetrieveAPIView(generics.RetrieveAPIView):
                 "groupmember_set__user",
                 Prefetch(
                     "bidding_rounds",
-                    queryset=BiddingRound.objects.only("id", "group").order_by("round_number", "scheduled_time"),
+                    queryset=BiddingRound.objects.only("id", "group").order_by(
+                        "round_number", "scheduled_time"
+                    ),
                     to_attr="prefetched_bidding_rounds",
                 ),
             )
@@ -235,13 +241,17 @@ class GroupUpdateAPIView(generics.UpdateAPIView):
                 )
         except IntegrityError as exc:
             logger.exception("Integrity error updating group: %s", exc)
-            raise ConflictError("Could not update group due to integrity error.") from exc
+            raise ConflictError(
+                "Could not update group due to integrity error."
+            ) from exc
         except Exception as exc:
             logger.exception("Unexpected error updating group: %s", exc)
             raise
 
         refreshed = (
-            Group.objects.select_related("created_by").prefetch_related("groupmember_set__user").get(id=group.id)
+            Group.objects.select_related("created_by")
+            .prefetch_related("groupmember_set__user")
+            .get(id=group.id)
         )
         read_data = GroupReadSerializer(refreshed).data
         return CustomResponse(
@@ -287,7 +297,9 @@ def verify_contacts(request):
                 validated_contact = validate_contact_data(contact)
                 valid_contacts.append(validated_contact)
             except ValidationError as e:
-                invalid_contacts.append({"contact": contact, "errors": [str(e)], "index": i})
+                invalid_contacts.append(
+                    {"contact": contact, "errors": [str(e)], "index": i}
+                )
                 logger.warning(
                     "Invalid contact at index %d from user_id=%s: %s",
                     i,
@@ -329,7 +341,9 @@ def verify_contacts(request):
         existing_users_list = list(existing_users_qs)
 
         # Create lookup dictionaries for efficient matching
-        users_by_phone = {u.phone_number: u for u in existing_users_list if u.phone_number}
+        users_by_phone = {
+            u.phone_number: u for u in existing_users_list if u.phone_number
+        }
         users_by_email = {u.email: u for u in existing_users_list if u.email}
 
         # Categorize contacts
@@ -392,7 +406,9 @@ def create_bidding_round(request, group_id):
     if not permission.has_object_permission(request, None, group):
         raise PermissionDenied(permission.message)
 
-    serializer = CreateBiddingRoundSerializer(data=request.data, context={"group": group})
+    serializer = CreateBiddingRoundSerializer(
+        data=request.data, context={"group": group}
+    )
 
     if serializer.is_valid():
         serializer.save(group=group, status="scheduled")
@@ -401,4 +417,8 @@ def create_bidding_round(request, group_id):
             message="Successfully created bidding round",
         )
 
-    return CustomResponse(is_success=False, error=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)
+    return CustomResponse(
+        is_success=False,
+        error=serializer.errors,
+        status_code=status.HTTP_400_BAD_REQUEST,
+    )

@@ -22,7 +22,9 @@ class CustomResponse(Response):
         )
 
     @staticmethod
-    def _format_response(is_success: bool, data: dict, message: str, toast_message: str, error: str) -> dict:
+    def _format_response(
+        is_success: bool, data: dict, message: str, toast_message: str, error: str
+    ) -> dict:
         return {
             "is_success": is_success,
             "data": data,

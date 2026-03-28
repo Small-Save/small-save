@@ -82,12 +82,7 @@ THIRD_PARTY_APPS = [
     "channels",
 ]
 
-LOCAL_APPS = [
-    "Authentication",
-    "Groups",
-    "Bidding",
-    "Payment"
-]
+LOCAL_APPS = ["Authentication", "Groups", "Bidding", "Payment"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

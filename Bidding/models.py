@@ -29,12 +29,18 @@ class BiddingRound(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="bidding_rounds")
+    group = models.ForeignKey(
+        Group, on_delete=models.CASCADE, related_name="bidding_rounds"
+    )
     round_number = models.IntegerField()
     scheduled_time = models.DateTimeField()
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=BiddingRoundStatusEnum.SCHEDULED.value)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=BiddingRoundStatusEnum.SCHEDULED.value,
+    )
     winner = models.ForeignKey(
         GroupMember,
         on_delete=models.SET_NULL,
@@ -52,14 +58,21 @@ class BiddingRound(models.Model):
 
     class Meta:
         db_table = "BiddingRound"
-        constraints = [models.UniqueConstraint(fields=["group", "round_number"], name="unique_biding_round")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["group", "round_number"], name="unique_biding_round"
+            )
+        ]
         ordering = ["scheduled_time"]
 
     def __str__(self):
         return f"{self.group.name} - Round {self.round_number}"
 
     def can_start(self):
-        return self.status == BiddingRoundStatusEnum.SCHEDULED.value and timezone.now() >= self.scheduled_time
+        return (
+            self.status == BiddingRoundStatusEnum.SCHEDULED.value
+            and timezone.now() >= self.scheduled_time
+        )
 
     def is_active(self):
         return self.status == BiddingRoundStatusEnum.ACTIVE.value
@@ -72,24 +85,38 @@ class BiddingRound(models.Model):
             self.status = BiddingRoundStatusEnum.ACTIVE.value
             self.start_time = timezone.now()
             self.save()
-            logger.info("Bidding round started: round_id=%s group_id=%s", self.pk, self.group_id)
+            logger.info(
+                "Bidding round started: round_id=%s group_id=%s", self.pk, self.group_id
+            )
             return True
-        logger.warning("Cannot start bidding: round_id=%s status=%s", self.pk, self.status)
+        logger.warning(
+            "Cannot start bidding: round_id=%s status=%s", self.pk, self.status
+        )
         return False
 
     def end_bidding(self) -> bool:
         if not self.is_active():
-            logger.warning("Cannot end bidding: round_id=%s is not active (status=%s)", self.pk, self.status)
+            logger.warning(
+                "Cannot end bidding: round_id=%s is not active (status=%s)",
+                self.pk,
+                self.status,
+            )
             return False
 
         with transaction.atomic():
             winning_bid = self.get_winning_bid()
 
             if not winning_bid:
-                random_winner = GroupMember.objects.filter(group=self.group, has_won=False).order_by("?").first()
+                random_winner = (
+                    GroupMember.objects.filter(group=self.group, has_won=False)
+                    .order_by("?")
+                    .first()
+                )
                 if not random_winner:
                     logger.warning(
-                        "No eligible members for random winner: round_id=%s group_id=%s", self.pk, self.group_id,
+                        "No eligible members for random winner: round_id=%s group_id=%s",
+                        self.pk,
+                        self.group_id,
                     )
                     return False
                 winning_bid = Bid.objects.create(
@@ -117,7 +144,7 @@ class BiddingRound(models.Model):
                     giver_id=gm.user_id,
                     receiver_id=winning_bid.member.user_id,
                     amount=winning_bid.amount,
-                    status=PaymentStatus.PENDING
+                    status=PaymentStatus.PENDING,
                 )
                 for gm in self.group.groupmember_set.all()
                 if gm.user_id != winning_bid.member.user_id
@@ -137,7 +164,9 @@ class BiddingRound(models.Model):
 
 
 class Bid(models.Model):
-    bidding_round = models.ForeignKey(BiddingRound, on_delete=models.CASCADE, related_name="bids")
+    bidding_round = models.ForeignKey(
+        BiddingRound, on_delete=models.CASCADE, related_name="bids"
+    )
     member = models.ForeignKey(GroupMember, on_delete=models.CASCADE)
     amount = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -145,7 +174,11 @@ class Bid(models.Model):
 
     class Meta:
         ordering = ["-amount", "timestamp"]
-        constraints = [models.UniqueConstraint(fields=["bidding_round", "amount"], name="unique_bid_per_round")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["bidding_round", "amount"], name="unique_bid_per_round"
+            )
+        ]
 
     def __str__(self):
         return f"timestamp: {self.timestamp} - user: {self.member.user.username} - amount: ₹{self.amount}"

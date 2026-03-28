@@ -1,12 +1,8 @@
 import React from "react";
-import {
-    IonCard,
-    IonCardContent,
-    IonText,
-    IonProgressBar,
-    IonIcon,
-} from "@ionic/react";
-import { timeOutline, peopleOutline } from "ionicons/icons";
+
+import { IonCard, IonCardContent, IonIcon, IonProgressBar, IonText } from "@ionic/react";
+import { peopleOutline, timeOutline } from "ionicons/icons";
+
 import "./MemberInfo.css";
 
 interface MemberInfoProps {
@@ -15,11 +11,7 @@ interface MemberInfoProps {
     start_date: string | null;
 }
 
-const MemberInfo: React.FC<MemberInfoProps> = ({
-    currentMembers,
-    totalSize,
-    start_date,
-}) => {
+const MemberInfo: React.FC<MemberInfoProps> = ({ currentMembers, totalSize, start_date }) => {
     const remainingMembers = totalSize - currentMembers;
     const progress = totalSize > 0 ? currentMembers / totalSize : 0;
     const getDaysUntilStart = (startDate: string) => {
@@ -36,38 +28,37 @@ const MemberInfo: React.FC<MemberInfoProps> = ({
         return diffDays;
     };
 
-
     return (
         <IonCard className="member-info-card">
             <IonCardContent>
                 <IonText className="member-info-title">
                     <h3>Group Setup Complete!</h3>
                 </IonText>
-                <p style={{ fontSize: '10px' }}>waiting to start on {start_date}</p>
+                <p style={{ fontSize: "10px" }}>waiting to start on {start_date}</p>
                 <div className="member-info-row">
-  <IonIcon icon={timeOutline} />
+                    <IonIcon icon={timeOutline} />
 
-  <div className="member-info-text">
-    <IonText>
-      <p>Days until start</p>
-    </IonText>
+                    <div className="member-info-text">
+                        <IonText>
+                            <p>Days until start</p>
+                        </IonText>
 
-    <IonText color="light">
-      <small>
-        {start_date
-          ? (() => {
-              const daysLeft = getDaysUntilStart(start_date);
-              if (daysLeft > 0) {
-                return `${daysLeft} day${daysLeft > 1 ? "s" : ""} remaining`;
-              }
-              if (daysLeft === 0) return "Starting today";
-              return "Already started";
-            })()
-          : "Start date not set"}
-      </small>
-    </IonText>
-  </div>
-</div>
+                        <IonText color="light">
+                            <small>
+                                {start_date
+                                    ? (() => {
+                                          const daysLeft = getDaysUntilStart(start_date);
+                                          if (daysLeft > 0) {
+                                              return `${daysLeft} day${daysLeft > 1 ? "s" : ""} remaining`;
+                                          }
+                                          if (daysLeft === 0) return "Starting today";
+                                          return "Already started";
+                                      })()
+                                    : "Start date not set"}
+                            </small>
+                        </IonText>
+                    </div>
+                </div>
 
                 <div className="member-info-progress">
                     <div className="progress-text">

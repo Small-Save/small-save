@@ -1,10 +1,13 @@
 # payments/models.py
-from django.db import models
 from django.conf import settings
-from .constants import PaymentStatus
+from django.db import models
+
 from Groups.models import Group
 
+from .constants import PaymentStatus
+
 User = settings.AUTH_USER_MODEL
+
 
 class Payment(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
@@ -20,9 +23,7 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     status = models.CharField(
-        max_length=20,
-        choices=PaymentStatus.choices,
-        default=PaymentStatus.PENDING
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

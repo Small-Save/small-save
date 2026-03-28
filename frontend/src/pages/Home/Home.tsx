@@ -25,8 +25,8 @@ import GroupCard from "./GroupCard";
 import "./Home.css";
 
 import { AuthContext } from "contexts/AuthProvider";
-import { fetchUserGroups } from "pages/CreateGroup/services";
 import { toast } from "Hooks/useToast";
+import { fetchUserGroups } from "pages/CreateGroup/services";
 
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;

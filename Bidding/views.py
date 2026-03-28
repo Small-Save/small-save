@@ -1,8 +1,6 @@
 import logging
 
-from Authentication.serializers import BaseUserSerializer  # noqa: F401
-from django.db import IntegrityError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -15,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from Authentication.serializers import BaseUserSerializer  # noqa: F401
 from Bidding.models import Bid, BiddingRound, BiddingRoundStatusEnum
 from Bidding.serializers import BiddingRoundSerializer, BidSerializer
 from Groups.models import GroupMember

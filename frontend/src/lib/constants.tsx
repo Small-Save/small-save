@@ -14,13 +14,13 @@ const URLS = {
     BIDDING: {
         BIDDING_ROOM: "bidding/"
     },
-   PAYMENTS: {
-    CURRENT_PAYMENT_STATUS: "/payments",
-    GIVER_CONFIRM: (paymentId: string | number) => `/payments/${paymentId}/giver-confirm/`,
-    RECEIVER_CONFIRM: (paymentId: string | number) => `/payments/${paymentId}/receiver-confirm/`,
-    HISTORY: (groupId: string | number) => `/payments/groups/${groupId}/payment-history/`,
-    DETAILS: (paymentId: string | number) => `/payments/${paymentId}/`,
-  },
+    PAYMENTS: {
+        CURRENT_PAYMENT_STATUS: "/payments",
+        GIVER_CONFIRM: (paymentId: string | number) => `/payments/${paymentId}/giver-confirm/`,
+        RECEIVER_CONFIRM: (paymentId: string | number) => `/payments/${paymentId}/receiver-confirm/`,
+        HISTORY: (groupId: string | number) => `/payments/groups/${groupId}/payment-history/`,
+        DETAILS: (paymentId: string | number) => `/payments/${paymentId}/`
+    }
 };
 
 export default URLS;

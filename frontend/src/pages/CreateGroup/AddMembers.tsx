@@ -13,8 +13,8 @@ import "./AddMembers.css";
 
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { AuthContext } from "contexts/AuthProvider";
-import type { Contact, User } from "types";
 import { toast } from "Hooks/useToast";
+import type { Contact, User } from "types";
 
 type MemberMode = "existing" | "invite";
 interface AddUserComponentProps {
@@ -107,7 +107,7 @@ const AddMembers: React.FC = () => {
         if (selectedMembers.size !== groupInfo.groupSize) {
             toast({
                 message: `Please select exactly ${groupInfo.groupSize} members. Currently ${selectedMembers.size} selected.`,
-                color: "warning",
+                color: "warning"
             });
             return;
         }
@@ -142,18 +142,19 @@ const AddMembers: React.FC = () => {
         handleFetchContacts();
     }, [handleFetchContacts]);
 
-    const toggleMember = useCallback((id: string) => {
-        setSelectedMembers((prev) => {
-            const copy = new Set(prev);
-            if (copy.has(id)) {
-                copy.delete(id);
-            } else if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
-                copy.add(id);
-            } else {
-                toast({ message: "Group is full. Remove a member to add someone else.", color: "warning" });
-            }
-            return copy;
-        });
+    const toggleMember = useCallback(
+        (id: string) => {
+            setSelectedMembers((prev) => {
+                const copy = new Set(prev);
+                if (copy.has(id)) {
+                    copy.delete(id);
+                } else if (groupInfo?.groupSize && copy.size < groupInfo.groupSize) {
+                    copy.add(id);
+                } else {
+                    toast({ message: "Group is full. Remove a member to add someone else.", color: "warning" });
+                }
+                return copy;
+            });
         },
         [groupInfo?.groupSize]
     );

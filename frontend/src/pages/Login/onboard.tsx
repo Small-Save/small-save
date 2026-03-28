@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
-import { IonContent, IonButton, IonIcon } from "@ionic/react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules";
+
+import { IonButton, IonContent, IonIcon } from "@ionic/react";
 import { arrowForward, home } from "ionicons/icons";
-import smartallocation from "../../assets/images/smartallocation.svg";
-import secure from "../../assets/images/secure.svg";
+import { useHistory } from "react-router-dom";
+import { Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+
 import groupsaving from "../../assets/images/groupsavings.svg";
+import secure from "../../assets/images/secure.svg";
+import smartallocation from "../../assets/images/smartallocation.svg";
 
 const OnBoard: React.FC = () => {
     const history = useHistory();

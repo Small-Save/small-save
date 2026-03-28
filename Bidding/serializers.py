@@ -1,9 +1,8 @@
-from Authentication.serializers import BaseUserSerializer
 from django.utils import timezone
 from rest_framework import serializers
 
-from Bidding.models import Bid
-from Bidding.models import BiddingRound
+from Authentication.serializers import BaseUserSerializer
+from Bidding.models import Bid, BiddingRound
 
 
 class BiddingRoundSerializer(serializers.ModelSerializer):
@@ -54,8 +53,9 @@ class CreateBiddingRoundSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(msg)
         return value
 
+
 class BidSerializer(serializers.ModelSerializer):
-    #TODO: redduce few detail which are coming from the member details
+    # TODO: redduce few detail which are coming from the member details
     member = BaseUserSerializer(source="member.user", read_only=True)
 
     class Meta:
@@ -69,4 +69,3 @@ class BidSerializer(serializers.ModelSerializer):
             "is_valid",
         ]
         read_only_fields = ["id", "timestamp", "is_valid"]
-

@@ -1,6 +1,7 @@
-import { IonHeader, IonIcon, IonToolbar, IonButton, IonButtons, useIonRouter, IonTitle } from "@ionic/react";
-import { arrowBack } from "ionicons/icons";
 import React, { useCallback } from "react";
+
+import { IonButton, IonButtons, IonHeader, IonIcon, IonTitle, IonToolbar, useIonRouter } from "@ionic/react";
+import { arrowBack } from "ionicons/icons";
 
 interface HeaderAction {
     key: string;
@@ -44,11 +45,15 @@ export const HeaderBox: React.FC<HeaderBoxProps> = ({
                 )}
                 <div className="flex flex-col items-center flex-1 text-center">
                     <IonTitle>{title}</IonTitle>
-                    {subTitle && <p className="text-sm" aria-label="subtitle">{subTitle}</p>}
+                    {subTitle && (
+                        <p className="text-sm" aria-label="subtitle">
+                            {subTitle}
+                        </p>
+                    )}
                 </div>
                 {actions && actions.length > 0 && (
                     <>
-                        {actions.map(action => (
+                        {actions.map((action) => (
                             <IonButtons key={action.key} slot={action.slot || "end"}>
                                 {action.element}
                             </IonButtons>

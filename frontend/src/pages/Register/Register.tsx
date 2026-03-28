@@ -1,3 +1,5 @@
+import React, { useContext } from "react";
+
 import {
     IonButton,
     IonContent,
@@ -8,14 +10,19 @@ import {
     IonSegment,
     IonSegmentButton
 } from "@ionic/react";
-import React, { useContext } from "react";
+import { checkmarkCircle } from "ionicons/icons";
+
 import ProfileImageInput from "../../components/CaptureImage/ProfileImageInput";
 import useFormInput from "../../Hooks/useFormInput";
-import { checkmarkCircle } from "ionicons/icons";
+
 import "./Register.css";
-import { AuthContext } from "../../contexts/AuthProvider";
-import { useHistory, useLocation } from "react-router-dom";
+
 import { useIonRouter } from "@ionic/react";
+import { useHistory, useLocation } from "react-router-dom";
+
+import { toast } from "Hooks/useToast";
+
+import { AuthContext } from "../../contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;
@@ -32,7 +39,8 @@ const Register: React.FC = () => {
     const router = useIonRouter();
 
     const handleRegister = async () => {
-        if (!firstName.isValid && !lastName.isValid) {
+        if (!firstName.isValid || !lastName.isValid) {
+            toast({ message: "Please fill in both first and last name.", color: "warning" });
             return;
         }
 
@@ -42,7 +50,7 @@ const Register: React.FC = () => {
                 router.push("/onboard", "forward");
             }
         } catch {
-        } finally {
+            toast({ message: "Registration failed. Please try again.", color: "danger" });
         }
     };
 

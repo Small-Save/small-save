@@ -1,13 +1,13 @@
 import React from "react";
-import { Redirect, Route } from "react-router-dom";
+
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Redirect, Route } from "react-router-dom";
 
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
-
 /* Ionic CSS imports */
 import "@ionic/react/css/core.css";
 import "@ionic/react/css/normalize.css";
@@ -20,18 +20,21 @@ import "@ionic/react/css/text-alignment.css";
 import "@ionic/react/css/text-transformation.css";
 import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
-import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
-import { AuthProvider } from "./contexts/AuthProvider";
-import OnBoard from "./pages/Login/onboard";
+
+import { Toaster } from "components/Toaster";
+import { GroupCreationProvider } from "contexts/GroupCreationContext";
+import Bidding from "pages/Bidding/Bidding";
+import GroupDetail from "pages/GroupDetails/GroupDetails";
+import RoundTransactions from "pages/GroupDetails/History/RoundTransactions/RoundTransactions";
+import Payment from "pages/Payment/Payment";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
-import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
+import { AuthProvider } from "./contexts/AuthProvider";
 import AddMembers from "./pages/CreateGroup/AddMembers";
-import { GroupCreationProvider } from "contexts/GroupCreationContext";
-import GroupDetail from "pages/GroupDetails/GroupDetails";
-import Bidding from "pages/Bidding/Bidding";
-import Payment from "pages/Payment/Payment"
-import RoundTransactions from "pages/GroupDetails/History/RoundTransactions/RoundTransactions";
+import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
+import OnBoard from "./pages/Login/onboard";
+import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
 
 setupIonicReact({ mode: "md" });
 const queryClient = new QueryClient();
@@ -75,9 +78,6 @@ const App: React.FC = () => (
                                 <ProtectedRoute component={AddMembers} />
                             </Route>
                         </GroupCreationProvider>
-                        <Route exact path="/groupdetail/:groupId/:groupName">
-                            <ProtectedRoute component={GroupDetail} />
-                        </Route>
 
                         <Route exact path="/payment/:paymentId">
                             <ProtectedRoute component={Payment} />
@@ -94,6 +94,7 @@ const App: React.FC = () => (
                 </IonReactRouter>
             </AuthProvider>
         </QueryClientProvider>
+        <Toaster />
     </IonApp>
 );
 

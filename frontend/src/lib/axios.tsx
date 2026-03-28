@@ -1,6 +1,8 @@
-import axios from "axios";
-import URLS from "./constants";
 import { Preferences } from "@capacitor/preferences";
+import axios from "axios";
+
+import URLS from "./constants";
+import { toast } from "Hooks/useToast";
 
 const api = axios.create({
     baseURL: URLS.BASE_URL,
@@ -29,14 +31,14 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-        const status = error.response ? error.response.status : null;
+        const status = error.response?.status ?? null;
 
         if (status === 401) {
-            console.log("Unauthorized: Redirecting to login...");
-            // Example: window.location.href = '/login';
+            toast({ message: "Session expired. Please log in again.", color: "warning" });
         } else if (status === 500) {
-            // Internal Server Error
-            console.log("Server Error: Something went wrong.");
+            toast({ message: "Server error. Please try again later.", color: "danger" });
+        } else if (!error.response) {
+            toast({ message: "Network error. Check your connection.", color: "danger" });
         }
 
         return Promise.reject(error);

@@ -1,37 +1,37 @@
 # views.py
 import logging
 
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, status
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from Authentication.serializers import BaseUserSerializer
 from Bidding.models import BiddingRound
 from Bidding.serializers import CreateBiddingRoundSerializer
 from Bidding.services import create_bidding_rounds
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from django.db import transaction
-from django.db.models import Prefetch
-from django.shortcuts import get_object_or_404
-from rest_framework import generics
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.decorators import authentication_classes
-from rest_framework.decorators import permission_classes
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from utils.exceptions import BadRequestError
-from utils.exceptions import ConflictError
+from Groups.models import Group, GroupMember
+from Groups.permissions import IsGroupAdmin
+from Groups.serializers import (
+    GroupCreateSerializer,
+    GroupReadSerializer,
+    GroupUpdateSerializer,
+)
+from Groups.services import validate_contact_data
+from utils.exceptions import BadRequestError, ConflictError
 from utils.response import CustomResponse
 
-from Groups.models import Group
-from Groups.models import GroupMember
-from Groups.permissions import IsGroupAdmin
-from Groups.serializers import GroupCreateSerializer
-from Groups.serializers import GroupReadSerializer
-from Groups.serializers import GroupUpdateSerializer
-from Groups.services import validate_contact_data
-
-logger = logging.getLogger("api")
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -111,7 +111,7 @@ class GroupCreateAPIView(generics.CreateAPIView):
                 )
         except IntegrityError as exc:
             logger.exception("Integrity error creating group or members: %s", exc)
-            raise ConflictError("Database integrity error while creating group/members.")
+            raise ConflictError("Database integrity error while creating group/members.") from exc
         except Exception as exc:
             logger.exception("Unexpected error creating group: %s", exc)
             raise
@@ -235,7 +235,7 @@ class GroupUpdateAPIView(generics.UpdateAPIView):
                 )
         except IntegrityError as exc:
             logger.exception("Integrity error updating group: %s", exc)
-            raise ConflictError("Could not update group due to integrity error.")
+            raise ConflictError("Could not update group due to integrity error.") from exc
         except Exception as exc:
             logger.exception("Unexpected error updating group: %s", exc)
             raise
@@ -316,14 +316,14 @@ def verify_contacts(request):
             existing_users_qs = existing_users_qs.union(
                 User.objects.filter(phone_number__in=phones)
                 .select_related()
-                .only("id", "phone_number", "email", "first_name", "last_name")
+                .only("id", "phone_number", "email", "first_name", "last_name"),
             )
 
         if emails:
             existing_users_qs = existing_users_qs.union(
                 User.objects.filter(email__in=emails)
                 .select_related()
-                .only("id", "phone_number", "email", "first_name", "last_name")
+                .only("id", "phone_number", "email", "first_name", "last_name"),
             )
 
         existing_users_list = list(existing_users_qs)

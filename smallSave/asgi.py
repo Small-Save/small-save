@@ -12,8 +12,7 @@ import os
 # Set Django settings BEFORE importing Django modules
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "smallSave.settings")
 
-from channels.routing import ProtocolTypeRouter
-from channels.routing import URLRouter
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
 import smallSave.urls

@@ -1,5 +1,9 @@
-# myapp/middleware.py
+import logging
+
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
 
 class TimezoneMiddleware:
     """
@@ -15,6 +19,12 @@ class TimezoneMiddleware:
         try:
             timezone.activate(tzname)
         except Exception:
+            logger.warning(
+                "Invalid timezone '%s' from %s %s, falling back to UTC",
+                tzname,
+                request.method,
+                request.path,
+            )
             timezone.activate("UTC")
 
         response = self.get_response(request)

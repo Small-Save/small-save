@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import logging
 from enum import Enum
 
 from django.core.validators import MinValueValidator
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
-from Groups.models import Group
-from Groups.models import GroupMember
-from Payment.models import Payment
+
+from Groups.models import Group, GroupMember
 from Payment.constants import PaymentStatus
+from Payment.models import Payment
+
+logger = logging.getLogger(__name__)
 
 
 class BiddingRoundStatusEnum(Enum):
@@ -70,28 +72,35 @@ class BiddingRound(models.Model):
             self.status = BiddingRoundStatusEnum.ACTIVE.value
             self.start_time = timezone.now()
             self.save()
+            logger.info("Bidding round started: round_id=%s group_id=%s", self.pk, self.group_id)
             return True
+        logger.warning("Cannot start bidding: round_id=%s status=%s", self.pk, self.status)
         return False
 
     def end_bidding(self) -> bool:
         if not self.is_active():
+            logger.warning("Cannot end bidding: round_id=%s is not active (status=%s)", self.pk, self.status)
             return False
 
         with transaction.atomic():
             winning_bid = self.get_winning_bid()
 
             if not winning_bid:
-                random_winner = (
-                    GroupMember.objects.filter(group=self.group, has_won=False)
-                    .order_by("?")
-                    .first()
-                )
+                random_winner = GroupMember.objects.filter(group=self.group, has_won=False).order_by("?").first()
                 if not random_winner:
+                    logger.warning(
+                        "No eligible members for random winner: round_id=%s group_id=%s", self.pk, self.group_id,
+                    )
                     return False
                 winning_bid = Bid.objects.create(
                     bidding_round=self,
                     member=random_winner,
                     amount=self.group.target_amount,
+                )
+                logger.info(
+                    "No bids placed, random winner selected: round_id=%s member_id=%s",
+                    self.pk,
+                    random_winner.pk,
                 )
 
             self.status = BiddingRoundStatusEnum.COMPLETED.value
@@ -116,6 +125,12 @@ class BiddingRound(models.Model):
 
             Payment.objects.bulk_create(payments)
 
+        logger.info(
+            "Bidding round completed: round_id=%s winner_member_id=%s winning_amount=%s",
+            self.pk,
+            winning_bid.member_id,
+            winning_bid.amount,
+        )
         # TODO: send notification to the winner
         # TODO: send notification to the group members
         return True

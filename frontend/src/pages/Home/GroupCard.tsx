@@ -1,10 +1,14 @@
 import React from "react";
-import { IonCard, IonCardContent, IonGrid, IonRow, IonCol, IonAvatar, IonIcon } from "@ionic/react";
+
+import { IonAvatar, IonCard, IonCardContent, IonCol, IonGrid, IonIcon, IonRow } from "@ionic/react";
 import { calendarClearOutline, peopleOutline } from "ionicons/icons";
+
 import "./Home.css";
+
+import { useHistory } from "react-router";
+
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { Group } from "types";
-import { useHistory } from "react-router";
 
 interface GroupCardProps {
     group: Group;
@@ -13,10 +17,10 @@ interface GroupCardProps {
 const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
     const history = useHistory();
 
-  const handleClick = () => {
-    const encodedGroupName = encodeURIComponent(group.name);
-    history.push(`/groupdetail/${group.id}/${encodedGroupName}`);
-  };
+    const handleClick = () => {
+        const encodedGroupName = encodeURIComponent(group.name);
+        history.push(`/groupdetail/${group.id}/${encodedGroupName}`);
+    };
     const progress = Math.min((group.members.length / group.size) * 100, 100);
 
     return (

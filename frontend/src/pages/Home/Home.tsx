@@ -14,23 +14,40 @@ import {
     IonRow,
     IonToolbar
 } from "@ionic/react";
-import { add, ellipsisVertical, home, homeOutline, notificationsOutline, personOutline } from "ionicons/icons";
-import { useLocation } from "react-router-dom";
+import {
+    add,
+    ellipsisVertical,
+    home,
+    homeOutline,
+    notifications,
+    notificationsOutline,
+    person,
+    personOutline
+} from "ionicons/icons";
+import { useHistory, useLocation } from "react-router-dom";
 
-import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { BaseResponse, Group } from "types";
 
 import GroupCard from "./GroupCard";
 
 import "./Home.css";
 
+import { ProfilePic } from "components/profilePic";
 import { AuthContext } from "contexts/AuthProvider";
 import { toast } from "Hooks/useToast";
 import { fetchUserGroups } from "pages/CreateGroup/services";
 
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;
+    const history = useHistory();
     const [groupDetails, setGroupDetails] = useState<BaseResponse<Group[]> | null>(null);
+    const isActive = (path: string) => location.pathname === path;
+
+    const goTo = (path: string) => {
+        if (location.pathname !== path) {
+            history.push(path);
+        }
+    };
 
     // TODO:  change this to tenStackQuery
     const fetchGroupDetails = async () => {
@@ -47,7 +64,6 @@ const Home: React.FC = () => {
     }, []);
     const activeGroups = groupDetails?.data?.length || 0;
     const location = useLocation();
-    const isHome = location.pathname === "/home";
     const totalSpend = groupDetails?.data?.reduce((sum, group) => sum + Number(group.target_amount), 0) || 0;
 
     return (
@@ -57,12 +73,10 @@ const Home: React.FC = () => {
                     <IonGrid>
                         <IonRow className="ion-align-items-center">
                             <IonCol size="3">
-                                <IonAvatar>
-                                    <img src={profileImageTemp} alt="Profile" />
-                                </IonAvatar>
+                                <ProfilePic src={user?.profile_pic} variant="circle" />
                             </IonCol>
                             <IonCol size="8">
-                                <h6>Hi, {user?.user_name}</h6>
+                                <h6>Hi, {user?.username}</h6>
                                 Welcome to SmallSave
                             </IonCol>
                             <IonCol size="1">
@@ -90,7 +104,6 @@ const Home: React.FC = () => {
                     </IonGrid>
                 </IonToolbar>
             </IonHeader>
-
             <IonContent className="ion-padding">
                 {groupDetails?.data && groupDetails.data.length > 0 ? (
                     <>
@@ -115,24 +128,58 @@ const Home: React.FC = () => {
                 </IonFab>
             </IonContent>
 
-            <IonFooter>
-                <IonToolbar>
-                    <IonGrid>
-                        <IonRow className="ion-text-center">
-                            <IonCol>
-                                <IonIcon icon={isHome ? home : homeOutline} size="large" />
-                                <p>Home</p>
-                            </IonCol>
-                            <IonCol>
-                                <IonIcon icon={notificationsOutline} size="large" />
-                                <p>Notifications</p>
-                            </IonCol>
-                            <IonCol>
-                                <IonIcon icon={personOutline} size="large" />
-                                <p>Account</p>
-                            </IonCol>
-                        </IonRow>
-                    </IonGrid>
+            <IonFooter className="ion-no-border">
+                {/* Added a subtle top border and shadow for depth */}
+                <IonToolbar className="border-t border-gray-100 shadow-lg" style={{ "--background": "#ffffff" }}>
+                    <div className="flex justify-around items-center py-3 px-2">
+                        {/* Home Tab */}
+                        <button
+                            onClick={() => goTo("/home")}
+                            className={`flex flex-col items-center gap-1 transition-all duration-200 outline-none ${
+                                isActive("/home") ? "text-primary" : "text-gray-400"
+                            }`}
+                        >
+                            <div
+                                className={`p-2 rounded-xl transition-colors ${isActive("/home") ? "bg-primary/5" : ""}`}
+                            >
+                                <IonIcon icon={isActive("/home") ? home : homeOutline} className="text-2xl" />
+                            </div>
+                            <span className="text-xs uppercase tracking-widest font-extrabold">Home</span>
+                        </button>
+
+                        {/* Notifications Tab */}
+                        <button
+                            onClick={() => goTo("/notifications")}
+                            className={`flex flex-col items-center gap-1 transition-all duration-200 outline-none ${
+                                isActive("/notifications") ? "text-primary" : "text-gray-400"
+                            }`}
+                        >
+                            <div
+                                className={`p-2 rounded-xl transition-colors ${isActive("/notifications") ? "bg-primary/5" : ""}`}
+                            >
+                                <IonIcon
+                                    icon={isActive("/notifications") ? notifications : notificationsOutline}
+                                    className="text-2xl"
+                                />
+                            </div>
+                            <span className="text-xs uppercase tracking-widest font-extrabold">Alerts</span>
+                        </button>
+
+                        {/* Account Tab */}
+                        <button
+                            onClick={() => goTo("/account")}
+                            className={`flex flex-col items-center gap-1 transition-all duration-200 outline-none ${
+                                isActive("/account") ? "text-primary" : "text-gray-400"
+                            }`}
+                        >
+                            <div
+                                className={`p-2 rounded-lg transition-colors ${isActive("/account") ? "bg-primary/5" : ""}`}
+                            >
+                                <IonIcon icon={isActive("/account") ? person : personOutline} className="text-2xl" />
+                            </div>
+                            <span className="text-xs uppercase tracking-widest font-extrabold">Account</span>
+                        </button>
+                    </div>
                 </IonToolbar>
             </IonFooter>
         </IonPage>

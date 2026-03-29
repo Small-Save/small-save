@@ -23,6 +23,7 @@ import "@ionic/react/css/display.css";
 
 import { Toaster } from "components/Toaster";
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
+import AccountPage from "pages/Account/account";
 import Bidding from "pages/Bidding/Bidding";
 import GroupDetail from "pages/GroupDetails/GroupDetails";
 import RoundTransactions from "pages/GroupDetails/History/RoundTransactions/RoundTransactions";
@@ -41,8 +42,8 @@ const queryClient = new QueryClient();
 const App: React.FC = () => (
     <IonApp>
         <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-                <IonReactRouter>
+            <IonReactRouter>
+                <AuthProvider>
                     <IonRouterOutlet>
                         {/* Default */}
                         <Route exact path="/">
@@ -69,6 +70,14 @@ const App: React.FC = () => (
                             <ProtectedRoute component={OnBoard} />
                         </Route>
 
+                        <Route exact path="/notifications">
+                            <ProtectedRoute component={OnBoard} />
+                        </Route>
+
+                        <Route exact path="/account">
+                            <ProtectedRoute component={AccountPage} />
+                        </Route>
+
                         {/* Group routes - shared context */}
                         <GroupCreationProvider>
                             <Route exact path="/group/new">
@@ -91,8 +100,8 @@ const App: React.FC = () => (
                             <ProtectedRoute component={Bidding} />
                         </Route>
                     </IonRouterOutlet>
-                </IonReactRouter>
-            </AuthProvider>
+                </AuthProvider>
+            </IonReactRouter>
         </QueryClientProvider>
         <Toaster />
     </IonApp>

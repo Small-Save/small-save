@@ -2,24 +2,17 @@
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 
 import { Preferences } from "@capacitor/preferences";
-import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { useHistory } from "react-router-dom";
 
 import { toast } from "Hooks/useToast";
+import { api, publicApi } from "lib/axios";
 import URLS from "lib/constants";
-import type { BaseResponse } from "types";
+import type { BaseResponse, User } from "types";
 
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------
-interface User {
-    id: string;
-    phone_number: string;
-    user_name: string;
-    gender: string;
-    is_registered: boolean;
-}
-
 interface VerifyOtpData {
     user: User;
     access: string;
@@ -37,7 +30,8 @@ interface AuthContextType {
         phone_number: string | undefined,
         first_name: string,
         last_name: string,
-        gender: string
+        gender: string,
+        profile_pic: File | null
     ) => Promise<boolean>;
     logout: () => Promise<void>;
 }
@@ -53,12 +47,6 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 interface AuthProviderProps {
     children: ReactNode;
 }
-
-// ----------------- API Client -----------------
-const api = axios.create({
-    baseURL: URLS.BASE_URL,
-    timeout: 5000
-});
 
 // ----------------- Helpers -----------------
 const saveAuthData = async (access: string, refresh: string, user: User) => {
@@ -77,10 +65,20 @@ const getStoredUser = async (): Promise<User | null> => {
     const { value } = await Preferences.get({ key: "user" });
     if (!value) return null;
     try {
-        return JSON.parse(value) as User;
+        const parsed = JSON.parse(value) as User;
+        // Legacy stored users without the flag are treated as registered (they have a session).
+        if (parsed.is_registered === undefined) {
+            return { ...parsed, is_registered: true };
+        }
+        return parsed;
     } catch {
         return null;
     }
+};
+
+export const logoutUser = async (refreshToken: string): Promise<BaseResponse<null>> => {
+    const response = await api.post(URLS.LOGOUT, { refresh: refreshToken });
+    return response.data;
 };
 
 // ----------------- Provider -----------------
@@ -88,6 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // TODO: remove this user | null type
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const history = useHistory();
 
     // Check for stored token on mount
     useEffect(() => {
@@ -121,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const sendOtp = async (phone_number: string): Promise<boolean> => {
         try {
             setLoading(true);
-            const response = await api.post(URLS.SEND_OTP, { phone_number });
+            const response = await publicApi.post(URLS.SEND_OTP, { phone_number });
             toast({ message: "OTP sent!", duration: 2000 });
             return response.status === 200 || response.status === 201;
         } catch {
@@ -135,7 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const verifyOtp = async (phone_number: string, otp_code: number): Promise<VerifyOtpResponse | false> => {
         try {
             setLoading(true);
-            const response = await api.post(URLS.VERIFY_OTP, { phone_number, otp_code });
+            const response = await publicApi.post(URLS.VERIFY_OTP, { phone_number, otp_code });
 
             if (response.status === 200 && response.data.is_success) {
                 if (response.data.data?.user.is_registered) {
@@ -159,27 +158,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         phone_number: string | undefined,
         first_name: string,
         last_name: string,
-        gender: string
+        gender: string,
+        profile_pic: File | null
     ): Promise<boolean> => {
         try {
             setLoading(true);
-            const response = await api.post(URLS.REGISTER, {
-                phone_number,
-                first_name,
-                last_name,
-                gender
+            const formData = new FormData();
+            formData.append("phone_number", phone_number || "");
+            formData.append("first_name", first_name);
+            formData.append("last_name", last_name);
+            formData.append("gender", gender);
+
+            if (profile_pic) {
+                formData.append("profile_pic", profile_pic);
+            }
+            const response = await api.post(URLS.REGISTER, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
             });
 
             if (response.status === 200 || response.status === 201) {
                 const { access, refresh, user } = response.data.data;
-                await saveAuthData(access, refresh, user);
-                setUser(user);
+                const registeredUser: User = { ...user, is_registered: true };
+                await saveAuthData(access, refresh, registeredUser);
+                setUser(registeredUser);
                 toast({ message: "Registration successful!", color: "success" });
                 return true;
             }
+            // TODO: Handle invalid otp case
             toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
-        } catch {
+        } catch (error) {
+            console.error("Registration error:", error);
             toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
         } finally {
@@ -189,9 +200,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const logout = async (): Promise<void> => {
         try {
+            const { value: refreshToken } = await Preferences.get({ key: "refresh_token" });
+            await logoutUser(refreshToken || "");
             await clearAuthData();
             setUser(null);
-        } catch {
+            history.replace("/login");
+            toast({ message: "You have been logged out.", color: "success" });
+        } catch (error) {
+            console.error(error);
             toast({ message: "Logout failed. Please try again.", color: "danger" });
         }
     };

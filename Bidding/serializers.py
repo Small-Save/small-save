@@ -6,9 +6,9 @@ from Bidding.models import Bid, BiddingRound
 
 
 class BiddingRoundSerializer(serializers.ModelSerializer):
-    winner_username = serializers.CharField(
-        source="winner.user.username", read_only=True
-    )
+    """`winner` is nullable on the model; nested `source` cannot traverse None safely."""
+
+    winner = serializers.SerializerMethodField()
     total_bids = serializers.SerializerMethodField()
 
     class Meta:
@@ -22,11 +22,15 @@ class BiddingRoundSerializer(serializers.ModelSerializer):
             "end_time",
             "status",
             "winner",
-            "winner_username",
             "winning_bid",
             "total_bids",
         ]
         read_only_fields = ["id", "start_time", "end_time", "winner", "winning_bid"]
+
+    def get_winner(self, obj):
+        if obj.winner_id is None:
+            return None
+        return BaseUserSerializer(obj.winner.user, context=self.context).data
 
     def get_total_bids(self, obj):
         return obj.bids.filter(is_valid=True).count()

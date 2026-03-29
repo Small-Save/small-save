@@ -37,6 +37,10 @@ TWILIO_PHONE_NUMBER = env.str("TWILIO_PHONE_NUMBER")
 
 ALLOWED_HOSTS = ["*"]
 
+# Public origin of this API (no trailing path). Used to build absolute media URLs when
+# serializers run without request context (e.g. nested serializers). Optional in dev
+# if you always pass request into serializers; recommended: match your mobile/web base URL.
+PUBLIC_API_URL = env.str("PUBLIC_API_URL", default="")
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -282,3 +286,26 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+if DEBUG:
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
+else:
+    AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = env.str("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = "ap-south-1"  # Change if needed
+    AWS_QUERYSTRING_AUTH = False  # So image URLs are public
+
+    AWS_DEFAULT_ACL = None
+
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_OBJECT_PARAMETERS = {
+        "CacheControl": "max-age=86400",
+    }
+
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+    MEDIA_URL = (
+        f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
+    )

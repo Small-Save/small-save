@@ -12,6 +12,7 @@ import { createGroup, verifyContacts } from "./services";
 import "./AddMembers.css";
 
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
+import { ProfilePic } from "components/profilePic";
 import { AuthContext } from "contexts/AuthProvider";
 import { toast } from "Hooks/useToast";
 import type { Contact, User } from "types";
@@ -22,11 +23,18 @@ interface AddUserComponentProps {
     username: string;
     isSelected: boolean;
     mode: MemberMode;
-    profileImage: string
+    profileImage: string;
     onSelect: (id: string) => void;
 }
 
-const AddUserComponent: React.FC<AddUserComponentProps> = ({ id, username, isSelected, mode, profileImage, onSelect }) => {
+const AddUserComponent: React.FC<AddUserComponentProps> = ({
+    id,
+    username,
+    isSelected,
+    mode,
+    profileImage,
+    onSelect
+}) => {
     const { icon, text, className, fill } = useMemo(() => {
         if (mode === "invite") return { icon: arrowRedoOutline, text: "Invite", className: "", fill: "solid" } as const;
         if (isSelected)
@@ -37,7 +45,7 @@ const AddUserComponent: React.FC<AddUserComponentProps> = ({ id, username, isSel
     return (
         <div className="flex items-center justify-between px-4 py-3 border border-gray-200 last:border-b-0 hover:bg-gray-50">
             <div className="flex gap-3">
-                <img src={profileImage} alt={`${username || "User"} avatar`} className="w-10 h-10 rounded-3xl" />
+                <ProfilePic src={profileImage} variant="squircle" />
                 <div className="flex items-center gap-3">
                     <span className="text-base font-semibold text-gray-800">{username}</span>
                 </div>
@@ -198,23 +206,21 @@ const AddMembers: React.FC = () => {
                         {/* list of selected users with their image */}
                         {selectedMembers.size > 0 && (
                             <div className="selected-strip" aria-label="Selected members">
-                                {existingUsers.filter(c => selectedMembers.has(c.id)).map(c => (
-                                    <div key={c.id} className="selected-item">
-                                        <img
-                                            src={profileImageTemp}
-                                            alt={`${c.username || "User"} avatar`}
-                                            className="selected-img"
-                                        />
-                                        <button
-                                            type="button"
-                                            aria-label={`Remove ${c.username}`}
-                                            onClick={() => toggleMember(c.id)}
-                                            className="remove-selected"
-                                        >
-                                            x
-                                        </button>
-                                    </div>
-                                ))}
+                                {existingUsers
+                                    .filter((c) => selectedMembers.has(c.id))
+                                    .map((c) => (
+                                        <div key={c.id} className="selected-item">
+                                            <ProfilePic src={c.profile_pic} variant="squircle" />
+                                            <button
+                                                type="button"
+                                                aria-label={`Remove ${c.username}`}
+                                                onClick={() => toggleMember(c.id)}
+                                                className="remove-selected"
+                                            >
+                                                x
+                                            </button>
+                                        </div>
+                                    ))}
                             </div>
                         )}
 
@@ -241,7 +247,7 @@ const AddMembers: React.FC = () => {
                                             key={id}
                                             id={id}
                                             username={contact.username || "Unknown"}
-                                            profileImage = {contact.profile_pic ?? profileImageTemp}
+                                            profileImage={contact.profile_pic ?? profileImageTemp}
                                             isSelected={isSelected}
                                             mode="existing"
                                             onSelect={toggleMember}
@@ -258,7 +264,7 @@ const AddMembers: React.FC = () => {
                                             key={id}
                                             id={id}
                                             username={contact.username || contact.phone_number || "Contact"}
-                                            profileImage = {profileImageTemp}
+                                            profileImage={profileImageTemp}
                                             isSelected={isSelected}
                                             mode="invite"
                                             onSelect={handleInvite}

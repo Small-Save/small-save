@@ -12,8 +12,7 @@ export interface BiddingRound {
     start_time: string;
     end_time: string;
     status: "completed" | "active" | "scheduled" | "cancelled";
-    winner: number;
-    winner_username: string;
+    winner: User;
     winning_bid: string;
     total_bids: number;
 }

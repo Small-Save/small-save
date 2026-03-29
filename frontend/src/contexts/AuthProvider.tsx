@@ -8,7 +8,8 @@ import { useHistory } from "react-router-dom";
 import { toast } from "Hooks/useToast";
 import { api, publicApi } from "lib/axios";
 import URLS from "lib/constants";
-import type { BaseResponse,User } from "types";
+import type { BaseResponse, User } from "types";
+
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------
@@ -64,7 +65,12 @@ const getStoredUser = async (): Promise<User | null> => {
     const { value } = await Preferences.get({ key: "user" });
     if (!value) return null;
     try {
-        return JSON.parse(value) as User;
+        const parsed = JSON.parse(value) as User;
+        // Legacy stored users without the flag are treated as registered (they have a session).
+        if (parsed.is_registered === undefined) {
+            return { ...parsed, is_registered: true };
+        }
+        return parsed;
     } catch {
         return null;
     }
@@ -162,20 +168,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             formData.append("first_name", first_name);
             formData.append("last_name", last_name);
             formData.append("gender", gender);
-    
+
             if (profile_pic) {
                 formData.append("profile_pic", profile_pic);
             }
             const response = await api.post(URLS.REGISTER, formData, {
                 headers: {
-                    "Content-Type": "multipart/form-data",
-                },
+                    "Content-Type": "multipart/form-data"
+                }
             });
 
             if (response.status === 200 || response.status === 201) {
                 const { access, refresh, user } = response.data.data;
-                await saveAuthData(access, refresh, user);
-                setUser(user);
+                const registeredUser: User = { ...user, is_registered: true };
+                await saveAuthData(access, refresh, registeredUser);
+                setUser(registeredUser);
                 toast({ message: "Registration successful!", color: "success" });
                 return true;
             }

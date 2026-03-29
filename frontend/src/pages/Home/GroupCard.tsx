@@ -6,6 +6,7 @@ import { calendarClearOutline, peopleOutline } from "ionicons/icons";
 import "./Home.css";
 
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
+import { ProfilePic } from "components/profilePic";
 import { Group } from "types";
 
 interface GroupCardProps {
@@ -32,7 +33,8 @@ const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
                     <IonRow className="ion-align-items-center group-row-margin">
                         <IonCol size="3">
                             <IonAvatar>
-                                <img src={profileImageTemp} alt={group.name} />
+                                {/* TODO: Add group image */}
+                                <ProfilePic src={profileImageTemp} />
                             </IonAvatar>
                         </IonCol>
 

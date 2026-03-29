@@ -5,8 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { chevronForwardOutline, settingsOutline, trendingDownOutline } from "ionicons/icons";
 import { useParams } from "react-router";
 
-import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { HeaderBox } from "components/HeaderBox";
+import { ProfilePic } from "components/profilePic";
 import useFormInput from "Hooks/useFormInput";
 import { useGroup } from "Hooks/useGroup";
 import { toast } from "Hooks/useToast";
@@ -266,12 +266,12 @@ const Bidding: React.FC = () => {
                             </div>
                         </div>
 
-                        {round?.winner_username && (
+                        {round?.winner.username && (
                             <div className="mt-6 bg-white/10 p-3 rounded-xl flex items-center gap-3">
-                                <img src={profileImageTemp} className="w-10 h-10 rounded-full object-cover" />
+                                <ProfilePic src={round.winner.profile_pic} />
                                 <div>
                                     <p className="text-xs opacity-80">LAST WINNER</p>
-                                    <p className="font-semibold">{round.winner_username}</p>
+                                    <p className="font-semibold">{round.winner.username}</p>
                                 </div>
                             </div>
                         )}
@@ -348,10 +348,7 @@ const Bidding: React.FC = () => {
                                             }`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <img
-                                                    src={profileImageTemp}
-                                                    className="w-12 h-12 rounded-2xl object-cover shadow-sm"
-                                                />
+                                                <ProfilePic src={bid.member.profile_pic} />
                                                 {/* TODO: add user postion in the bid as badge */}
                                                 <div>
                                                     <p className="font-semibold text-gray-800 text-sm">

@@ -9,7 +9,7 @@ interface ProfileImageInputProps {
     onFileSelect: (file: File | null) => void;
 }
 
-const ProfileImageInput: React.FC<ProfileImageInputProps> = ({onFileSelect}) => {
+const ProfileImageInput: React.FC<ProfileImageInputProps> = ({ onFileSelect }) => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
 
@@ -21,7 +21,7 @@ const ProfileImageInput: React.FC<ProfileImageInputProps> = ({onFileSelect}) => 
                 setPreview(reader.result as string);
             };
             reader.readAsDataURL(file);
-            onFileSelect(file)
+            onFileSelect(file);
         }
     };
 

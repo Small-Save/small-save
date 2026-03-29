@@ -5,7 +5,7 @@ const URLS = {
     SEND_OTP: "/auth/send_otp/",
     VERIFY_OTP: "/auth/verify_otp/",
     REGISTER: "/auth/register/",
-    LOGOUT:"/auth/logout/",
+    LOGOUT: "/auth/logout/",
 
     GROUP: {
         VERIFY_CONTACTS: "/groups/verify-contacts/",

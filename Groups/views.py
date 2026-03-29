@@ -362,7 +362,9 @@ def verify_contacts(request):
             if user:
                 # Exclude current user from results
                 if user.id != request.user.id:
-                    existing_users.append(BaseUserSerializer(user).data)
+                    existing_users.append(
+                        BaseUserSerializer(user, context={"request": request}).data
+                    )
             else:
                 invite_needed.append(contact)
 

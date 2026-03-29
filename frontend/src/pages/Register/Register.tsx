@@ -66,7 +66,7 @@ const Register: React.FC = () => {
                                 Please provide your name and an optional profile picture
                             </p>
                         </div>
-                        <ProfileImageInput onFileSelect={(file)=>profile_pic.setValue(file)} />
+                        <ProfileImageInput onFileSelect={(file) => profile_pic.setValue(file)} />
                         <IonInput
                             className={`${firstName.isValid === false && "ion-invalid"} ${
                                 firstName.touched && "ion-touched"

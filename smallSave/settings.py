@@ -37,6 +37,10 @@ TWILIO_PHONE_NUMBER = env.str("TWILIO_PHONE_NUMBER")
 
 ALLOWED_HOSTS = ["*"]
 
+# Public origin of this API (no trailing path). Used to build absolute media URLs when
+# serializers run without request context (e.g. nested serializers). Optional in dev
+# if you always pass request into serializers; recommended: match your mobile/web base URL.
+PUBLIC_API_URL = env.str("PUBLIC_API_URL", default="")
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -306,4 +310,6 @@ else:
 
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
-    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
+    MEDIA_URL = (
+        f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
+    )

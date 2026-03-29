@@ -6,7 +6,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from Authentication.models import Register, User
-from Authentication.serializers import SendOtpSerializer, VerifyOtpSerializer
+from Authentication.serializers import (
+    BaseUserSerializer,
+    SendOtpSerializer,
+    VerifyOtpSerializer,
+)
 from Authentication.services.twilio_service import send_otp  # noqa: F401
 from utils.response import CustomResponse
 
@@ -128,9 +132,7 @@ class VerifyOtp(APIView):
             is_success=True,
             data={
                 "user": {
-                    "id": user_obj.id,
-                    "phone_number": user_obj.phone_number,
-                    "user_name": user_obj.username,
+                    **BaseUserSerializer(user_obj, context={"request": request}).data,
                     "is_registered": True,
                 },
                 "access": str(refresh.access_token),

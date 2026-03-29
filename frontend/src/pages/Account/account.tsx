@@ -2,14 +2,15 @@ import React, { useContext } from "react";
 
 import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
 import { logOutOutline } from "ionicons/icons";
-import { AuthContext } from "contexts/AuthProvider";
+
 import { HeaderBox } from "components/HeaderBox";
+import { AuthContext } from "contexts/AuthProvider";
 
 const AccountPage: React.FC = () => {
     const { logout } = useContext(AuthContext)!;
     return (
         <IonPage>
-            <HeaderBox title="Account"/>
+            <HeaderBox title="Account" />
             <IonContent className="">
                 <div className="">
                     {/* Logout Button */}

@@ -26,13 +26,13 @@ import {
 } from "ionicons/icons";
 import { useHistory, useLocation } from "react-router-dom";
 
-import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { BaseResponse, Group } from "types";
 
 import GroupCard from "./GroupCard";
 
 import "./Home.css";
 
+import { ProfilePic } from "components/profilePic";
 import { AuthContext } from "contexts/AuthProvider";
 import { toast } from "Hooks/useToast";
 import { fetchUserGroups } from "pages/CreateGroup/services";
@@ -42,7 +42,7 @@ const Home: React.FC = () => {
     const history = useHistory();
     const [groupDetails, setGroupDetails] = useState<BaseResponse<Group[]> | null>(null);
     const isActive = (path: string) => location.pathname === path;
-    // Navigation Handler
+
     const goTo = (path: string) => {
         if (location.pathname !== path) {
             history.push(path);
@@ -64,7 +64,6 @@ const Home: React.FC = () => {
     }, []);
     const activeGroups = groupDetails?.data?.length || 0;
     const location = useLocation();
-    const isHome = location.pathname === "/home";
     const totalSpend = groupDetails?.data?.reduce((sum, group) => sum + Number(group.target_amount), 0) || 0;
 
     return (
@@ -74,12 +73,10 @@ const Home: React.FC = () => {
                     <IonGrid>
                         <IonRow className="ion-align-items-center">
                             <IonCol size="3">
-                                <IonAvatar>
-                                    <img src={profileImageTemp} alt="Profile" />
-                                </IonAvatar>
+                                <ProfilePic src={user?.profile_pic} variant="circle" />
                             </IonCol>
                             <IonCol size="8">
-                                <h6>Hi, {user?.user_name}</h6>
+                                <h6>Hi, {user?.username}</h6>
                                 Welcome to SmallSave
                             </IonCol>
                             <IonCol size="1">
@@ -165,9 +162,7 @@ const Home: React.FC = () => {
                                     className="text-2xl"
                                 />
                             </div>
-                            <span className="text-xs uppercase tracking-widest font-extrabold">
-                                Alerts
-                            </span>
+                            <span className="text-xs uppercase tracking-widest font-extrabold">Alerts</span>
                         </button>
 
                         {/* Account Tab */}
@@ -182,9 +177,7 @@ const Home: React.FC = () => {
                             >
                                 <IonIcon icon={isActive("/account") ? person : personOutline} className="text-2xl" />
                             </div>
-                            <span className="text-xs uppercase tracking-widest font-extrabold">
-                                Account
-                            </span>
+                            <span className="text-xs uppercase tracking-widest font-extrabold">Account</span>
                         </button>
                     </div>
                 </IonToolbar>

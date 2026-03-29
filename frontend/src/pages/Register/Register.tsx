@@ -35,6 +35,7 @@ const Register: React.FC = () => {
     const lastName = useFormInput("");
     const history = useHistory();
     const gender = useFormInput("male");
+    const profile_pic = useFormInput<File | null>(null);
     const { register } = useContext(AuthContext)!;
     const router = useIonRouter();
 
@@ -45,7 +46,7 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await register(phone, firstName.value, lastName.value, gender.value);
+            const response = await register(phone, firstName.value, lastName.value, gender.value, profile_pic.value);
             if (response) {
                 router.push("/onboard", "forward");
             }
@@ -65,7 +66,7 @@ const Register: React.FC = () => {
                                 Please provide your name and an optional profile picture
                             </p>
                         </div>
-                        <ProfileImageInput />
+                        <ProfileImageInput onFileSelect={(file) => profile_pic.setValue(file)} />
                         <IonInput
                             className={`${firstName.isValid === false && "ion-invalid"} ${
                                 firstName.touched && "ion-touched"

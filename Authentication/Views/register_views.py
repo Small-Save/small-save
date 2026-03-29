@@ -1,25 +1,62 @@
+"""Registration, JWT session management, and current-user profile for auth."""
+
+from __future__ import annotations
+
 import logging
 
-from rest_framework import status
+from rest_framework import generics, serializers, status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from Authentication.models import Register, User
-from Authentication.serializers import RegisterUserSerializer
+from Authentication.serializers import (
+    BaseUserSerializer,
+    RegisterUserSerializer,
+)
 from utils.response import CustomResponse
 
 logger = logging.getLogger(__name__)
 
 
+def _otp_not_verified_response(
+    serializer: RegisterUserSerializer,
+) -> CustomResponse | None:
+    """Match legacy client expectations when OTP gate fails in the serializer."""
+    raw = serializer.errors.get("phone_number")
+    if raw is None:
+        return None
+    messages = raw if isinstance(raw, (list, tuple)) else [raw]
+    if not any("not verified via OTP" in str(m) for m in messages):
+        return None
+    return CustomResponse(
+        is_success=False,
+        data={},
+        message="Unauthorized User.",
+        toast_message="Not Verified User",
+        error="Phone number not verified via OTP",
+        status_code=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+def _refresh_token_from_body(request: Request) -> str | None:
+    raw = request.data.get("refresh")
+    return raw if raw else None
+
+
 class RegisterUser(APIView):
-    def post(self, request):
+    """Create a user after OTP verification; returns JWT pair and user summary."""
+
+    def post(self, request: Request):
         logger.info("Registration request received")
         serializer = RegisterUserSerializer(data=request.data)
         if not serializer.is_valid():
             logger.warning("Registration failed: invalid data %s", serializer.errors)
+            otp_resp = _otp_not_verified_response(serializer)
+            if otp_resp is not None:
+                return otp_resp
             return CustomResponse(
                 is_success=False,
                 data={},
@@ -28,46 +65,28 @@ class RegisterUser(APIView):
                 error=serializer.errors,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
-        first_name = serializer.validated_data["first_name"].strip()
-        last_name = serializer.validated_data["last_name"].strip()
-        username = f"{first_name}{last_name}".replace(" ", "").lower()
+
         phone_number = serializer.validated_data["phone_number"]
-        gender = serializer.validated_data["gender"]
         logger.debug("Validated registration data: phone=%s", phone_number)
 
-        otp_verified = Register.objects.filter(
-            phone_number=phone_number, is_verified=True
-        ).exists()
-
-        if not otp_verified:
-            logger.warning(
-                "Registration blocked: phone=%s not verified via OTP", phone_number
+        try:
+            user = serializer.save()
+        except serializers.ValidationError as exc:
+            logger.info(
+                "Registration skipped: duplicate phone after race phone=%s",
+                phone_number,
             )
             return CustomResponse(
                 is_success=False,
+                message="User already exists",
                 data={},
-                message="Unauthorized User.",
-                toast_message="Not Verified User",
-                error="Phone number not verified via OTP",
+                error=exc.detail,
                 status_code=status.HTTP_400_BAD_REQUEST,
-            )
-        logger.debug("Generated username=%s for phone=%s", username, phone_number)
-
-        try:
-            user, created = User.objects.get_or_create(
-                phone_number=phone_number,
-                defaults={
-                    "username": username,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "gender": gender,
-                    "email": serializer.validated_data.get("email", None),
-                    "is_verified": True,
-                },
             )
         except Exception:
             logger.exception(
-                "Database error during user creation for phone=%s", phone_number
+                "Database error during user creation for phone=%s",
+                phone_number,
             )
             return CustomResponse(
                 is_success=False,
@@ -78,33 +97,18 @@ class RegisterUser(APIView):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        if not created:
-            logger.info(
-                "Registration skipped: user already exists phone=%s user_id=%s",
-                phone_number,
-                user.id,
-            )
-            return CustomResponse(
-                message="User already exists",
-                data={},
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-
         refresh = RefreshToken.for_user(user)
         logger.info(
-            "Registration successful: user_id=%s phone=%s", user.id, phone_number
+            "Registration successful: user_id=%s phone=%s",
+            user.id,
+            phone_number,
         )
 
         return CustomResponse(
             is_success=True,
             message="Registration successful, user logged in",
             data={
-                "user": {
-                    "id": user.id,
-                    "phone_number": user.phone_number,
-                    "email": user.email,
-                    "userName": user.username,
-                },
+                "user": BaseUserSerializer(user, context={"request": request}).data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             },
@@ -113,17 +117,20 @@ class RegisterUser(APIView):
 
 
 class LogoutView(APIView):
+    """Blacklist the provided refresh token; must match the authenticated user."""
+
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        refresh_token = request.data.get("refresh")
-        if not refresh_token:
+    def post(self, request: Request):
+        refresh_raw = _refresh_token_from_body(request)
+        if not refresh_raw:
             logger.warning(
                 "Logout failed: missing refresh token for user_id=%s",
                 request.user.id,
             )
             return CustomResponse(
                 is_success=False,
+                data={},
                 message="Refresh token is required.",
                 toast_message="Logout failed.",
                 error="MissingRefreshToken",
@@ -131,7 +138,7 @@ class LogoutView(APIView):
             )
 
         try:
-            token = RefreshToken(refresh_token)
+            token = RefreshToken(refresh_raw)
         except TokenError as exc:
             logger.warning(
                 "Logout failed: invalid refresh token for user_id=%s: %s",
@@ -140,6 +147,7 @@ class LogoutView(APIView):
             )
             return CustomResponse(
                 is_success=False,
+                data={},
                 message="Invalid or expired refresh token.",
                 toast_message="Logout failed.",
                 error="InvalidRefreshToken",
@@ -154,6 +162,7 @@ class LogoutView(APIView):
             )
             return CustomResponse(
                 is_success=False,
+                data={},
                 message="Refresh token does not belong to the current session.",
                 toast_message="Logout failed.",
                 error="RefreshTokenUserMismatch",
@@ -170,6 +179,7 @@ class LogoutView(APIView):
             )
             return CustomResponse(
                 is_success=False,
+                data={},
                 message="Could not complete logout.",
                 toast_message="Logout failed.",
                 error="BlacklistFailed",
@@ -186,26 +196,57 @@ class LogoutView(APIView):
 
 
 class TokenRefreshView(APIView):
-    def post(self, request):
-        refresh_token = request.data.get("refresh")
-        if not refresh_token:
+    """Exchange a valid refresh token for a new access (and rotated refresh) token."""
+
+    def post(self, request: Request):
+        refresh_raw = _refresh_token_from_body(request)
+        if not refresh_raw:
             logger.warning("Token refresh failed: missing refresh token")
-            return Response(
-                is_success=False, message="Refresh token required", data={}, status=400
+            return CustomResponse(
+                is_success=False,
+                data={},
+                message="Refresh token is required.",
+                toast_message="Session refresh failed.",
+                error="MissingRefreshToken",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            token = RefreshToken(refresh_token)
-            new_access_token = str(token.access_token)
-
-            logger.debug("Token refreshed successfully")
-            return Response(
-                {"access": new_access_token, "refresh": str(token)},
-                status=status.HTTP_200_OK,
-            )
-        except Exception:
+            token = RefreshToken(refresh_raw)
+        except TokenError:
             logger.warning("Token refresh failed: invalid or expired refresh token")
-            return Response(
-                {"detail": "Invalid or expired refresh token"},
-                status=status.HTTP_401_UNAUTHORIZED,
+            return CustomResponse(
+                is_success=False,
+                data={},
+                message="Invalid or expired refresh token.",
+                toast_message="Session refresh failed.",
+                error="InvalidRefreshToken",
+                status_code=status.HTTP_401_UNAUTHORIZED,
             )
+
+        logger.debug("Token refreshed successfully")
+        return CustomResponse(
+            is_success=True,
+            message="Token refreshed",
+            data={
+                "access": str(token.access_token),
+                "refresh": str(token),
+            },
+            status_code=status.HTTP_200_OK,
+        )
+
+
+class GetUserInfo(generics.RetrieveAPIView):
+    """Return the authenticated user serialized with `BaseUserSerializer`."""
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = BaseUserSerializer
+
+    def get(self, request: Request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, context={"request": request})
+        return CustomResponse(
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+            is_success=True,
+        )

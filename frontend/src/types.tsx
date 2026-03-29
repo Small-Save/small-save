@@ -5,6 +5,9 @@ export type User = {
     last_name?: string;
     email?: string;
     phone_number: string;
+    profile_pic?: string;
+    /** False after OTP until registration completes; true for logged-in accounts. */
+    is_registered: boolean;
 };
 
 export type ValidationResult = {

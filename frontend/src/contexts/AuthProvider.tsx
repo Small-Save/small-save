@@ -8,19 +8,11 @@ import { useHistory } from "react-router-dom";
 import { toast } from "Hooks/useToast";
 import { api, publicApi } from "lib/axios";
 import URLS from "lib/constants";
-import type { BaseResponse } from "types";
+import type { BaseResponse, User } from "types";
 
 // TODO need to implement refresh token funtionality
 
 // ----------------- Types -----------------
-interface User {
-    id: string;
-    phone_number: string;
-    user_name: string;
-    gender: string;
-    is_registered: boolean;
-}
-
 interface VerifyOtpData {
     user: User;
     access: string;
@@ -38,7 +30,8 @@ interface AuthContextType {
         phone_number: string | undefined,
         first_name: string,
         last_name: string,
-        gender: string
+        gender: string,
+        profile_pic: File | null
     ) => Promise<boolean>;
     logout: () => Promise<void>;
 }
@@ -72,7 +65,12 @@ const getStoredUser = async (): Promise<User | null> => {
     const { value } = await Preferences.get({ key: "user" });
     if (!value) return null;
     try {
-        return JSON.parse(value) as User;
+        const parsed = JSON.parse(value) as User;
+        // Legacy stored users without the flag are treated as registered (they have a session).
+        if (parsed.is_registered === undefined) {
+            return { ...parsed, is_registered: true };
+        }
+        return parsed;
     } catch {
         return null;
     }
@@ -160,27 +158,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         phone_number: string | undefined,
         first_name: string,
         last_name: string,
-        gender: string
+        gender: string,
+        profile_pic: File | null
     ): Promise<boolean> => {
         try {
             setLoading(true);
-            const response = await publicApi.post(URLS.REGISTER, {
-                phone_number,
-                first_name,
-                last_name,
-                gender
+            const formData = new FormData();
+            formData.append("phone_number", phone_number || "");
+            formData.append("first_name", first_name);
+            formData.append("last_name", last_name);
+            formData.append("gender", gender);
+
+            if (profile_pic) {
+                formData.append("profile_pic", profile_pic);
+            }
+            const response = await api.post(URLS.REGISTER, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
             });
 
             if (response.status === 200 || response.status === 201) {
                 const { access, refresh, user } = response.data.data;
-                await saveAuthData(access, refresh, user);
-                setUser(user);
+                const registeredUser: User = { ...user, is_registered: true };
+                await saveAuthData(access, refresh, registeredUser);
+                setUser(registeredUser);
                 toast({ message: "Registration successful!", color: "success" });
                 return true;
             }
+            // TODO: Handle invalid otp case
             toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
-        } catch {
+        } catch (error) {
+            console.error("Registration error:", error);
             toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
         } finally {

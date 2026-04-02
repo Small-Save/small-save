@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 
 import {
-    IonAvatar,
     IonCol,
     IonContent,
     IonFab,
@@ -14,6 +13,7 @@ import {
     IonRow,
     IonToolbar
 } from "@ionic/react";
+import { useQuery } from "@tanstack/react-query";
 import {
     add,
     ellipsisVertical,
@@ -26,21 +26,18 @@ import {
 } from "ionicons/icons";
 import { useHistory, useLocation } from "react-router-dom";
 
-import { BaseResponse, Group } from "types";
-
 import GroupCard from "./GroupCard";
 
 import "./Home.css";
 
 import { ProfilePic } from "components/profilePic";
 import { AuthContext } from "contexts/AuthProvider";
-import { toast } from "Hooks/useToast";
 import { fetchUserGroups } from "pages/CreateGroup/services";
 
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;
     const history = useHistory();
-    const [groupDetails, setGroupDetails] = useState<BaseResponse<Group[]> | null>(null);
+    const location = useLocation();
     const isActive = (path: string) => location.pathname === path;
 
     const goTo = (path: string) => {
@@ -49,21 +46,14 @@ const Home: React.FC = () => {
         }
     };
 
-    // TODO:  change this to tenStackQuery
-    const fetchGroupDetails = async () => {
-        try {
-            const response = await fetchUserGroups();
-            setGroupDetails(response);
-        } catch {
-            toast({ message: "Failed to load groups.", color: "danger" });
-        }
-    };
+    const { data: groupDetails } = useQuery({
+        queryKey: ["userGroups"],
+        queryFn: fetchUserGroups,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10
+    });
 
-    useEffect(() => {
-        fetchGroupDetails();
-    }, []);
     const activeGroups = groupDetails?.data?.length || 0;
-    const location = useLocation();
     const totalSpend = groupDetails?.data?.reduce((sum, group) => sum + Number(group.target_amount), 0) || 0;
 
     return (

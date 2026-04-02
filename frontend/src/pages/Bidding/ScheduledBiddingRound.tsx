@@ -99,16 +99,16 @@ export const ScheduledBiddingRound: React.FC<ScheduledBiddingRoundProps> = ({
                         <div className="text-[13px] text-white/80 mb-2">Total Pool Amount</div>
                         <div className="text-[22px] font-bold ">₹{formatAmount(group?.target_amount ?? 0)}</div>
                     </div>
-                    <div className="rounded-3xl p-6 text-white shadow-xl bg-linear-to-br from-purple-600 to-indigo-600">
+                    {/* <div className="rounded-3xl p-6 text-white shadow-xl bg-linear-to-br from-purple-600 to-indigo-600">
                         <div className="text-[13px] text-white/80 mb-2">Previous Winner</div>
-                        {/* TODO: check this if this is working. showing previous winner */}
-                        {round?.winner_username ? (
+                        TODO: check this if this is working. showing previous winner
+                        {round?.winner.username ? (
                             <div className="flex items-center gap-2">
                                 <div className="w-10 h-10 rounded-full bg-[#2A2A3D] border-2 border-[#4caf50] flex items-center justify-center text-xs font-semibold ">
-                                    {getInitials(round.winner_username)}
+                                    {getInitials(round.winner.username)}
                                 </div>
                                 <span className="text-sm">
-                                    {round.winner_username}{" "}
+                                    {round.winner.username}{" "}
                                     <span className="text-white/70">
                                         ({round.winning_bid ? `₹${formatAmountCompact(round.winning_bid)}` : "—"})
                                     </span>
@@ -117,7 +117,7 @@ export const ScheduledBiddingRound: React.FC<ScheduledBiddingRoundProps> = ({
                         ) : (
                             <span className="text-white/70 text-sm">—</span>
                         )}
-                    </div>
+                    </div> */}
                 </div>
                 {onNotifyMe && (
                     <div className="w-full space-y-2">

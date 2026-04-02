@@ -79,6 +79,7 @@ export interface PaymentDetail {
 }
 
 export interface Round {
+    id: number;
     round_number: number;
     winner: string;
     scheduled_time: string;

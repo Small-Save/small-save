@@ -34,32 +34,38 @@ export const HeaderBox: React.FC<HeaderBoxProps> = ({
     }, [onBack, ionRouter]);
 
     return (
-        <IonHeader className={className}>
-            <IonToolbar color="dark" aria-label={title}>
-                {showBack && (
-                    <IonButtons slot="start">
-                        <IonButton aria-label="Go back" fill="solid" shape="round" onClick={handleBack}>
-                            <IonIcon icon={arrowBack} />
-                        </IonButton>
-                    </IonButtons>
-                )}
-                <div className="flex flex-col items-center flex-1 text-center">
-                    <IonTitle>{title}</IonTitle>
-                    {subTitle && (
-                        <p className="text-sm" aria-label="subtitle">
-                            {subTitle}
-                        </p>
-                    )}
-                </div>
-                {actions && actions.length > 0 && (
-                    <>
-                        {actions.map((action) => (
-                            <IonButtons key={action.key} slot={action.slot || "end"}>
-                                {action.element}
+        <IonHeader className={""}>
+            <IonToolbar color="dark" aria-label={title} >
+                <div className="grid grid-cols-3 items-center gap-4 w-full">
+                    <div>
+                        {showBack && (
+                            <IonButtons slot="start">
+                                <IonButton aria-label="Go back" fill="solid" shape="round" onClick={handleBack}>
+                                    <IonIcon icon={arrowBack} />
+                                </IonButton>
                             </IonButtons>
-                        ))}
-                    </>
-                )}
+                        )}
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                        <IonTitle>{title}</IonTitle>
+                        {subTitle && (
+                            <p className="text-sm" aria-label="subtitle">
+                                {subTitle}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        {actions && actions.length > 0 && (
+                            <>
+                                {actions.map((action) => (
+                                    <IonButtons key={action.key} slot={action.slot || "end"}>
+                                        {action.element}
+                                    </IonButtons>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                </div>
             </IonToolbar>
         </IonHeader>
     );

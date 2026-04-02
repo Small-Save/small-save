@@ -26,8 +26,7 @@ import { GroupCreationProvider } from "contexts/GroupCreationContext";
 import AccountPage from "pages/Account/account";
 import Bidding from "pages/Bidding/Bidding";
 import GroupDetail from "pages/GroupDetails/GroupDetails";
-import RoundTransactions from "pages/GroupDetails/History/RoundTransactions/RoundTransactions";
-import Payment from "pages/Payment/Payment";
+import Payments from "pages/Payment/Payments";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
@@ -88,11 +87,12 @@ const App: React.FC = () => (
                             </Route>
                         </GroupCreationProvider>
 
-                        <Route exact path="/payment/:paymentId">
-                            <ProtectedRoute component={Payment} />
+                        <Route exact path="/groupdetail/:groupId">
+                            <ProtectedRoute component={GroupDetail} />
                         </Route>
-                        <Route exact path="/round-transactions">
-                            <ProtectedRoute component={RoundTransactions} />
+
+                        <Route exact path="/payments/:groupId">
+                            <ProtectedRoute component={Payments} />
                         </Route>
 
                         {/* Bidding routes */}

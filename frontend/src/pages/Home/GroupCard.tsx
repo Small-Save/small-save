@@ -6,6 +6,7 @@ import { calendarClearOutline, peopleOutline } from "ionicons/icons";
 import "./Home.css";
 
 import { useHistory } from "react-router";
+import useGroupStore from "stores/useGroup";
 
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { ProfilePic } from "components/profilePic";
@@ -17,10 +18,10 @@ interface GroupCardProps {
 
 const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
     const history = useHistory();
-
+    const { setGroup } = useGroupStore();
     const handleClick = () => {
-        const encodedGroupName = encodeURIComponent(group.name);
-        history.push(`/groupdetail/${group.id}/${encodedGroupName}`);
+        setGroup(group);
+        history.push(`/groupdetail/${group.id}/`);
     };
     const progress = Math.min((group.members.length / group.size) * 100, 100);
 

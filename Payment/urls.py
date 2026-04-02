@@ -2,10 +2,10 @@
 from django.urls import path
 
 from .views import (
+    get_all_group_payments,
     get_payment_details,
+    get_round_payments,
     giver_confirm_payment,
-    group_payment_history,
-    group_round_payment_status,
     receiver_confirm_payment,
 )
 
@@ -19,14 +19,10 @@ urlpatterns = [
         name="receiver-confirm",
     ),
     path(
-        "groups/<int:group_id>/payment-history/",
-        group_payment_history,
-        name="group-payment-history",
-    ),
-    path(
-        "group/<int:group_id>/round/<int:round_id>/",
-        group_round_payment_status,
+        "round/<int:round_id>/",
+        get_round_payments,
         name="group-round-payment-status",
     ),
     path("<int:payment_id>/", get_payment_details, name="get_payment_detail"),
+    path("<int:group_id>/all/", get_all_group_payments, name="get_all_group_payments"),
 ]

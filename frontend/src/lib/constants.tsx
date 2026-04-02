@@ -10,17 +10,18 @@ const URLS = {
     GROUP: {
         VERIFY_CONTACTS: "/groups/verify-contacts/",
         CREATE_GROUP: "/groups/create/",
-        GET_USER_GROUPS: "/groups/"
+        GET_USER_GROUPS: "/groups/",
+        GROUP_DETAILS: (groupId: string) => `/groups/${groupId}/`
     },
     BIDDING: {
         BIDDING_ROOM: "bidding/"
     },
     PAYMENTS: {
-        CURRENT_PAYMENT_STATUS: "/payments",
-        GIVER_CONFIRM: (paymentId: string | number) => `/payments/${paymentId}/giver-confirm/`,
-        RECEIVER_CONFIRM: (paymentId: string | number) => `/payments/${paymentId}/receiver-confirm/`,
-        HISTORY: (groupId: string | number) => `/payments/groups/${groupId}/payment-history/`,
-        DETAILS: (paymentId: string | number) => `/payments/${paymentId}/`
+        CURRENT_PAYMENT_STATUS: "/payments/",
+        GIVER_CONFIRM: (paymentId: string) => `/payments/${paymentId}/giver-confirm/`,
+        RECEIVER_CONFIRM: (paymentId: string) => `/payments/${paymentId}/receiver-confirm/`,
+        DETAILS: (paymentId: string) => `/payments/${paymentId}/`,
+        GROUP_ALL: (groupId: string) => `/payments/${groupId}/all/`
     }
 };
 

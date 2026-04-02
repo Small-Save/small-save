@@ -17,3 +17,16 @@ class IsGroupAdmin(BasePermission):
                 group=obj, user=request.user, role="admin"
             ).exists()
         return False
+
+
+class IsGroupMember(BasePermission):
+    """
+    Allows access only to group members (creator or role='admin').
+    """
+
+    message = "You are not allowed to accesss this group"
+
+    def has_object_permission(self, request, view, obj):
+        if request.user and request.user.is_authenticated:
+            return obj.members.filter(id=request.user.id).exists()
+        return False

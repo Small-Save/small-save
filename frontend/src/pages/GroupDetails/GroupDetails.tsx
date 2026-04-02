@@ -1,159 +1,179 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
-import {
-    IonButton,
-    IonButtons,
-    IonCard,
-    IonCardContent,
-    IonContent,
-    IonHeader,
-    IonIcon,
-    IonPage,
-    IonSpinner,
-    IonText,
-    IonTitle,
-    IonToolbar
-} from "@ionic/react";
-import {
-    checkmarkDoneOutline,
-    chevronBackCircleOutline,
-    diamondOutline,
-    ellipsisHorizontalCircleOutline,
-    personAddOutline,
-    readerOutline,
-    settingsOutline,
-    timeOutline
-} from "ionicons/icons";
+import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
+import { useQuery } from "@tanstack/react-query";
+import { alertCircleOutline, calendarOutline, diamondOutline } from "ionicons/icons";
 import { useHistory, useParams } from "react-router";
+import { fetchCurrentPaymentStatus } from "services/payments";
+import useGroupStore from "stores/useGroup";
 
-import "./GroupDetail.css";
-
-import { confirmReceiverPayment, fetchCurrentPaymentStatus, fetchGroupPaymentHistory } from "services/payments"; // Import receiver API if needed later
-
+import { HeaderBox } from "components/HeaderBox";
 import { AuthContext } from "contexts/AuthProvider";
-import { fetchUserGroups } from "pages/CreateGroup/services";
-import { BaseResponse, Group, GroupPaymentHistoryResponse, paymentStatus } from "types";
+import { BiddingRound, fetchBiddingDetails } from "pages/Bidding/services";
+import { fetchGroup } from "pages/CreateGroup/services";
+import { Group } from "types";
 
-import BiddingInfo from "./BiddingInfo/BiddingInfo";
-import HistoryCard from "./History/History";
-import RoundTransactions from "./History/RoundTransactions/RoundTransactions";
-import MemberInfo from "./MemberInfo/MemberInfo";
-import Status from "./Status/Status";
+import useRoundStore from "./useRound";
+
+interface BiddingInfoCardProps {
+    currentRound: number;
+    totalRounds: number;
+    totalAmount: number;
+    monthlyPool: number;
+    duration: number;
+    paidCount: number;
+    totalMembers: number;
+}
+
+const BiddingInfoCard: React.FC<BiddingInfoCardProps> = ({
+    currentRound,
+    totalRounds,
+    totalAmount,
+    monthlyPool,
+    duration,
+    paidCount,
+    totalMembers
+}) => {
+    const progressPercentage = totalMembers > 0 ? (paidCount / totalMembers) * 100 : 0;
+
+    return (
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+                <span className="bg-blue-50 text-primary text-xs font-semibold px-3 py-1.5 rounded-md tracking-wide">
+                    ROUND {String(currentRound).padStart(2, "0")} OF {totalRounds}
+                </span>
+                <span className="w-3 h-3 bg-green-400 rounded-full" />
+            </div>
+
+            <p className="font-nexa text-4xl font-bold text-dark leading-tight mb-4">
+                ₹ {totalAmount.toLocaleString("en-IN")}
+            </p>
+
+            <div className="space-y-2 mb-4">
+                <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Monthly Pool</span>
+                    <span className="font-nexa font-semibold text-sm text-dark">
+                        ₹ {monthlyPool.toLocaleString("en-IN")}
+                    </span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Duration</span>
+                    <span className="font-nexa font-semibold text-sm text-dark">{duration} Months</span>
+                </div>
+            </div>
+
+            <div>
+                <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-400 text-sm">Payment Progress</span>
+                    <span className="font-nexa font-semibold text-sm text-dark">
+                        {String(paidCount).padStart(2, "0")}/{totalMembers}
+                    </span>
+                </div>
+                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-dark rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercentage}%` }}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const RoundSelector: React.FC<{ size: number; roundId: number; setRoundId: (roundId: number) => void }> = ({
+    size,
+    roundId,
+    setRoundId
+}) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Optional: Auto-scroll to selected round if it's off-screen
+    useEffect(() => {
+        const activeBtn = scrollRef.current?.querySelector(`[data-active="true"]`);
+        activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }, [roundId]);
+
+    return (
+        <div
+            ref={scrollRef}
+            className="overflow-x-auto pb-4 scrollbar-hide"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+            <p className="font-nexa text-sm font-semibold mb-2 text-dark">Select Round</p>
+
+            <div className="flex gap-2 overflow-x-auto pb-2">
+                {Array.from({ length: size }, (_, index) => index + 1).map((round) => {
+                    const isSelected = round === roundId;
+
+                    return (
+                        <button
+                            key={round}
+                            data-active={isSelected}
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-all ${
+                                isSelected
+                                    ? "bg-primary text-primary-contrast shadow-sm"
+                                    : "bg-white border border-primary text-primary"
+                            } active:scale-95`}
+                            style={{ borderRadius: "50%" }}
+                            onClick={() => {
+                                setRoundId(Number(round));
+                            }}
+                        >
+                            {round}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 const GroupDetail: React.FC = () => {
-    const { user } = useContext(AuthContext)!;
+    const { roundId, setRoundId } = useRoundStore();
     const history = useHistory();
-    const { groupId } = useParams<{ groupId: string; groupName: string }>();
+    const { groupId } = useParams<{ groupId: string }>();
+    const { group, setGroup } = useGroupStore();
 
-    const [selectedOption, setSelectedOption] = useState<"Overview" | "Status" | "History">("Overview");
-    const [showOptions, setShowOptions] = useState(false);
+    const { data: groupData } = useQuery({
+        queryKey: ["group", groupId],
+        queryFn: () => fetchGroup(groupId),
+        enabled: !group && !!groupId,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10
+    });
+    useEffect(() => {
+        if (groupData) {
+            setGroup(groupData.data as Group);
+        }
+    }, [groupData]);
 
-    const groupOptions: { value: "Overview" | "Status" | "History"; icon: string }[] = [
-        { value: "Overview", icon: readerOutline },
-        { value: "Status", icon: checkmarkDoneOutline },
-        { value: "History", icon: timeOutline }
-    ];
+    const { data: biddingRound } = useQuery({
+        queryKey: ["biddingRound", roundId],
+        queryFn: () => fetchBiddingDetails(roundId ?? 0),
+        enabled: !!roundId,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10
+    });
 
-    const [groupDetails, setGroupDetails] = useState<BaseResponse<Group[]> | null>(null);
-    const fetchGroupDetails = async () => {
-        const response = await fetchUserGroups();
-        setGroupDetails(response);
-    };
+    const round = biddingRound?.data?.bidding_round;
 
     useEffect(() => {
-        const fetchGroupDetails = async () => {
-            try {
-                const response = await fetchUserGroups();
-                setGroupDetails(response);
-            } catch (error) {
-                console.error("Failed to fetch group details", error);
-            }
-        };
-        fetchGroupDetails();
-    }, []);
-
-    // Payment History State
-    const [paymentHistory, setPaymentHistory] = useState<BaseResponse<GroupPaymentHistoryResponse> | null>(null);
-    const paymentData = paymentHistory?.data?.rounds
-        .filter((round) => round.winner !== null)
-        .sort((a, b) => a.round_number - b.round_number); // remove rounds which are not completed and sort them in ascending to
-
-    useEffect(() => {
-        const getPaymentHistory = async () => {
-            try {
-                const response = await fetchGroupPaymentHistory(Number(groupId));
-                setPaymentHistory(response);
-            } catch (error) {
-                console.error("Failed to fetch payment history", error);
-            }
-        };
-        getPaymentHistory();
-    }, [groupId]);
-
-    // Group Details
-    const group = groupDetails?.data?.find((g) => g.id === Number(groupId));
-
-    // Payment Status State
-    const [paymentStatus, setPaymentStatus] = useState<BaseResponse<paymentStatus> | null>(null);
-
-    const getCurrentPaymentStatus = async () => {
-        // Safely get the round number, falling back to the group's latest round or 1
-        const currentRoundId =
-            paymentData?.[paymentData.length - 1]?.round_number || group?.latest_bidding_round_id || 1;
-        try {
-            const response = await fetchCurrentPaymentStatus(Number(groupId), Number(currentRoundId));
-            setPaymentStatus(response);
-        } catch (error) {
-            console.error("Failed to fetch payment status", error);
+        if (group?.latest_bidding_round_id) {
+            setRoundId(Number(group?.latest_bidding_round_id));
         }
-    };
+    }, [group?.latest_bidding_round_id, setRoundId]);
 
-    useEffect(() => {
-        // Wait for the dependencies to load before fetching the payment status
-        if (paymentHistory && groupDetails) {
-            getCurrentPaymentStatus();
-        }
-    }, [paymentHistory, groupDetails]);
-
-    // --- NEW: Handle Confirm Payment Logic ---
-    const handleConfirmPayment = async (paymentId: number) => {
-        try {
-            await confirmReceiverPayment(paymentId);
-
-            // 2. Refresh the payment status data
-            await getCurrentPaymentStatus();
-
-            // 3. Ensure the Status tab is actively selected
-            setSelectedOption("Status");
-        } catch (error) {
-            console.error("Failed to confirm payment", error);
-            //TODO: add an Ionic Toast here later to show the error to the user
-        }
-    };
+    const { data: paymentStatus } = useQuery({
+        queryKey: ["paymentStatus", roundId],
+        queryFn: () => fetchCurrentPaymentStatus(roundId ?? 0),
+        enabled: !!roundId,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10
+    });
 
     const { size = 0, members = [], start_date = null, latest_bidding_round_id = 0 } = group ?? {};
 
-    const groupMemberSize = members.length;
-    const isGroupFull = size === groupMemberSize;
-
-    const receiverInfo = paymentStatus?.data?.payments[0];
-
-    // Checking if the logged-in user is the receiver
-    const isReceiver = receiverInfo?.receiver_name === user?.user_name && receiverInfo?.receiver === user?.id;
-
-    // Calculate Bidding Info Props
-    const currentRoundWinner = receiverInfo?.receiver_name || "N/A";
     const paidCount = paymentStatus?.data?.payments?.filter((p) => p.status === "COMPLETED").length || 0;
-
-    const getGiverPaymentId = () => {
-        if (!isReceiver) {
-            // Find the specific payment object where the current user is the giver
-            const userPayment = paymentStatus?.data?.payments.find((p) => p.giver === user?.id);
-            // Return the ID of that payment, or null if not found
-            return userPayment ? userPayment.id : null;
-        }
-        return null;
-    };
 
     const handleOnclick = useCallback(() => {
         try {
@@ -162,151 +182,65 @@ const GroupDetail: React.FC = () => {
             console.error("Navigation error:", error);
         }
     }, [group, history]);
+
     return (
         <IonPage>
-            <IonHeader>
-                <IonToolbar className="group-header">
-                    <IonButtons slot="start">
-                        <IonButton onClick={() => history.goBack()}>
-                            <IonIcon icon={chevronBackCircleOutline} />
-                        </IonButton>
-                    </IonButtons>
+            <HeaderBox
+                title={group?.name || "Group Details"}
+                subTitle={`ROUND ${latest_bidding_round_id} OF ${size}`}
+            />
 
-                    <IonTitle className="group-title">
-                        <div className="group-name-text">{group?.name}</div>
-                        <IonText className="group-round-text">
-                            ROUND {latest_bidding_round_id} OF {size}
-                        </IonText>
-                    </IonTitle>
-
-                    <IonButtons slot="end">
-                        <IonButton>
-                            <IonIcon icon={settingsOutline} />
-                        </IonButton>
-                    </IonButtons>
-                </IonToolbar>
-            </IonHeader>
-
-            <IonContent>
-                {isGroupFull ? (
-                    <BiddingInfo
-                        amount={Number(group?.target_amount) || 0}
-                        roundWinner={currentRoundWinner}
-                        paidCount={paidCount}
-                        totalMembers={size}
-                    />
-                ) : (
-                    <MemberInfo currentMembers={groupMemberSize} totalSize={size} start_date={start_date} />
-                )}
-
-                <div className="action-button">
-                    {isGroupFull ? (
-                        <IonButton
-                            onClick={() => {
-                                const paymentId = getGiverPaymentId();
-                                if (paymentId) {
-                                    history.push(`/payment/${paymentId}`);
-                                }
-                            }}
-                        >
-                            Make payment
-                        </IonButton>
-                    ) : (
-                        <IonButton className="invite-button">
-                            <IonIcon icon={personAddOutline} />
-                            <div className="button-text">
-                                <p>Invite Members</p>
-                                <small style={{ marginLeft: "12px" }}>Share your group code</small>
-                            </div>
-                        </IonButton>
-                    )}
-                    <IonButton className="pool-button" onClick={handleOnclick}>
-                        <IonIcon icon={diamondOutline}></IonIcon>
-                        <div className="button-text">
-                            <p>Pool system</p>
-                            <small style={{ marginLeft: "12px" }}>Winner selection</small>
-                        </div>
-                    </IonButton>
-                </div>
-
-                {/* Group Options Section */}
-                <div className="group-options">
-                    {/* Header */}
-                    <div className="group-option-header">
-                        <IonText>
-                            <h3>{selectedOption}</h3>
-                        </IonText>
-
-                        <IonIcon
-                            icon={ellipsisHorizontalCircleOutline}
-                            className="option-icon"
-                            onClick={() => setShowOptions(!showOptions)}
+            <IonContent className="">
+                <div className="p-4 space-y-4">
+                    <div>
+                        <BiddingInfoCard
+                            currentRound={Number(round?.round_number)}
+                            totalRounds={size}
+                            totalAmount={Number(group?.target_amount)}
+                            monthlyPool={Math.round(Number(group?.target_amount) / size)}
+                            duration={group?.duration || 0}
+                            paidCount={paidCount}
+                            totalMembers={size}
                         />
                     </div>
 
-                    {/* Dropdown */}
-                    {showOptions && (
-                        <IonCard className="group-option-dropdown">
-                            <IonCardContent>
-                                {groupOptions.map((option) => (
-                                    <div
-                                        key={option.value}
-                                        className="dropdown-item"
-                                        onClick={() => {
-                                            setSelectedOption(option.value);
-                                            setShowOptions(false);
-                                        }}
-                                    >
-                                        <IonIcon icon={option.icon} className="dropdown-icon" />
-                                        <IonText>{option.value}</IonText>
-                                    </div>
-                                ))}
-                            </IonCardContent>
-                        </IonCard>
-                    )}
+                    <RoundSelector size={size} roundId={roundId} setRoundId={setRoundId} />
 
-                    <div className="group-option-card">
-                        {selectedOption === "Overview" && (
-                            <IonText>
-                                <p>Overview content goes here</p>
-                            </IonText>
-                        )}
-
-                        {selectedOption === "Status" && (
-                            <Status
-                                isReceiver={isReceiver} // Passes the dynamic variable we calculated above
-                                onConfirmPayment={handleConfirmPayment}
-                                payments={paymentStatus?.data?.payments ?? []}
-                            />
-                        )}
-
-                        {selectedOption === "History" && (
-                            <div className="history-list-scroll-container">
-                                {!paymentHistory ? (
-                                    <div className="loading-container">
-                                        <IonSpinner name="crescent" />
-                                    </div>
-                                ) : (paymentData?.length ?? 0) === 0 ? (
-                                    <HistoryCard isEmpty={true} />
-                                ) : (
-                                    paymentData?.map((round) => {
-                                        return (
-                                            <HistoryCard
-                                                key={round.round_number}
-                                                round={round}
-                                                onClick={() => {
-                                                    history.push("/round-transactions", {
-                                                        roundNumber: round.round_number,
-                                                        groupName: group?.name || "Group",
-                                                        groupID: group?.id || 0
-                                                    });
-                                                }}
-                                            />
-                                        );
-                                    })
-                                )}
+                    <div className="flex justify-between">
+                        {
+                            <IonButton
+                                onClick={() => {
+                                    history.push(`/payments/${groupId}/`);
+                                }}
+                            >
+                                Payments
+                            </IonButton>
+                        }
+                        <IonButton className="pool-button" onClick={handleOnclick}>
+                            <IonIcon icon={diamondOutline}></IonIcon>
+                            <p>Pool system</p>
+                        </IonButton>
+                    </div>
+                    <div className="bg-white rounded-xl p-3 border border-gray-100">
+                        <p className="font-bold text-md mb-4">Upcoming Events</p>
+                        <div className="space-y-3">
+                            <div className="bg-primary/5 rounded-xl py-3 px-4 flex items-center">
+                                <IonIcon icon={alertCircleOutline} className="text-[26px] text-gray-800 shrink-0" />
+                                <div className="flex-1 text-center">
+                                    <p className="font-semibold text-sm">Payment Due</p>
+                                    <p className="text-sm text-primary/70 mt-0.5">Pending Dues clear it</p>
+                                </div>
+                                <div className="w-[26px] shrink-0"></div>
                             </div>
-                        )}
+                            <div className="bg-primary/5 rounded-xl p-4 flex items-center">
+                                <IonIcon icon={calendarOutline} className="text-[26px] text-gray-800 shrink-0" />
+                                <div className="flex-1 text-center">
+                                    <p className="font-semibold text-sm">Round 2 to get started</p>
+                                    <p className="text-sm text-primary/70 mt-0.5">Scheduled at Tuesday, 7:00 PM</p>
+                                </div>
+                                <div className="w-[26px] shrink-0"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </IonContent>

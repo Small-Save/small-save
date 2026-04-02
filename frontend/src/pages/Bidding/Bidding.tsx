@@ -46,12 +46,12 @@ const Bidding: React.FC = () => {
     });
 
     const biddingDetailsQuery = useQuery({
-        queryKey: ["bidding-round", roundId],
+        queryKey: ["biddingRound", roundId],
         enabled: !!roundId,
         queryFn: async () => {
             const [detailsResponse, statusResponse] = await Promise.all([
-                fetchBiddingDetails(roundId!),
-                fetchAllBids(roundId!)
+                fetchBiddingDetails(Number(roundId!)),
+                fetchAllBids(Number(roundId!))
             ]);
 
             return {
@@ -59,7 +59,8 @@ const Bidding: React.FC = () => {
                 can_bid: detailsResponse.data?.can_bid,
                 bids: statusResponse.data ?? []
             };
-        }
+        },
+        staleTime: 1000 * 60 * 5 // 5 minutes,
     });
 
     const bids: Bid[] = biddingDetailsQuery.data?.bids ?? [];
@@ -266,12 +267,12 @@ const Bidding: React.FC = () => {
                             </div>
                         </div>
 
-                        {round?.winner.username && (
+                        {round?.winner?.username && (
                             <div className="mt-6 bg-white/10 p-3 rounded-xl flex items-center gap-3">
-                                <ProfilePic src={round.winner.profile_pic} />
+                                <ProfilePic src={round.winner?.profile_pic} />
                                 <div>
                                     <p className="text-xs opacity-80">LAST WINNER</p>
-                                    <p className="font-semibold">{round.winner.username}</p>
+                                    <p className="font-semibold">{round.winner?.username}</p>
                                 </div>
                             </div>
                         )}

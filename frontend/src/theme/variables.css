@@ -17,6 +17,7 @@ http://ionicframework.com/docs/theming/ */
     --ion-color-primary-tint: #2f2e3e;
     --ion-color-dark: #000000; /* pure black */
     --ion-color-dark-contrast: #ffffff; /* text color */
+    --ion-background-color: #f5f5f5;
 }
 
 @font-face {
@@ -38,6 +39,7 @@ ion-toolbar {
 ion-input.custom {
     --placeholder-opacity: 0.4;
 }
+
 .swiper-pagination {
     top: 16px !important;
     bottom: auto !important;
@@ -49,10 +51,26 @@ ion-input.custom {
     border-radius: 15%;
     background: var(--ion-color-primary);
 }
+
 ion-toolbar {
-    --min-height: 100px; /* increase header height */
+    --min-height: 100px;
 }
 
 ion-input.custom {
     --placeholder-opacity: 0.4;
+}
+
+ion-toolbar {
+    --background: #19422d;
+    --color: white;
+
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+
+    /* This is the magic line to make the background clip to the radius */
+    overflow: hidden;
+
+    --min-height: 80px;
+    --padding-start: 0.5rem;
+    --padding-end: 0.5rem;
 }

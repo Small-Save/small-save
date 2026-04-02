@@ -32,7 +32,7 @@ export interface Bid {
     is_valid: boolean;
 }
 
-export const fetchBiddingDetails = async (roundId: string): Promise<BaseResponse<BiddingRoomData>> => {
+export const fetchBiddingDetails = async (roundId: number): Promise<BaseResponse<BiddingRoomData>> => {
     try {
         const response = await api.get(URLS.BIDDING.BIDDING_ROOM + roundId);
         return response.data;
@@ -42,7 +42,7 @@ export const fetchBiddingDetails = async (roundId: string): Promise<BaseResponse
     }
 };
 
-export const fetchAllBids = async (roundId: string): Promise<BaseResponse<Bid[]>> => {
+export async function fetchAllBids(roundId: number): Promise<BaseResponse<Bid[]>> {
     try {
         const response = await api.get(`/bidding/${roundId}/bids/all/`);
         return response.data;
@@ -50,7 +50,7 @@ export const fetchAllBids = async (roundId: string): Promise<BaseResponse<Bid[]>
         console.error(error);
         throw error;
     }
-};
+}
 
 export const fetchGroupDetails = async (groupId: string): Promise<BaseResponse<Group>> => {
     try {

@@ -4,6 +4,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -11,16 +12,20 @@ from rest_framework.decorators import (
     permission_classes,
 )
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from Bidding.models import BiddingRound
 from Groups.models import Group
+from Groups.permissions import IsGroupMember
 from utils.response import CustomResponse
 
 from .constants import PaymentStatus
 from .models import Payment
-from .serializers import PaymentDetailSerializer, PaymentStatusSerializer
+from .serializers import (
+    PaymentDetailSerializer,
+    PaymentSerializer,
+    PaymentStatusSerializer,
+)
 
 logger = logging.getLogger("api")
 
@@ -38,20 +43,27 @@ def giver_confirm_payment(request, payment_id):
             # Ensure the requesting user is actually the giver
             if payment.giver_id != request.user.id:
                 logger.warning(
-                    f"Unauthorized giver confirmation | user={request.user.id} payment={payment_id}"
+                    "Unauthorized giver confirmation: user_id=%s payment_id=%s",
+                    request.user.id,
+                    payment_id,
                 )
-                return Response(
-                    {"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
+                return CustomResponse(
+                    is_success=False,
+                    error="Not authorized",
+                    status_code=status.HTTP_403_FORBIDDEN,
                 )
 
             # Enforce state machine: Must be PENDING to move to GIVER_CONFIRMED
             if payment.status != PaymentStatus.PENDING:
                 logger.warning(
-                    f"Invalid state transition | payment={payment_id} status={payment.status}"
+                    "Invalid state transition: payment_id=%s status=%s",
+                    payment_id,
+                    payment.status,
                 )
-                return Response(
-                    {"error": "Invalid payment state"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                return CustomResponse(
+                    is_success=False,
+                    error="Invalid payment state",
+                    status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Hardcoded status update
@@ -59,24 +71,31 @@ def giver_confirm_payment(request, payment_id):
             payment.save()
 
             logger.info(
-                f"Giver confirmed payment | payment_id={payment_id} giver={request.user.id}"
+                "Giver confirmed payment: payment_id=%s giver_id=%s",
+                payment_id,
+                request.user.id,
             )
 
-            return Response(
-                {"message": "Payment confirmed by giver"}, status=status.HTTP_200_OK
+            return CustomResponse(
+                is_success=True,
+                message="Payment confirmed by giver",
+                status_code=status.HTTP_200_OK,
             )
 
     except ObjectDoesNotExist:
-        logger.warning(f"Payment not found | payment_id={payment_id}")
-        return Response(
-            {"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND
+        logger.warning("Payment not found: payment_id=%s", payment_id)
+        return CustomResponse(
+            is_success=False,
+            error="Payment not found",
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     except Exception:
-        logger.exception("Error in giver confirmation")
-        return Response(
-            {"error": "Something went wrong"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        logger.exception("Error in giver confirmation: payment_id=%s", payment_id)
+        return CustomResponse(
+            is_success=False,
+            error="Something went wrong",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
@@ -91,20 +110,27 @@ def receiver_confirm_payment(request, payment_id):
             # Ensure the requesting user is actually the receiver
             if payment.receiver_id != request.user.id:
                 logger.warning(
-                    f"Unauthorized receiver confirmation | user={request.user.id} payment={payment_id}"
+                    "Unauthorized receiver confirmation: user_id=%s payment_id=%s",
+                    request.user.id,
+                    payment_id,
                 )
-                return Response(
-                    {"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
+                return CustomResponse(
+                    is_success=False,
+                    error="Not authorized",
+                    status_code=status.HTTP_403_FORBIDDEN,
                 )
 
             # Enforce state machine: Must be GIVER_CONFIRMED to move to COMPLETED
             if payment.status != PaymentStatus.GIVER_CONFIRMED:
                 logger.warning(
-                    f"Receiver confirm blocked | payment={payment_id} status={payment.status}"
+                    "Receiver confirm blocked: payment_id=%s status=%s",
+                    payment_id,
+                    payment.status,
                 )
-                return Response(
-                    {"error": "Giver has not confirmed yet"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                return CustomResponse(
+                    is_success=False,
+                    error="Giver has not confirmed yet",
+                    status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Hardcoded status update
@@ -112,86 +138,30 @@ def receiver_confirm_payment(request, payment_id):
             payment.save()
 
             logger.info(
-                f"Payment completed | payment_id={payment_id} receiver={request.user.id}"
+                "Payment completed: payment_id=%s receiver_id=%s",
+                payment_id,
+                request.user.id,
             )
 
-            return Response({"message": "Payment completed"}, status=status.HTTP_200_OK)
+            return CustomResponse(
+                is_success=True,
+                message="Payment completed",
+                status_code=status.HTTP_200_OK,
+            )
 
     except ObjectDoesNotExist:
-        logger.warning(f"Payment not found | payment_id={payment_id}")
-        return Response(
-            {"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND
-        )
-
-    except Exception:
-        logger.exception("Error in receiver confirmation")
-        return Response(
-            {"error": "Something went wrong"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-
-@api_view(["GET"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def group_round_payment_status(request, group_id, round_id):
-    """
-    Fetch payment status of all members in a specific group and round
-    """
-    try:
-        if not Group.objects.filter(id=group_id).exists():
-            logger.warning("Invalid group_id", extra={"group_id": group_id})
-            return CustomResponse(
-                is_success=False,
-                error="Invalid group",
-                message="Group does not exist",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not BiddingRound.objects.filter(id=round_id).exists():
-            logger.warning("Invalid round_id", extra={"round_id": round_id})
-            return CustomResponse(
-                is_success=False,
-                error="Invalid round",
-                message="Round does not exist",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-
-        payments = Payment.objects.select_related("giver", "receiver").filter(
-            group_id=group_id, round_id=round_id
-        )
-
-        serializer = PaymentStatusSerializer(payments, many=True)
-
-        logger.info(
-            "Fetched group round payment status",
-            extra={
-                "group_id": group_id,
-                "round_id": round_id,
-                "payment_count": payments.count(),
-            },
-        )
-
-        return CustomResponse(
-            is_success=True,
-            data={
-                "group_id": group_id,
-                "round_id": round_id,
-                "payments": serializer.data,
-            },
-            message="Payment status fetched successfully",
-            status_code=status.HTTP_200_OK,
-        )
-
-    except Exception:
-        logger.exception(
-            "Failed to fetch group round payment status",
-            extra={"group_id": group_id, "round_id": round_id},
-        )
+        logger.warning("Payment not found: payment_id=%s", payment_id)
         return CustomResponse(
             is_success=False,
-            error="Internal server error",
-            message="Something went wrong while fetching payment status",
+            error="Payment not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    except Exception:
+        logger.exception("Error in receiver confirmation: payment_id=%s", payment_id)
+        return CustomResponse(
+            is_success=False,
+            error="Something went wrong",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -199,75 +169,91 @@ def group_round_payment_status(request, group_id, round_id):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def group_payment_history(request, group_id):
+def get_all_group_payments(request, group_id):
     """
-    Fetches scheduled rounds and their winners for a specific group.
+    Fetch all payments for a specific group.
     """
-    try:
-        # 1. Verify the group exists
-        try:
-            group = Group.objects.get(id=group_id)
-        except ObjectDoesNotExist:
-            logger.warning(
-                f"Group history fetch failed: Group not found | group_id={group_id} user={request.user.id}"
-            )
-            return CustomResponse(
-                is_success=False,
-                error="Group not found",
-                message=f"Group with id {group_id} not found.",
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-
-        # 2. Fetch the bidding rounds for this group directly
-        # We use select_related('winner__user') to prevent N+1 queries for the winner's username
-        rounds = (
-            BiddingRound.objects.filter(group=group)
-            .select_related("winner__user")
-            .order_by("round_number")
+    group = get_object_or_404(Group, id=group_id)
+    permission = IsGroupMember()
+    if not permission.has_object_permission(request, None, group):
+        logger.warning(
+            "Access denied: user_id=%s, group_id=%s",
+            request.user.id,
+            group.id,
+        )
+        return CustomResponse(
+            is_success=False,
+            error="You are not authorized to view payments for this group.",
+            status_code=status.HTTP_403_FORBIDDEN,
         )
 
-        # 3. Construct the rounds list
-        rounds_data = []
-        for bidding_round in rounds:
-            winner_name = None
-            if bidding_round.winner and bidding_round.winner.user:
-                winner_name = bidding_round.winner.user.username
+    payments = Payment.objects.filter(group=group).select_related(
+        "giver", "receiver", "round"
+    )
 
-            rounds_data.append(
-                {
-                    "round_number": bidding_round.round_number,
-                    "winner": winner_name,
-                    "scheduled_time": bidding_round.scheduled_time.isoformat()
-                    if bidding_round.scheduled_time
-                    else None,
-                }
-            )
+    data = PaymentSerializer(payments, many=True).data
 
-        # 4. Construct final response
-        response_payload = {
-            "group_name": getattr(group, "name", f"Group {group.id}"),
-            "rounds": rounds_data,
-        }
+    return CustomResponse(
+        is_success=True,
+        data=data,
+        message="Group payments fetched successfully.",
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_round_payments(request, round_id):
+    """
+    Fetch payment status of all members in a specific group and round.
+    """
+    bidding_round = get_object_or_404(
+        BiddingRound.objects.select_related("group"), id=round_id
+    )
+    permission = IsGroupMember()
+    if not permission.has_object_permission(request, None, bidding_round.group):
+        logger.warning(
+            "Access denied: user_id=%s, group_id=%s",
+            request.user.id,
+            bidding_round.group_id,
+        )
+        return CustomResponse(
+            is_success=False,
+            error="Forbidden",
+            message="You are not a member of this group",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        payments = Payment.objects.filter(
+            group=bidding_round.group, round_id=round_id
+        ).select_related("giver", "receiver")
+
+        # 4. Access .data before passing to CustomResponse
+        serializer = PaymentStatusSerializer(payments, many=True)
+        data = serializer.data
 
         logger.info(
-            f"Fetched group rounds history | group_id={group_id} user={request.user.id}"
+            "Fetched payment status: group=%s, round=%s, count=%s",
+            bidding_round.group_id,
+            round_id,
+            len(data),
         )
 
         return CustomResponse(
             is_success=True,
-            data=response_payload,
-            message="Group payment history fetched successfully.",
+            data=data,
+            message="Payment status fetched successfully",
             status_code=status.HTTP_200_OK,
         )
 
     except Exception:
-        logger.exception(
-            f"Unexpected error fetching round history | group_id={group_id} user={request.user.id}"
-        )
+        logger.exception("Error fetching payment status: round_id=%s", round_id)
         return CustomResponse(
             is_success=False,
-            error="Internal Server Error",
-            message="An unexpected error occurred while fetching the round history.",
+            error="Internal server error",
+            message="Something went wrong while fetching payment status",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -280,31 +266,35 @@ def get_payment_details(request, payment_id):
     Fetches specific details of a payment by its ID using a serializer.
     """
     try:
-        # We still use select_related to prevent N+1 queries when the serializer looks up names
         payment = Payment.objects.select_related("group", "giver", "receiver").get(
             id=payment_id
         )
 
-        # Optional Security Check: Ensure the user requesting this is part of the transaction
-        # if request.user.id not in [payment.giver_id, payment.receiver_id]:
-        #     logger.warning(
-        #         f"Unauthorized payment fetch attempt | user={request.user.id} payment_id={payment_id}"
-        #     )
-        #     return CustomResponse(
-        #         is_success=False,
-        #         error="You do not have permission to view this payment",
-        #         status=status.HTTP_403_FORBIDDEN
-        #     )
+        # Security Check: Ensure the user requesting this is part of the transaction
+        if request.user.id not in [payment.giver_id, payment.receiver_id]:
+            logger.warning(
+                "Unauthorized payment fetch attempt: user_id=%s payment_id=%s",
+                request.user.id,
+                payment_id,
+            )
+            return CustomResponse(
+                is_success=False,
+                error="You do not have permission to view this payment",
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
 
         # Pass the instance to the serializer
         serializer = PaymentDetailSerializer(payment)
 
         logger.info(
-            f"Fetched payment details | payment_id={payment_id} user={request.user.id}"
+            "Fetched payment details: payment_id=%s user_id=%s",
+            payment_id,
+            request.user.id,
         )
 
         # Return the strictly defined serializer.data
         return CustomResponse(
+            is_success=True,
             data=serializer.data,
             message="Payment details fetched successfully.",
             status_code=status.HTTP_200_OK,
@@ -312,7 +302,9 @@ def get_payment_details(request, payment_id):
 
     except ObjectDoesNotExist:
         logger.warning(
-            f"Payment not found | payment_id={payment_id} user={request.user.id}"
+            "Payment not found: payment_id=%s user_id=%s",
+            payment_id,
+            request.user.id,
         )
         return CustomResponse(
             is_success=False,
@@ -322,7 +314,9 @@ def get_payment_details(request, payment_id):
 
     except Exception:
         logger.exception(
-            f"Unexpected error fetching payment | payment_id={payment_id} user={request.user.id}"
+            "Unexpected error fetching payment: payment_id=%s user_id=%s",
+            payment_id,
+            request.user.id,
         )
         return CustomResponse(
             is_success=False,

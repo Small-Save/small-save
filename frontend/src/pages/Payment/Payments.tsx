@@ -32,32 +32,32 @@ const SummaryCard: React.FC<{ payments: PaymentDetail[] }> = ({ payments }) => {
     return (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 mb-1">
-                <IonIcon icon={walletOutline} className="text-lg text-gray-400" />
-                <span className="text-gray-400 text-sm font-medium">Total Amount</span>
+                <IonIcon icon={walletOutline} className="text-lg" />
+                <span className="text-sm">Total Amount</span>
             </div>
-            <p className="font-nexa text-3xl font-bold text-dark leading-tight mb-4">₹ {formatINR(total)}</p>
+            <p className="text-3xl font-bold mb-4">₹ {formatINR(total)}</p>
 
             <div className="flex gap-4 mb-4">
                 <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="text-sm text-gray-500">{paidCount} Paid</span>
+                    <span className="text-sm">{paidCount} Paid</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />
-                    <span className="text-sm text-gray-500">{pendingCount} Pending</span>
+                    <span className="text-sm">{pendingCount} Pending</span>
                 </div>
             </div>
 
             <div>
                 <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-gray-400 text-xs font-medium">Progress</span>
-                    <span className="font-nexa font-semibold text-xs text-dark">
-                        {String(paidCount).padStart(2, "0")}/{payments.length}
+                    <span className="text-xs font-medium">Progress</span>
+                    <span className="font-semibold text-xs">
+                        {paidCount}/{payments.length}
                     </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-primary/20 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                        className="h-full bg-primary rounded-full transition-all duration-500"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -101,6 +101,7 @@ const PaymentCard: React.FC<{
                         alt={giverLabel}
                         className={isGiver ? "ring-2 ring-primary/30 ring-offset-1" : ""}
                     />
+                    {/* TODO: Change it to online status dot */}
                     {isCompleted && (
                         <IonIcon
                             icon={checkmarkCircle}
@@ -208,10 +209,13 @@ const Payments: React.FC = () => {
         />
     );
 
+    const isGiver = paymentList.length > 0 && paymentList.some((p) => p.giver.id === user?.id);
+    const isReceiver = paymentList.length > 0 && paymentList.some((p) => p.receiver.id === user?.id);
+
     return (
         <IonPage className="payments-page">
             <HeaderBox title="Payments" subTitle={`ROUND ${roundId}`} />
-            <IonContent className="payments-content" scrollY>
+            <IonContent scrollY>
                 <div className="p-4 space-y-5">
                     {isLoading ? (
                         <Spinner />
@@ -222,7 +226,7 @@ const Payments: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <SummaryCard payments={paymentList} />
+                            {isReceiver && <SummaryCard payments={paymentList} />}
 
                             {userPayments.length > 0 && (
                                 <section>
@@ -233,7 +237,7 @@ const Payments: React.FC = () => {
                                 </section>
                             )}
 
-                            {otherPayments.length > 0 && (
+                            {otherPayments.length > 0 && isReceiver && (
                                 <section>
                                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
                                         All Payments

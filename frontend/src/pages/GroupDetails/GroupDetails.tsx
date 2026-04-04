@@ -48,10 +48,10 @@ const RoundSelector: React.FC<{
     return (
         <div
             ref={scrollRef}
-            className="overflow-x-auto pb-4 scrollbar-hide"
+            className="overflow-x-auto scrollbar-hide"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-            <p className="font-nexa text-sm font-semibold mb-3">Select Round</p>
+            <p className="font-nexa text-sm font-semibold mb-1">Select Round</p>
 
             <div className="flex justify-center gap-2 overflow-x-auto pb-2">
                 {biddingRounds.map((round) => {

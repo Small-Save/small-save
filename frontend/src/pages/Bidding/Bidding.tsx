@@ -4,16 +4,17 @@ import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonSpinner } from "@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { chevronForwardOutline, settingsOutline, trendingDownOutline } from "ionicons/icons";
 import { useParams } from "react-router";
+import useGroupStore from "stores/useGroup";
 
 import { HeaderBox } from "components/HeaderBox";
 import { ProfilePic } from "components/profilePic";
+import { useCountdown } from "Hooks/useCountDown";
 import useFormInput from "Hooks/useFormInput";
-import { useGroup } from "Hooks/useGroup";
 import { toast } from "Hooks/useToast";
-import { calculateTimeLeft, formatAmount, getTimeAgo } from "lib/utils";
+import { formatAmount, getTimeAgo } from "lib/utils";
 
 import { ScheduledBiddingRound } from "./ScheduledBiddingRound";
-import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
+import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, fetchGroupDetails, placeBid } from "./services";
 import { useBiddingSocket } from "./useBiddingSocket";
 
 interface BiddingParams {
@@ -21,15 +22,27 @@ interface BiddingParams {
 }
 
 const Bidding: React.FC = () => {
-    const [timeRemainingLabel, setTimeRemainingLabel] = useState("");
     const bidAmountInput = useFormInput("");
     const [bidSubmitError, setBidSubmitError] = useState<string | null>(null);
     const [isSubmittingBid, setIsSubmittingBid] = useState(false);
     const { groupId } = useParams<BiddingParams>();
     const queryClient = useQueryClient();
+    const { group, setGroup } = useGroupStore();
 
-    const groupQuery = useGroup(groupId);
-    const group = groupQuery.data?.data;
+    const { data: groupDetails } = useQuery({
+        queryKey: ["group-details", groupId],
+        queryFn: () => fetchGroupDetails(groupId),
+        enabled: !group && !!groupId,
+        staleTime: 1000 * 60 * 15,
+        gcTime: 1000 * 60 * 10
+    });
+
+    useEffect(() => {
+        if (groupDetails?.data) {
+            setGroup(groupDetails.data);
+        }
+    }, [groupDetails, setGroup]);
+
     const roundId = group?.current_bidding_round?.id ?? 0;
 
     const biddingSocketRef = useBiddingSocket<Bid>(roundId, (newBid: Bid) => {
@@ -65,16 +78,9 @@ const Bidding: React.FC = () => {
 
     const bids: Bid[] = biddingDetailsQuery.data?.bids ?? [];
     const round: BiddingRound | undefined = biddingDetailsQuery.data?.round;
+    const countdown = useCountdown(round?.end_time);
 
     const isBiddingActive = round?.status === "active";
-
-    useEffect(() => {
-        if (!round?.end_time || !round?.start_time) return;
-
-        setTimeRemainingLabel(calculateTimeLeft(round.end_time, round.start_time) ?? "");
-        const interval = setInterval(calculateTimeLeft, 1000);
-        return () => clearInterval(interval);
-    }, [round?.end_time, round?.start_time]);
 
     const handlePlaceBid = useCallback(async () => {
         setBidSubmitError(null);
@@ -139,7 +145,7 @@ const Bidding: React.FC = () => {
         return isNaN(date.getTime()) ? round.scheduled_time : date.toLocaleString();
     }, [round?.scheduled_time]);
 
-    if (groupQuery.isLoading || (biddingDetailsQuery.isLoading && !round)) {
+    if (biddingDetailsQuery.isLoading && !round) {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
@@ -237,7 +243,7 @@ const Bidding: React.FC = () => {
 
                             <div className="bg-white/20 px-4 py-2 rounded-xl text-right">
                                 <p className="text-xs opacity-80">ENDS IN</p>
-                                <p className="font-semibold text-sm">{timeRemainingLabel}</p>
+                                <p className="font-semibold text-sm">{countdown}</p>
                             </div>
                         </div>
 

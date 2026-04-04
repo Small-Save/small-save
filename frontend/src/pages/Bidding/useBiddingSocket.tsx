@@ -13,7 +13,7 @@ const isBidUpdateMessage = <TBid,>(value: unknown): value is BidUpdateMessage<TB
     return record.type === "bid_update" && "bid" in record;
 };
 
-export const useBiddingSocket = <TBid,>(roundId: string, onBidUpdate: (bid: TBid) => void) => {
+export const useBiddingSocket = <TBid,>(roundId: number, onBidUpdate: (bid: TBid) => void) => {
     const socketRef = useRef<WebSocket | null>(null);
     const onBidUpdateRef = useRef(onBidUpdate);
 

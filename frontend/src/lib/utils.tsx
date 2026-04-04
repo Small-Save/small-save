@@ -61,6 +61,11 @@ export const validateGroupSize = (v: string): ValidationResult => {
     }
 };
 
+export const formatINR = (amount: number | string) => {
+    const n = Number(amount || 0);
+    return Number.isNaN(n) ? "0" : n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+};
+
 export const fetchDeviceContacts = async (): Promise<Contact[]> => {
     if (!Capacitor.isNativePlatform()) {
         // Send constant values on web

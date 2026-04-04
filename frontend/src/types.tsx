@@ -1,3 +1,5 @@
+import { BiddingRound } from "pages/Bidding/services";
+
 export type User = {
     id: string;
     username?: string;
@@ -23,17 +25,20 @@ export type BaseResponse<T> = {
     error: string | null;
 };
 
+export type WinnerSelectionMethod = "random" | "round_robin" | "bid";
+
 export interface Group {
     id: number;
     name: string;
     target_amount: number;
     size: number;
     duration: number;
-    winner_selection_method: string;
+    winner_selection_method: WinnerSelectionMethod;
     start_date: string;
     created_at: string;
     members: Member[];
-    latest_bidding_round_id: string;
+    current_bidding_round: BiddingRound;
+    bidding_rounds: BiddingRound[];
 }
 
 export interface Member {
@@ -47,3 +52,15 @@ export type Contact = {
     phone_number: string;
     email: string;
 };
+
+export type PaymentStatus = "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
+
+export interface PaymentDetail {
+    id: number;
+    round_number: number;
+    giver: User;
+    receiver: User;
+    amount: string;
+    status: PaymentStatus;
+    created_at: string;
+}

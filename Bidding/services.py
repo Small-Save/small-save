@@ -18,20 +18,19 @@ def create_bidding_rounds(request, group: Group):
         group.id,
         tz_name,
     )
-
-    for i in range(1, group.duration + 1):
+    for i in range(group.duration):
         scheduled_date = group.start_date + relativedelta(months=i)
         start_time = datetime.combine(
             scheduled_date.date()
             if hasattr(scheduled_date, "date")
             else scheduled_date,
             time(0, 0, 0),
-            tzinfo=ZoneInfo(tz_name),  # TODO: test this
+            tzinfo=ZoneInfo(tz_name),
         )
         end_time = start_time + timedelta(days=1)
         BiddingRound.objects.create(
             group=group,
-            round_number=i,
+            round_number=i + 1,
             scheduled_time=scheduled_date,
             start_time=start_time,
             end_time=end_time,

@@ -31,7 +31,7 @@ function shapeClasses(variant: ProfilePicVariant): string {
 
 export const ProfilePic: React.FC<ProfilePicProps> = ({
     src,
-    size = 48,
+    size = 44,
     variant = "circle",
     status,
     alt = "Profile",

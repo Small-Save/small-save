@@ -32,6 +32,7 @@ urlpatterns = [
     path("auth/", include("Authentication.urls")),
     path("groups/", include("Groups.urls")),
     path("bidding/", include("Bidding.urls")),
+    path("payments/", include("Payment.urls")),
 ]
 
 

@@ -4,16 +4,17 @@ import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonSpinner } from "@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { chevronForwardOutline, settingsOutline, trendingDownOutline } from "ionicons/icons";
 import { useParams } from "react-router";
+import useGroupStore from "stores/useGroup";
 
 import { HeaderBox } from "components/HeaderBox";
 import { ProfilePic } from "components/profilePic";
+import { useCountdown } from "Hooks/useCountDown";
 import useFormInput from "Hooks/useFormInput";
-import { useGroup } from "Hooks/useGroup";
 import { toast } from "Hooks/useToast";
 import { formatAmount, getTimeAgo } from "lib/utils";
 
 import { ScheduledBiddingRound } from "./ScheduledBiddingRound";
-import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
+import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, fetchGroupDetails, placeBid } from "./services";
 import { useBiddingSocket } from "./useBiddingSocket";
 
 interface BiddingParams {
@@ -21,18 +22,30 @@ interface BiddingParams {
 }
 
 const Bidding: React.FC = () => {
-    const [timeRemainingLabel, setTimeRemainingLabel] = useState("");
     const bidAmountInput = useFormInput("");
     const [bidSubmitError, setBidSubmitError] = useState<string | null>(null);
     const [isSubmittingBid, setIsSubmittingBid] = useState(false);
     const { groupId } = useParams<BiddingParams>();
     const queryClient = useQueryClient();
+    const { group, setGroup } = useGroupStore();
 
-    const groupQuery = useGroup(groupId);
-    const group = groupQuery.data?.data;
-    const roundId = group?.latest_bidding_round_id ?? "";
+    const { data: groupDetails } = useQuery({
+        queryKey: ["group-details", groupId],
+        queryFn: () => fetchGroupDetails(groupId),
+        enabled: !group && !!groupId,
+        staleTime: 1000 * 60 * 15,
+        gcTime: 1000 * 60 * 10
+    });
 
-    const biddingSocketRef = useBiddingSocket<Bid>(roundId, (newBid) => {
+    useEffect(() => {
+        if (groupDetails?.data) {
+            setGroup(groupDetails.data);
+        }
+    }, [groupDetails, setGroup]);
+
+    const roundId = group?.current_bidding_round?.id ?? 0;
+
+    const biddingSocketRef = useBiddingSocket<Bid>(roundId, (newBid: Bid) => {
         if (!roundId) return;
         queryClient.setQueryData(["bidding-round", roundId], (oldData: any) => {
             if (!oldData) return oldData;
@@ -46,12 +59,12 @@ const Bidding: React.FC = () => {
     });
 
     const biddingDetailsQuery = useQuery({
-        queryKey: ["bidding-round", roundId],
+        queryKey: ["biddingRound", roundId],
         enabled: !!roundId,
         queryFn: async () => {
             const [detailsResponse, statusResponse] = await Promise.all([
-                fetchBiddingDetails(roundId!),
-                fetchAllBids(roundId!)
+                fetchBiddingDetails(roundId),
+                fetchAllBids(roundId)
             ]);
 
             return {
@@ -59,47 +72,15 @@ const Bidding: React.FC = () => {
                 can_bid: detailsResponse.data?.can_bid,
                 bids: statusResponse.data ?? []
             };
-        }
+        },
+        staleTime: 1000 * 60 * 5 // 5 minutes,
     });
 
     const bids: Bid[] = biddingDetailsQuery.data?.bids ?? [];
     const round: BiddingRound | undefined = biddingDetailsQuery.data?.round;
+    const countdown = useCountdown(round?.end_time);
 
     const isBiddingActive = round?.status === "active";
-
-    useEffect(() => {
-        if (!round?.end_time || !round?.start_time) return;
-
-        const calculateTimeLeft = () => {
-            const now = new Date().getTime();
-            const endTime = new Date(round.end_time).getTime();
-            const startTime = new Date(round.start_time).getTime();
-
-            // Validate dates
-            if (isNaN(endTime) || isNaN(startTime)) {
-                console.error("Invalid date format:", {
-                    end_time: round.end_time,
-                    start_time: round.start_time
-                });
-                return;
-            }
-            const difference = endTime - now;
-
-            if (difference > 0) {
-                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((difference / 1000 / 60) % 60);
-                const seconds = Math.floor((difference / 1000) % 60);
-
-                setTimeRemainingLabel(`${hours}h ${minutes}m ${seconds}s`);
-            } else {
-                setTimeRemainingLabel("0h 0m 0s");
-            }
-        };
-
-        calculateTimeLeft();
-        const interval = setInterval(calculateTimeLeft, 1000);
-        return () => clearInterval(interval);
-    }, [round?.end_time, round?.start_time]);
 
     const handlePlaceBid = useCallback(async () => {
         setBidSubmitError(null);
@@ -164,7 +145,7 @@ const Bidding: React.FC = () => {
         return isNaN(date.getTime()) ? round.scheduled_time : date.toLocaleString();
     }, [round?.scheduled_time]);
 
-    if (groupQuery.isLoading || (biddingDetailsQuery.isLoading && !round)) {
+    if (biddingDetailsQuery.isLoading && !round) {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
@@ -262,16 +243,16 @@ const Bidding: React.FC = () => {
 
                             <div className="bg-white/20 px-4 py-2 rounded-xl text-right">
                                 <p className="text-xs opacity-80">ENDS IN</p>
-                                <p className="font-semibold text-sm">{timeRemainingLabel}</p>
+                                <p className="font-semibold text-sm">{countdown}</p>
                             </div>
                         </div>
 
-                        {round?.winner.username && (
+                        {round?.winner?.username && (
                             <div className="mt-6 bg-white/10 p-3 rounded-xl flex items-center gap-3">
-                                <ProfilePic src={round.winner.profile_pic} />
+                                <ProfilePic src={round.winner?.profile_pic} />
                                 <div>
                                     <p className="text-xs opacity-80">LAST WINNER</p>
-                                    <p className="font-semibold">{round.winner.username}</p>
+                                    <p className="font-semibold">{round.winner?.username}</p>
                                 </div>
                             </div>
                         )}

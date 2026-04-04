@@ -8,6 +8,8 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from Groups.models import Group, GroupMember
+from Payment.constants import PaymentStatus
+from Payment.models import Payment
 
 logger = logging.getLogger(__name__)
 
@@ -133,8 +135,22 @@ class BiddingRound(models.Model):
             self.winner = winning_bid.member
             self.winning_bid = winning_bid
             self.save()
-
             GroupMember.objects.filter(pk=winning_bid.member_id).update(has_won=True)
+
+            payments = [
+                Payment(
+                    group_id=self.group.id,
+                    round_id=self.id,
+                    giver_id=gm.user_id,
+                    receiver_id=winning_bid.member.user_id,
+                    amount=winning_bid.amount,
+                    status=PaymentStatus.PENDING,
+                )
+                for gm in self.group.groupmember_set.all()
+                if gm.user_id != winning_bid.member.user_id
+            ]
+
+            Payment.objects.bulk_create(payments)
 
         logger.info(
             "Bidding round completed: round_id=%s winner_member_id=%s winning_amount=%s",

@@ -36,3 +36,8 @@ export const fetchUserGroups = async (): Promise<BaseResponse<Group[]>> => {
     const response = await api.get<BaseResponse<Group[]>>(URLS.GROUP.GET_USER_GROUPS);
     return response.data;
 };
+
+export const fetchGroup = async (groupId: string): Promise<BaseResponse<Group>> => {
+    const response = await api.get<BaseResponse<Group>>(URLS.GROUP.GROUP_DETAILS(groupId));
+    return response.data;
+};

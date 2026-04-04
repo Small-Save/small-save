@@ -25,6 +25,8 @@ import { Toaster } from "components/Toaster";
 import { GroupCreationProvider } from "contexts/GroupCreationContext";
 import AccountPage from "pages/Account/account";
 import Bidding from "pages/Bidding/Bidding";
+import GroupDetail from "pages/GroupDetails/GroupDetails";
+import Payments from "pages/Payment/Payments";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
@@ -58,7 +60,7 @@ const App: React.FC = () => (
                             <PublicRoute component={Register} />
                         </Route>
 
-                        {/* Protected */}
+                        {/* Protected pages */}
                         <Route exact path="/home">
                             <ProtectedRoute component={Home} />
                         </Route>
@@ -85,6 +87,15 @@ const App: React.FC = () => (
                             </Route>
                         </GroupCreationProvider>
 
+                        <Route exact path="/groupdetail/:groupId">
+                            <ProtectedRoute component={GroupDetail} />
+                        </Route>
+
+                        <Route exact path="/payments/:roundId">
+                            <ProtectedRoute component={Payments} />
+                        </Route>
+
+                        {/* Bidding routes */}
                         <Route exact path="/group/:groupId/bidding">
                             <ProtectedRoute component={Bidding} />
                         </Route>

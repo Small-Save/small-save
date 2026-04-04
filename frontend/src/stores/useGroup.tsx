@@ -1,5 +1,7 @@
-import { Group } from 'types';
-import { create } from 'zustand'
+import { create } from "zustand";
+
+import { Group } from "types";
+
 interface GroupStore {
     group: Group | null;
     setGroup: (group: Group) => void;
@@ -7,5 +9,5 @@ interface GroupStore {
 const useGroupStore = create<GroupStore>((set) => ({
     group: null,
     setGroup: (group: Group) => set({ group })
-}))
+}));
 export default useGroupStore;

@@ -34,3 +34,31 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.giver} → {self.receiver} ({self.status})"
+
+    @property
+    def is_pending(self):
+        return self.status == PaymentStatus.PENDING
+
+    @property
+    def is_giver_confirmed(self):
+        return self.status == PaymentStatus.GIVER_CONFIRMED
+
+    @property
+    def is_completed(self):
+        return self.status == PaymentStatus.COMPLETED
+
+    def mark_giver_confirmed(self):
+        if self.status != PaymentStatus.PENDING:
+            raise ValueError(
+                f"Cannot confirm payment in '{self.status}' state; must be PENDING."
+            )
+        self.status = PaymentStatus.GIVER_CONFIRMED
+        self.save(update_fields=["status", "updated_at"])
+
+    def mark_completed(self):
+        if self.status != PaymentStatus.GIVER_CONFIRMED:
+            raise ValueError(
+                f"Cannot complete payment in '{self.status}' state; must be GIVER_CONFIRMED."
+            )
+        self.status = PaymentStatus.COMPLETED
+        self.save(update_fields=["status", "updated_at"])

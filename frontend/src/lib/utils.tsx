@@ -61,6 +61,38 @@ export const validateGroupSize = (v: string): ValidationResult => {
     }
 };
 
+export const formatINR = (amount: number | string) => {
+    const n = Number(amount || 0);
+    return Number.isNaN(n) ? "0" : n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+};
+
+export const calculateTimeLeft = (end_time: string, start_time: string) => {
+    const now = new Date().getTime();
+    const endTime = new Date(end_time).getTime();
+    const startTime = new Date(start_time).getTime();
+
+    // Validate dates
+    if (isNaN(endTime) || isNaN(startTime)) {
+        console.error("Invalid date format:", {
+            end_time: end_time,
+            start_time: start_time
+        });
+        return;
+    }
+    const difference = endTime - now;
+
+    if (difference > 0) {
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / 1000 / 60) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+
+        return `${hours}h ${minutes}m ${seconds}s`;
+    } else {
+        return "0h 0m 0s";
+    }
+};
+
+
 export const fetchDeviceContacts = async (): Promise<Contact[]> => {
     if (!Capacitor.isNativePlatform()) {
         // Send constant values on web

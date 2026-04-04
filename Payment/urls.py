@@ -2,27 +2,29 @@
 from django.urls import path
 
 from .views import (
-    get_all_group_payments,
-    get_payment_details,
-    get_round_payments,
-    giver_confirm_payment,
-    receiver_confirm_payment,
+    confirm_payment_as_giver,
+    confirm_payment_as_receiver,
+    list_group_payments,
+    list_round_payments,
+    retrieve_payment,
 )
 
 urlpatterns = [
     path(
-        "<int:payment_id>/giver-confirm/", giver_confirm_payment, name="giver-confirm"
+        "<int:payment_id>/confirm/giver/",
+        confirm_payment_as_giver,
+        name="payment-confirm-giver",
     ),
     path(
-        "<int:payment_id>/receiver-confirm/",
-        receiver_confirm_payment,
-        name="receiver-confirm",
+        "<int:payment_id>/confirm/receiver/",
+        confirm_payment_as_receiver,
+        name="payment-confirm-receiver",
     ),
     path(
-        "round/<int:round_id>/",
-        get_round_payments,
-        name="group-round-payment-status",
+        "rounds/<int:round_id>/",
+        list_round_payments,
+        name="payment-list-by-round",
     ),
-    path("<int:payment_id>/", get_payment_details, name="get_payment_detail"),
-    path("<int:group_id>/all/", get_all_group_payments, name="get_all_group_payments"),
+    path("<int:payment_id>/", retrieve_payment, name="payment-detail"),
+    path("groups/<int:group_id>/", list_group_payments, name="payment-list-by-group"),
 ]

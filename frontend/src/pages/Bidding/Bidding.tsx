@@ -10,7 +10,7 @@ import { ProfilePic } from "components/profilePic";
 import useFormInput from "Hooks/useFormInput";
 import { useGroup } from "Hooks/useGroup";
 import { toast } from "Hooks/useToast";
-import { formatAmount, getTimeAgo } from "lib/utils";
+import { calculateTimeLeft, formatAmount, getTimeAgo } from "lib/utils";
 
 import { ScheduledBiddingRound } from "./ScheduledBiddingRound";
 import { Bid, BiddingRound, fetchAllBids, fetchBiddingDetails, placeBid } from "./services";
@@ -30,9 +30,9 @@ const Bidding: React.FC = () => {
 
     const groupQuery = useGroup(groupId);
     const group = groupQuery.data?.data;
-    const roundId = group?.latest_bidding_round_id ?? "";
+    const roundId = group?.current_bidding_round?.id ?? 0;
 
-    const biddingSocketRef = useBiddingSocket<Bid>(roundId, (newBid) => {
+    const biddingSocketRef = useBiddingSocket<Bid>(roundId, (newBid: Bid) => {
         if (!roundId) return;
         queryClient.setQueryData(["bidding-round", roundId], (oldData: any) => {
             if (!oldData) return oldData;
@@ -50,8 +50,8 @@ const Bidding: React.FC = () => {
         enabled: !!roundId,
         queryFn: async () => {
             const [detailsResponse, statusResponse] = await Promise.all([
-                fetchBiddingDetails(Number(roundId!)),
-                fetchAllBids(Number(roundId!))
+                fetchBiddingDetails(roundId),
+                fetchAllBids(roundId)
             ]);
 
             return {
@@ -71,33 +71,7 @@ const Bidding: React.FC = () => {
     useEffect(() => {
         if (!round?.end_time || !round?.start_time) return;
 
-        const calculateTimeLeft = () => {
-            const now = new Date().getTime();
-            const endTime = new Date(round.end_time).getTime();
-            const startTime = new Date(round.start_time).getTime();
-
-            // Validate dates
-            if (isNaN(endTime) || isNaN(startTime)) {
-                console.error("Invalid date format:", {
-                    end_time: round.end_time,
-                    start_time: round.start_time
-                });
-                return;
-            }
-            const difference = endTime - now;
-
-            if (difference > 0) {
-                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((difference / 1000 / 60) % 60);
-                const seconds = Math.floor((difference / 1000) % 60);
-
-                setTimeRemainingLabel(`${hours}h ${minutes}m ${seconds}s`);
-            } else {
-                setTimeRemainingLabel("0h 0m 0s");
-            }
-        };
-
-        calculateTimeLeft();
+        setTimeRemainingLabel(calculateTimeLeft(round.end_time, round.start_time) ?? "");
         const interval = setInterval(calculateTimeLeft, 1000);
         return () => clearInterval(interval);
     }, [round?.end_time, round?.start_time]);

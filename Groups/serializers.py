@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from Bidding.models import BiddingRoundStatusEnum
+from Bidding.serializers import BiddingRoundSerializer
 
 from .models import Group, GroupMember
 
@@ -18,7 +19,8 @@ class GroupMemberSerializer(serializers.ModelSerializer):
 
 class GroupReadSerializer(serializers.ModelSerializer):
     members = GroupMemberSerializer(source="groupmember_set", many=True, read_only=True)
-    latest_bidding_round_id = serializers.SerializerMethodField()
+    current_bidding_round = serializers.SerializerMethodField()
+    bidding_rounds = BiddingRoundSerializer(many=True, read_only=True)
 
     class Meta:
         model = Group
@@ -32,19 +34,21 @@ class GroupReadSerializer(serializers.ModelSerializer):
             "start_date",
             "created_at",
             "members",
-            "latest_bidding_round_id",
+            "current_bidding_round",
+            "bidding_rounds",
         )
 
-    def get_latest_bidding_round_id(self, obj):
-        # Fallback if not prefetched (e.g. admin usage)
-        latest = (
-            obj.bidding_rounds.exclude(status=BiddingRoundStatusEnum.COMPLETED.value)
-            .order_by("round_number", "scheduled_time")
-            .only("id")
+    def get_current_bidding_round(self, obj):
+        now = timezone.now()
+        current = (
+            obj.bidding_rounds.filter(
+                scheduled_time__year=now.year,
+                scheduled_time__month=now.month,
+            )
+            .order_by("scheduled_time")
             .first()
         )
-        return latest.id if latest else None
-
+        return BiddingRoundSerializer(current, context=self.context).data if current else None
 
 class GroupCreateSerializer(serializers.ModelSerializer):
     class Meta:

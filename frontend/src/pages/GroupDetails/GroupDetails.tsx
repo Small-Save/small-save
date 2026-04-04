@@ -1,97 +1,49 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
 import { useQuery } from "@tanstack/react-query";
-import { alertCircleOutline, calendarOutline, diamondOutline } from "ionicons/icons";
+import { alertCircleOutline, calendarOutline } from "ionicons/icons";
 import { useHistory, useParams } from "react-router";
-import { fetchCurrentPaymentStatus } from "services/payments";
 import useGroupStore from "stores/useGroup";
 
 import { HeaderBox } from "components/HeaderBox";
-import { AuthContext } from "contexts/AuthProvider";
-import { BiddingRound, fetchBiddingDetails } from "pages/Bidding/services";
+import { BiddingRound } from "pages/Bidding/services";
 import { fetchGroup } from "pages/CreateGroup/services";
-import { Group } from "types";
+import { getRoundPayments } from "pages/Payment/servicee";
 
 import useRoundStore from "./useRound";
 
-interface BiddingInfoCardProps {
-    currentRound: number;
-    totalRounds: number;
-    totalAmount: number;
-    monthlyPool: number;
-    duration: number;
-    paidCount: number;
-    totalMembers: number;
-}
+import { BiddingInfoCard } from "./BiddingInfoCard";
 
-const BiddingInfoCard: React.FC<BiddingInfoCardProps> = ({
-    currentRound,
-    totalRounds,
-    totalAmount,
-    monthlyPool,
-    duration,
-    paidCount,
-    totalMembers
-}) => {
-    const progressPercentage = totalMembers > 0 ? (paidCount / totalMembers) * 100 : 0;
 
-    return (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-4">
-                <span className="bg-blue-50 text-primary text-xs font-semibold px-3 py-1.5 rounded-md tracking-wide">
-                    ROUND {String(currentRound).padStart(2, "0")} OF {totalRounds}
-                </span>
-                <span className="w-3 h-3 bg-green-400 rounded-full" />
-            </div>
-
-            <p className="font-nexa text-4xl font-bold text-dark leading-tight mb-4">
-                ₹ {totalAmount.toLocaleString("en-IN")}
-            </p>
-
-            <div className="space-y-2 mb-4">
-                <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Monthly Pool</span>
-                    <span className="font-nexa font-semibold text-sm text-dark">
-                        ₹ {monthlyPool.toLocaleString("en-IN")}
-                    </span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Duration</span>
-                    <span className="font-nexa font-semibold text-sm text-dark">{duration} Months</span>
-                </div>
-            </div>
-
-            <div>
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-400 text-sm">Payment Progress</span>
-                    <span className="font-nexa font-semibold text-sm text-dark">
-                        {String(paidCount).padStart(2, "0")}/{totalMembers}
-                    </span>
-                </div>
-                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-dark rounded-full transition-all duration-300"
-                        style={{ width: `${progressPercentage}%` }}
-                    />
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const RoundSelector: React.FC<{ size: number; roundId: number; setRoundId: (roundId: number) => void }> = ({
-    size,
-    roundId,
-    setRoundId
-}) => {
+const RoundSelector: React.FC<{
+    roundId: number | null;
+    setRoundId: (roundId: number) => void;
+    biddingRounds: BiddingRound[];
+}> = ({ roundId, setRoundId, biddingRounds }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Optional: Auto-scroll to selected round if it's off-screen
     useEffect(() => {
         const activeBtn = scrollRef.current?.querySelector(`[data-active="true"]`);
         activeBtn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }, [roundId]);
+
+    const { upcomingRounds, completedRounds } = useMemo(() => {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const upcomingRounds = new Set<number>();
+        const completedRounds = new Set<number>();
+        for (const r of biddingRounds) {
+            if (r.status === "completed") completedRounds.add(r.round_number);
+            if (r.status === "scheduled") {
+                const scheduled = new Date(r.scheduled_time);
+                const isCurrentMonth = scheduled.getFullYear() === currentYear && scheduled.getMonth() === currentMonth;
+                if (!isCurrentMonth) upcomingRounds.add(r.round_number);
+            }
+        }
+        return { upcomingRounds, completedRounds };
+    }, [biddingRounds]);
 
     return (
         <div
@@ -99,15 +51,14 @@ const RoundSelector: React.FC<{ size: number; roundId: number; setRoundId: (roun
             className="overflow-x-auto pb-4 scrollbar-hide"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-            <p className="font-nexa text-sm font-semibold mb-2 text-dark">Select Round</p>
+            <p className="font-nexa text-sm font-semibold mb-3">Select Round</p>
 
-            <div className="flex gap-2 overflow-x-auto pb-2">
-                {Array.from({ length: size }, (_, index) => index + 1).map((round) => {
-                    const isSelected = round === roundId;
-
+            <div className="flex justify-center gap-2 overflow-x-auto pb-2">
+                {biddingRounds.map((round) => {
+                    const isSelected = round.id === roundId;
                     return (
                         <button
-                            key={round}
+                            key={round.id}
                             data-active={isSelected}
                             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-all ${
                                 isSelected
@@ -115,11 +66,10 @@ const RoundSelector: React.FC<{ size: number; roundId: number; setRoundId: (roun
                                     : "bg-white border border-primary text-primary"
                             } active:scale-95`}
                             style={{ borderRadius: "50%" }}
-                            onClick={() => {
-                                setRoundId(Number(round));
-                            }}
+                            onClick={() => setRoundId(round.id)}
+                            disabled={upcomingRounds.has(round.round_number)}
                         >
-                            {round}
+                            {round.round_number}
                         </button>
                     );
                 })}
@@ -134,6 +84,7 @@ const GroupDetail: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
     const { group, setGroup } = useGroupStore();
 
+
     const { data: groupData } = useQuery({
         queryKey: ["group", groupId],
         queryFn: () => fetchGroup(groupId),
@@ -141,39 +92,33 @@ const GroupDetail: React.FC = () => {
         staleTime: 1000 * 60 * 5,
         gcTime: 1000 * 60 * 10
     });
+
     useEffect(() => {
-        if (groupData) {
-            setGroup(groupData.data as Group);
+        if (groupData?.data) {
+            setGroup(groupData.data);
+            if (groupData.data.current_bidding_round) {
+                setRoundId(groupData.data.current_bidding_round.id);
+            }
         }
     }, [groupData]);
 
-    const { data: biddingRound } = useQuery({
-        queryKey: ["biddingRound", roundId],
-        queryFn: () => fetchBiddingDetails(roundId ?? 0),
-        enabled: !!roundId,
-        staleTime: 1000 * 60 * 5,
-        gcTime: 1000 * 60 * 10
-    });
-
-    const round = biddingRound?.data?.bidding_round;
-
     useEffect(() => {
-        if (group?.latest_bidding_round_id) {
-            setRoundId(Number(group?.latest_bidding_round_id));
+        if (group?.current_bidding_round) {
+            setRoundId(group.current_bidding_round.id);
         }
-    }, [group?.latest_bidding_round_id, setRoundId]);
+    }, [group?.current_bidding_round, setRoundId]);
 
     const { data: paymentStatus } = useQuery({
-        queryKey: ["paymentStatus", roundId],
-        queryFn: () => fetchCurrentPaymentStatus(roundId ?? 0),
+        queryKey: ["payments-round", roundId],
+        queryFn: () => getRoundPayments(roundId),
         enabled: !!roundId,
         staleTime: 1000 * 60 * 5,
         gcTime: 1000 * 60 * 10
     });
 
-    const { size = 0, members = [], start_date = null, latest_bidding_round_id = 0 } = group ?? {};
+    const { size = 0, current_bidding_round } = group ?? {};
 
-    const paidCount = paymentStatus?.data?.payments?.filter((p) => p.status === "COMPLETED").length || 0;
+    const paidCount = paymentStatus?.data?.filter((p) => p.status === "COMPLETED").length ?? 0;
 
     const handleOnclick = useCallback(() => {
         try {
@@ -185,40 +130,40 @@ const GroupDetail: React.FC = () => {
 
     return (
         <IonPage>
-            <HeaderBox
-                title={group?.name || "Group Details"}
-                subTitle={`ROUND ${latest_bidding_round_id} OF ${size}`}
-            />
+            <HeaderBox title={group?.name || "Group Details"} subTitle={`${size} Members Active`} />
 
-            <IonContent className="">
+            <IonContent>
                 <div className="p-4 space-y-4">
                     <div>
                         <BiddingInfoCard
-                            currentRound={Number(round?.round_number)}
-                            totalRounds={size}
+                            currentRound={current_bidding_round as BiddingRound}
+                            totalRounds={group?.bidding_rounds?.length ?? 0}
                             totalAmount={Number(group?.target_amount)}
                             monthlyPool={Math.round(Number(group?.target_amount) / size)}
                             duration={group?.duration || 0}
                             paidCount={paidCount}
-                            totalMembers={size}
+                            totalPayments={paymentStatus?.data?.length ?? 0}
                         />
                     </div>
 
-                    <RoundSelector size={size} roundId={roundId} setRoundId={setRoundId} />
+                    <RoundSelector
+                        roundId={roundId}
+                        setRoundId={setRoundId}
+                        biddingRounds={group?.bidding_rounds ?? []}
+                    />
 
                     <div className="flex justify-between">
                         {
                             <IonButton
                                 onClick={() => {
-                                    history.push(`/payments/${groupId}/`);
+                                    history.push(`/payments/${roundId}/`);
                                 }}
                             >
                                 Payments
                             </IonButton>
                         }
                         <IonButton className="pool-button" onClick={handleOnclick}>
-                            <IonIcon icon={diamondOutline}></IonIcon>
-                            <p>Pool system</p>
+                            Pool system
                         </IonButton>
                     </div>
                     <div className="bg-white rounded-xl p-3 border border-gray-100">

@@ -18,10 +18,11 @@ const URLS = {
     },
     PAYMENTS: {
         CURRENT_PAYMENT_STATUS: "/payments/",
-        GIVER_CONFIRM: (paymentId: string) => `/payments/${paymentId}/giver-confirm/`,
-        RECEIVER_CONFIRM: (paymentId: string) => `/payments/${paymentId}/receiver-confirm/`,
-        DETAILS: (paymentId: string) => `/payments/${paymentId}/`,
-        GROUP_ALL: (groupId: string) => `/payments/${groupId}/all/`
+        GIVER_CONFIRM: (paymentId: number) => `/payments/${paymentId}/confirm/giver/`,
+        RECEIVER_CONFIRM: (paymentId: number) => `/payments/${paymentId}/confirm/receiver/`,
+        DETAILS: (paymentId: number) => `/payments/${paymentId}/`,
+        GROUP_ALL: (groupId: number) => `/payments/groups/${groupId}/`,
+        ROUND_PAYMENTS: (roundId: number) => `/payments/rounds/${roundId}/`
     }
 };
 

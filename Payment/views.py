@@ -19,13 +19,8 @@ from Groups.models import Group
 from Groups.permissions import IsGroupMember
 from utils.response import CustomResponse
 
-from .constants import PaymentStatus
 from .models import Payment
-from .serializers import (
-    PaymentDetailSerializer,
-    PaymentSerializer,
-    PaymentStatusSerializer,
-)
+from .serializers import PaymentSerializer
 
 logger = logging.getLogger("api")
 
@@ -35,12 +30,11 @@ User = get_user_model()
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def giver_confirm_payment(request, payment_id):
+def confirm_payment_as_giver(request, payment_id):
     try:
         with transaction.atomic():
             payment = Payment.objects.select_for_update().get(id=payment_id)
 
-            # Ensure the requesting user is actually the giver
             if payment.giver_id != request.user.id:
                 logger.warning(
                     "Unauthorized giver confirmation: user_id=%s payment_id=%s",
@@ -53,8 +47,7 @@ def giver_confirm_payment(request, payment_id):
                     status_code=status.HTTP_403_FORBIDDEN,
                 )
 
-            # Enforce state machine: Must be PENDING to move to GIVER_CONFIRMED
-            if payment.status != PaymentStatus.PENDING:
+            if not payment.is_pending:
                 logger.warning(
                     "Invalid state transition: payment_id=%s status=%s",
                     payment_id,
@@ -66,9 +59,7 @@ def giver_confirm_payment(request, payment_id):
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Hardcoded status update
-            payment.status = PaymentStatus.GIVER_CONFIRMED
-            payment.save()
+            payment.mark_giver_confirmed()
 
             logger.info(
                 "Giver confirmed payment: payment_id=%s giver_id=%s",
@@ -102,7 +93,7 @@ def giver_confirm_payment(request, payment_id):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def receiver_confirm_payment(request, payment_id):
+def confirm_payment_as_receiver(request, payment_id):
     try:
         with transaction.atomic():
             payment = Payment.objects.select_for_update().get(id=payment_id)
@@ -120,8 +111,7 @@ def receiver_confirm_payment(request, payment_id):
                     status_code=status.HTTP_403_FORBIDDEN,
                 )
 
-            # Enforce state machine: Must be GIVER_CONFIRMED to move to COMPLETED
-            if payment.status != PaymentStatus.GIVER_CONFIRMED:
+            if not payment.is_giver_confirmed:
                 logger.warning(
                     "Receiver confirm blocked: payment_id=%s status=%s",
                     payment_id,
@@ -133,9 +123,7 @@ def receiver_confirm_payment(request, payment_id):
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Hardcoded status update
-            payment.status = PaymentStatus.COMPLETED
-            payment.save()
+            payment.mark_completed()
 
             logger.info(
                 "Payment completed: payment_id=%s receiver_id=%s",
@@ -169,7 +157,7 @@ def receiver_confirm_payment(request, payment_id):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_all_group_payments(request, group_id):
+def list_group_payments(request, group_id):
     """
     Fetch all payments for a specific group.
     """
@@ -191,7 +179,7 @@ def get_all_group_payments(request, group_id):
         "giver", "receiver", "round"
     )
 
-    data = PaymentSerializer(payments, many=True).data
+    data = PaymentSerializer(payments, many=True, context={"request": request}).data
 
     return CustomResponse(
         is_success=True,
@@ -204,7 +192,7 @@ def get_all_group_payments(request, group_id):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_round_payments(request, round_id):
+def list_round_payments(request, round_id):
     """
     Fetch payment status of all members in a specific group and round.
     """
@@ -230,8 +218,9 @@ def get_round_payments(request, round_id):
             group=bidding_round.group, round_id=round_id
         ).select_related("giver", "receiver")
 
-        # 4. Access .data before passing to CustomResponse
-        serializer = PaymentStatusSerializer(payments, many=True)
+        serializer = PaymentSerializer(
+            payments, many=True, context={"request": request}
+        )
         data = serializer.data
 
         logger.info(
@@ -261,7 +250,7 @@ def get_round_payments(request, round_id):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_payment_details(request, payment_id):
+def retrieve_payment(request, payment_id):
     """
     Fetches specific details of a payment by its ID using a serializer.
     """
@@ -283,8 +272,7 @@ def get_payment_details(request, payment_id):
                 status_code=status.HTTP_403_FORBIDDEN,
             )
 
-        # Pass the instance to the serializer
-        serializer = PaymentDetailSerializer(payment)
+        serializer = PaymentSerializer(payment, context={"request": request})
 
         logger.info(
             "Fetched payment details: payment_id=%s user_id=%s",
@@ -292,7 +280,6 @@ def get_payment_details(request, payment_id):
             request.user.id,
         )
 
-        # Return the strictly defined serializer.data
         return CustomResponse(
             is_success=True,
             data=serializer.data,

@@ -1,12 +1,13 @@
-import { create } from 'zustand'
+import { create } from "zustand";
+
 interface RoundStore {
-    roundId: number;
+    roundId: number | null;
     setRoundId: (roundId: number) => void;
 }
 
 const useRoundStore = create<RoundStore>((set) => ({
-    roundId: 1,
+    roundId: null,
     setRoundId: (roundId: number) => set({ roundId })
-}))
+}));
 
 export default useRoundStore;

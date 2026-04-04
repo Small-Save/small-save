@@ -1,3 +1,5 @@
+import { BiddingRound } from "pages/Bidding/services";
+
 export type User = {
     id: string;
     username?: string;
@@ -23,17 +25,20 @@ export type BaseResponse<T> = {
     error: string | null;
 };
 
+export type WinnerSelectionMethod = "random" | "round_robin" | "bid";
+
 export interface Group {
     id: number;
     name: string;
     target_amount: number;
     size: number;
     duration: number;
-    winner_selection_method: string;
+    winner_selection_method: WinnerSelectionMethod;
     start_date: string;
     created_at: string;
     members: Member[];
-    latest_bidding_round_id: string;
+    current_bidding_round: BiddingRound;
+    bidding_rounds: BiddingRound[];
 }
 
 export interface Member {
@@ -48,44 +53,14 @@ export type Contact = {
     email: string;
 };
 
-export type status = "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
-
-export type paymentStatus = {
-    group_id: number;
-    round_id: number;
-    payments: payments[];
-};
-
-export interface payments {
-    id: number;
-    giver: string;
-    giver_name: string;
-    receiver: string;
-    receiver_name: string;
-    amount: string;
-    status: status;
-    created_at: string;
-}
+export type PaymentStatus = "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
 
 export interface PaymentDetail {
-    group_id: number;
-    group_name: string;
-    giver_id: string;
-    giver_name: string;
-    receiver_id: string;
-    receiver_name: string;
-    amount: number;
-    status: "PENDING" | "GIVER_CONFIRMED" | "COMPLETED" | "DUE";
-}
-
-export interface Round {
     id: number;
     round_number: number;
-    winner: string;
-    scheduled_time: string;
-}
-
-export interface GroupPaymentHistoryResponse {
-    group_name: string;
-    rounds: Round[]; // Changed from object to Array
+    giver: User;
+    receiver: User;
+    amount: string;
+    status: PaymentStatus;
+    created_at: string;
 }

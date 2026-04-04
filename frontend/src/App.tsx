@@ -91,7 +91,7 @@ const App: React.FC = () => (
                             <ProtectedRoute component={GroupDetail} />
                         </Route>
 
-                        <Route exact path="/payments/:groupId">
+                        <Route exact path="/payments/:roundId">
                             <ProtectedRoute component={Payments} />
                         </Route>
 

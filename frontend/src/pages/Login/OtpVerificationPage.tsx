@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { IonButton, IonContent, IonInput, IonPage, IonText } from "@ionic/react";
 import { useHistory, useLocation } from "react-router-dom";
 
-import { AuthContext } from "contexts/AuthProvider";
+import { useAuthStore } from "contexts/AuthProvider";
 import useFormInput from "Hooks/useFormInput";
 import { toast } from "Hooks/useToast";
 import { formatTime, validateOtp } from "lib/utils";
@@ -15,7 +15,7 @@ interface RouteParams {
 const OtpVerificationPage: React.FC = () => {
     const location = useLocation<RouteParams>();
     const history = useHistory();
-    const { verifyOtp, user } = useContext(AuthContext)!;
+    const { verifyOtp, user } = useAuthStore();
 
     const phone = location.state?.phone || "";
     const otp = useFormInput("", validateOtp, (v: string) => v.replace(/[^0-9]/g, ""));

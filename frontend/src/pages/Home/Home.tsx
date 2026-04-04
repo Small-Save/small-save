@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 
 import {
     IonCol,
@@ -31,11 +31,11 @@ import GroupCard from "./GroupCard";
 import "./Home.css";
 
 import { ProfilePic } from "components/profilePic";
-import { AuthContext } from "contexts/AuthProvider";
+import { useAuthStore } from "contexts/AuthProvider";
 import { fetchUserGroups } from "pages/CreateGroup/services";
 
 const Home: React.FC = () => {
-    const { user } = useContext(AuthContext)!;
+    const { user } = useAuthStore();
     const history = useHistory();
     const location = useLocation();
     const isActive = (path: string) => location.pathname === path;

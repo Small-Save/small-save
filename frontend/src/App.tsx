@@ -30,7 +30,7 @@ import Payments from "pages/Payment/Payments";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoutes";
-import { AuthProvider } from "./contexts/AuthProvider";
+import "contexts/AuthProvider";
 import AddMembers from "./pages/CreateGroup/AddMembers";
 import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
 import OnBoard from "./pages/Login/onboard";
@@ -42,7 +42,6 @@ const App: React.FC = () => (
     <IonApp>
         <QueryClientProvider client={queryClient}>
             <IonReactRouter>
-                <AuthProvider>
                     <IonRouterOutlet>
                         {/* Default */}
                         <Route exact path="/">
@@ -100,7 +99,6 @@ const App: React.FC = () => (
                             <ProtectedRoute component={Bidding} />
                         </Route>
                     </IonRouterOutlet>
-                </AuthProvider>
             </IonReactRouter>
         </QueryClientProvider>
         <Toaster />

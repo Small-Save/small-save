@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useDeferredValue, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { IonButton, IonContent, IonFooter, IonIcon, IonPage, IonSearchbar, useIonRouter } from "@ionic/react";
 import { arrowRedoOutline, checkmarkDoneSharp, personAddOutline } from "ionicons/icons";
@@ -13,7 +13,7 @@ import "./AddMembers.css";
 
 import profileImageTemp from "assets/images/profileImageTemp.jpg";
 import { ProfilePic } from "components/profilePic";
-import { AuthContext } from "contexts/AuthProvider";
+import { useAuthStore } from "contexts/AuthProvider";
 import { toast } from "Hooks/useToast";
 import type { Contact, User } from "types";
 
@@ -69,7 +69,7 @@ const AddUserComponent: React.FC<AddUserComponentProps> = ({
 const AddMembers: React.FC = () => {
     const ionRouter = useIonRouter();
     const { groupInfo, reset } = useGroupCreation();
-    const { user } = useContext(AuthContext)!;
+    const { user } = useAuthStore();
     const [existingUsers, setExistingUsers] = useState<User[]>([]);
     const [inviteNeeded, setInviteNeeded] = useState<Contact[]>([]);
     const [searchText, setSearchText] = useState("");

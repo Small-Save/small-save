@@ -1,10 +1,10 @@
 // src/components/ProtectedRoute.tsx
-import React, { useContext } from "react";
+import React from "react";
 
 import { IonContent, IonPage, IonSpinner } from "@ionic/react";
 import { Redirect, RouteProps } from "react-router-dom";
 
-import { AuthContext } from "../contexts/AuthProvider";
+import { useAuthStore } from "../contexts/AuthProvider";
 
 interface ProtectedRouteProps extends RouteProps {
     component?: React.ComponentType<any>;
@@ -18,7 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     redirectIfNotAuth = "/login",
     ...rest
 }) => {
-    const { user, loading } = useContext(AuthContext)!;
+    const { user, loading } = useAuthStore();
 
     if (loading) {
         return (

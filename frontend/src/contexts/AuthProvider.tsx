@@ -1,16 +1,14 @@
 // src/contexts/AuthProvider.tsx
-import React, { createContext, ReactNode, useEffect, useState } from "react";
-
 import { Preferences } from "@capacitor/preferences";
 import { jwtDecode } from "jwt-decode";
-import { useHistory } from "react-router-dom";
+import { create } from "zustand";
 
 import { toast } from "Hooks/useToast";
 import { api, publicApi } from "lib/axios";
 import URLS from "lib/constants";
 import type { BaseResponse, User } from "types";
 
-// TODO need to implement refresh token funtionality
+// TODO need to implement refresh token functionality
 
 // ----------------- Types -----------------
 interface VerifyOtpData {
@@ -21,9 +19,10 @@ interface VerifyOtpData {
 
 type VerifyOtpResponse = BaseResponse<VerifyOtpData>;
 
-interface AuthContextType {
+interface AuthState {
     user: User | null;
     loading: boolean;
+    initAuth: () => Promise<void>;
     sendOtp: (phone_number: string) => Promise<boolean>;
     verifyOtp: (phone_number: string, otp_code: number) => Promise<VerifyOtpResponse | false>;
     register: (
@@ -40,12 +39,6 @@ interface CustomJwtPayload {
     exp: number;
     iat?: number;
     id?: string;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-interface AuthProviderProps {
-    children: ReactNode;
 }
 
 // ----------------- Helpers -----------------
@@ -66,7 +59,6 @@ const getStoredUser = async (): Promise<User | null> => {
     if (!value) return null;
     try {
         const parsed = JSON.parse(value) as User;
-        // Legacy stored users without the flag are treated as registered (they have a session).
         if (parsed.is_registered === undefined) {
             return { ...parsed, is_registered: true };
         }
@@ -81,45 +73,38 @@ export const logoutUser = async (refreshToken: string): Promise<BaseResponse<nul
     return response.data;
 };
 
-// ----------------- Provider -----------------
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    // TODO: remove this user | null type
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const history = useHistory();
+// ----------------- Store -----------------
+export const useAuthStore = create<AuthState>((set) => ({
+    user: null,
+    loading: true,
 
-    // Check for stored token on mount
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const { value: accessToken } = await Preferences.get({ key: "access_token" });
-                const storedUser = await getStoredUser();
-
-                if (accessToken) {
-                    const decoded = jwtDecode<CustomJwtPayload>(accessToken);
-                    const now = Math.floor(Date.now() / 1000);
-
-                    if (decoded.exp && decoded.exp > now) {
-                        setUser(storedUser);
-                    } else {
-                        // TODO: attempt refresh token
-                        await clearAuthData();
-                    }
-                }
-            } catch (error) {
-                console.error("Auth check error:", error);
-                await clearAuthData();
-            } finally {
-                setLoading(false);
-            }
-        };
-        checkAuth();
-    }, []);
-
-    // ----------------- Auth Functions -----------------
-    const sendOtp = async (phone_number: string): Promise<boolean> => {
+    initAuth: async () => {
         try {
-            setLoading(true);
+            const { value: accessToken } = await Preferences.get({ key: "access_token" });
+            const storedUser = await getStoredUser();
+
+            if (accessToken) {
+                const decoded = jwtDecode<CustomJwtPayload>(accessToken);
+                const now = Math.floor(Date.now() / 1000);
+
+                if (decoded.exp && decoded.exp > now) {
+                    set({ user: storedUser });
+                } else {
+                    // TODO: attempt refresh token
+                    await clearAuthData();
+                }
+            }
+        } catch (error) {
+            console.error("Auth check error:", error);
+            await clearAuthData();
+        } finally {
+            set({ loading: false });
+        }
+    },
+
+    sendOtp: async (phone_number: string): Promise<boolean> => {
+        try {
+            set({ loading: true });
             const response = await publicApi.post(URLS.SEND_OTP, { phone_number });
             toast({ message: "OTP sent!", duration: 2000 });
             return response.status === 200 || response.status === 201;
@@ -127,20 +112,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             toast({ message: "Failed to send OTP. Please try again.", color: "danger" });
             return false;
         } finally {
-            setLoading(false);
+            set({ loading: false });
         }
-    };
+    },
 
-    const verifyOtp = async (phone_number: string, otp_code: number): Promise<VerifyOtpResponse | false> => {
+    verifyOtp: async (phone_number: string, otp_code: number): Promise<VerifyOtpResponse | false> => {
         try {
-            setLoading(true);
+            set({ loading: true });
             const response = await publicApi.post(URLS.VERIFY_OTP, { phone_number, otp_code });
 
             if (response.status === 200 && response.data.is_success) {
                 if (response.data.data?.user.is_registered) {
                     const { access, refresh, user } = response.data.data;
                     await saveAuthData(access, refresh, user);
-                    setUser(user);
+                    set({ user });
                 }
                 return response.data;
             }
@@ -150,11 +135,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             toast({ message: "Could not verify OTP. Please try again.", color: "danger" });
             return false;
         } finally {
-            setLoading(false);
+            set({ loading: false });
         }
-    };
+    },
 
-    const register = async (
+    register: async (
         phone_number: string | undefined,
         first_name: string,
         last_name: string,
@@ -162,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         profile_pic: File | null
     ): Promise<boolean> => {
         try {
-            setLoading(true);
+            set({ loading: true });
             const formData = new FormData();
             formData.append("phone_number", phone_number || "");
             formData.append("first_name", first_name);
@@ -182,11 +167,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const { access, refresh, user } = response.data.data;
                 const registeredUser: User = { ...user, is_registered: true };
                 await saveAuthData(access, refresh, registeredUser);
-                setUser(registeredUser);
+                set({ user: registeredUser });
                 toast({ message: "Registration successful!", color: "success" });
                 return true;
             }
-            // TODO: Handle invalid otp case
             toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
         } catch (error) {
@@ -194,27 +178,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             toast({ message: "Registration failed. Please try again.", color: "danger" });
             return false;
         } finally {
-            setLoading(false);
+            set({ loading: false });
         }
-    };
+    },
 
-    const logout = async (): Promise<void> => {
+    logout: async (): Promise<void> => {
         try {
             const { value: refreshToken } = await Preferences.get({ key: "refresh_token" });
             await logoutUser(refreshToken || "");
             await clearAuthData();
-            setUser(null);
-            history.replace("/login");
+            set({ user: null });
             toast({ message: "You have been logged out.", color: "success" });
         } catch (error) {
             console.error(error);
             toast({ message: "Logout failed. Please try again.", color: "danger" });
         }
-    };
+    }
+}));
 
-    return (
-        <AuthContext.Provider value={{ user, sendOtp, verifyOtp, register, logout, loading }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+useAuthStore.getState().initAuth();

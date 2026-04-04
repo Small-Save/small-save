@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 
 import {
     IonButton,
@@ -22,7 +22,7 @@ import { useHistory, useLocation } from "react-router-dom";
 
 import { toast } from "Hooks/useToast";
 
-import { AuthContext } from "../../contexts/AuthProvider";
+import { useAuthStore } from "../../contexts/AuthProvider";
 
 interface RouteParams {
     phone: string;
@@ -36,7 +36,7 @@ const Register: React.FC = () => {
     const history = useHistory();
     const gender = useFormInput("male");
     const profile_pic = useFormInput<File | null>(null);
-    const { register } = useContext(AuthContext)!;
+    const { register } = useAuthStore();
     const router = useIonRouter();
 
     const handleRegister = async () => {

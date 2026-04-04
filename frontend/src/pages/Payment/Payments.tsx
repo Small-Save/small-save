@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { IonContent, IonIcon, IonPage, IonSpinner } from "@ionic/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { useParams } from "react-router";
 import { HeaderBox } from "components/HeaderBox";
 import { ProfilePic } from "components/profilePic";
 import { Spinner } from "components/Spinner";
-import { AuthContext } from "contexts/AuthProvider";
+import { useAuthStore } from "contexts/AuthProvider";
 import { toast } from "Hooks/useToast";
 import { formatINR } from "lib/utils";
 import { confirmGiverPayment, confirmReceiverPayment, getRoundPayments } from "pages/Payment/servicee";
@@ -158,7 +158,7 @@ const PaymentCard: React.FC<{
 
 const Payments: React.FC = () => {
     const { roundId } = useParams<{ roundId: string }>();
-    const { user } = useContext(AuthContext)!;
+    const { user } = useAuthStore();
     const queryClient = useQueryClient();
     const [pendingPayment, setPendingPayment] = useState<PaymentDetail | null>(null);
 

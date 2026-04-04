@@ -1,9 +1,9 @@
 // src/components/PublicRoute.tsx
-import React, { useContext } from "react";
+import React from "react";
 
 import { Redirect, RouteProps } from "react-router-dom";
 
-import { AuthContext } from "../contexts/AuthProvider";
+import { useAuthStore } from "../contexts/AuthProvider";
 
 interface PublicRouteProps extends RouteProps {
     component: React.ComponentType<any>;
@@ -11,7 +11,7 @@ interface PublicRouteProps extends RouteProps {
 }
 
 const PublicRoute: React.FC<PublicRouteProps> = ({ component: Component, redirectIfAuth = "/home", ...rest }) => {
-    const { user, loading } = useContext(AuthContext)!;
+    const { user, loading } = useAuthStore();
 
     if (loading) {
         return null; // or a spinner if you want

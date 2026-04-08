@@ -86,7 +86,7 @@ THIRD_PARTY_APPS = [
     "channels",
 ]
 
-LOCAL_APPS = ["Authentication", "Groups", "Bidding", "Payment"]
+LOCAL_APPS = ["Authentication", "Groups", "Bidding", "Payment", "Notifications"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -249,6 +249,11 @@ LOGGING = {
             "propagate": False,
         },
         "Bidding": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "Notifications": {
             "handlers": ["console", "file", "error_file"],
             "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,

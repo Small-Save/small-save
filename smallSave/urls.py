@@ -21,6 +21,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 
+from Notifications.consumers import NotificationConsumer
+
 from .consumer import BiddingConsumer
 
 # Ensure Django is setup before accessing admin.site
@@ -33,11 +35,13 @@ urlpatterns = [
     path("groups/", include("Groups.urls")),
     path("bidding/", include("Bidding.urls")),
     path("payments/", include("Payment.urls")),
+    path("notifications/", include("Notifications.urls")),
 ]
 
 
 websocket_urlpatterns = [
     re_path(r"ws/bidding/(?P<round_id>\w+)/$", BiddingConsumer.as_asgi()),
+    re_path(r"ws/notifications/$", NotificationConsumer.as_asgi()),
 ]
 
 

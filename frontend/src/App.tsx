@@ -35,6 +35,8 @@ import AddMembers from "./pages/CreateGroup/AddMembers";
 import CreateGroup from "./pages/CreateGroup/CreateNewGroup";
 import OnBoard from "./pages/Login/onboard";
 import OtpVerificationPage from "./pages/Login/OtpVerificationPage";
+import NotificationsPage from "./pages/Notifications/Notifications";
+import { NotificationSocketInit } from "./pages/Notifications/NotificationSocketInit";
 
 setupIonicReact({ mode: "md" });
 const queryClient = new QueryClient();
@@ -70,7 +72,7 @@ const App: React.FC = () => (
                         </Route>
 
                         <Route exact path="/notifications">
-                            <ProtectedRoute component={OnBoard} />
+                            <ProtectedRoute component={NotificationsPage} />
                         </Route>
 
                         <Route exact path="/account">
@@ -100,6 +102,7 @@ const App: React.FC = () => (
                             <ProtectedRoute component={Bidding} />
                         </Route>
                     </IonRouterOutlet>
+                    <NotificationSocketInit />
                 </AuthProvider>
             </IonReactRouter>
         </QueryClientProvider>

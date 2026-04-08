@@ -5,7 +5,6 @@ import {
     IonContent,
     IonFab,
     IonFabButton,
-    IonFooter,
     IonGrid,
     IonHeader,
     IonIcon,
@@ -14,43 +13,43 @@ import {
     IonToolbar
 } from "@ionic/react";
 import { useQuery } from "@tanstack/react-query";
-import {
-    add,
-    ellipsisVertical,
-    home,
-    homeOutline,
-    notifications,
-    notificationsOutline,
-    person,
-    personOutline
-} from "ionicons/icons";
-import { useHistory, useLocation } from "react-router-dom";
+import { add, ellipsisVertical } from "ionicons/icons";
+import { useHistory } from "react-router-dom";
 
 import GroupCard from "./GroupCard";
 
 import "./Home.css";
 
+import useNotificationStore from "stores/useNotifications";
+
+import BottomNav from "components/BottomNav";
 import { ProfilePic } from "components/profilePic";
 import { AuthContext } from "contexts/AuthProvider";
 import { fetchUserGroups } from "pages/CreateGroup/services";
+import { fetchUnreadCount } from "pages/Notifications/services";
 
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;
+    const { setUnreadCount } = useNotificationStore();
     const history = useHistory();
-    const location = useLocation();
-    const isActive = (path: string) => location.pathname === path;
-
-    const goTo = (path: string) => {
-        if (location.pathname !== path) {
-            history.push(path);
-        }
-    };
 
     const { data: groupDetails } = useQuery({
         queryKey: ["userGroups"],
         queryFn: fetchUserGroups,
         staleTime: 1000 * 60 * 5,
         gcTime: 1000 * 60 * 10
+    });
+
+    useQuery({
+        queryKey: ["notifications", "unread-count"],
+        queryFn: async () => {
+            const res = await fetchUnreadCount();
+            if (res.is_success && res.data) {
+                setUnreadCount(res.data.count);
+            }
+            return res;
+        },
+        staleTime: 1000 * 60
     });
 
     const activeGroups = groupDetails?.data?.length || 0;
@@ -118,60 +117,7 @@ const Home: React.FC = () => {
                 </IonFab>
             </IonContent>
 
-            <IonFooter className="ion-no-border">
-                {/* Added a subtle top border and shadow for depth */}
-                <IonToolbar className="border-t border-gray-100 shadow-lg" style={{ "--background": "#ffffff" }}>
-                    <div className="flex justify-around items-center py-3 px-2">
-                        {/* Home Tab */}
-                        <button
-                            onClick={() => goTo("/home")}
-                            className={`flex flex-col items-center gap-1 transition-all duration-200 outline-none ${
-                                isActive("/home") ? "text-primary" : "text-gray-400"
-                            }`}
-                        >
-                            <div
-                                className={`p-2 rounded-xl transition-colors ${isActive("/home") ? "bg-primary/5" : ""}`}
-                            >
-                                <IonIcon icon={isActive("/home") ? home : homeOutline} className="text-2xl" />
-                            </div>
-                            <span className="text-xs uppercase tracking-widest font-extrabold">Home</span>
-                        </button>
-
-                        {/* Notifications Tab */}
-                        <button
-                            onClick={() => goTo("/notifications")}
-                            className={`flex flex-col items-center gap-1 transition-all duration-200 outline-none ${
-                                isActive("/notifications") ? "text-primary" : "text-gray-400"
-                            }`}
-                        >
-                            <div
-                                className={`p-2 rounded-xl transition-colors ${isActive("/notifications") ? "bg-primary/5" : ""}`}
-                            >
-                                <IonIcon
-                                    icon={isActive("/notifications") ? notifications : notificationsOutline}
-                                    className="text-2xl"
-                                />
-                            </div>
-                            <span className="text-xs uppercase tracking-widest font-extrabold">Alerts</span>
-                        </button>
-
-                        {/* Account Tab */}
-                        <button
-                            onClick={() => goTo("/account")}
-                            className={`flex flex-col items-center gap-1 transition-all duration-200 outline-none ${
-                                isActive("/account") ? "text-primary" : "text-gray-400"
-                            }`}
-                        >
-                            <div
-                                className={`p-2 rounded-lg transition-colors ${isActive("/account") ? "bg-primary/5" : ""}`}
-                            >
-                                <IonIcon icon={isActive("/account") ? person : personOutline} className="text-2xl" />
-                            </div>
-                            <span className="text-xs uppercase tracking-widest font-extrabold">Account</span>
-                        </button>
-                    </div>
-                </IonToolbar>
-            </IonFooter>
+            <BottomNav />
         </IonPage>
     );
 };

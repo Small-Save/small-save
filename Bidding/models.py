@@ -158,9 +158,36 @@ class BiddingRound(models.Model):
             winning_bid.member_id,
             winning_bid.amount,
         )
-        # TODO: send notification to the winner
-        # TODO: send notification to the group members
+
+        self._send_end_notifications(winning_bid)
         return True
+
+    def _send_end_notifications(self, winning_bid):
+        from Notifications.models import NotifType
+        from Notifications.services import notify_user
+
+        notif_data = {"group_id": self.group_id, "round_id": self.pk}
+
+        notify_user(
+            user=winning_bid.member.user,
+            notification_type=NotifType.BIDDING_WON,
+            title="You won the bid!",
+            body=f"Congratulations! You won Round {self.round_number} in {self.group.name}.",
+            data=notif_data,
+        )
+
+        other_members = (
+            self.group.groupmember_set.select_related("user")
+            .exclude(user_id=winning_bid.member.user_id)
+        )
+        for gm in other_members:
+            notify_user(
+                user=gm.user,
+                notification_type=NotifType.PAYMENT_DUE,
+                title="Payment due",
+                body=f"Round {self.round_number} in {self.group.name} ended. Your payment is due.",
+                data=notif_data,
+            )
 
 
 class Bid(models.Model):

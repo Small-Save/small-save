@@ -23,6 +23,13 @@ const URLS = {
         DETAILS: (paymentId: number) => `/payments/${paymentId}/`,
         GROUP_ALL: (groupId: number) => `/payments/groups/${groupId}/`,
         ROUND_PAYMENTS: (roundId: number) => `/payments/rounds/${roundId}/`
+    },
+    NOTIFICATIONS: {
+        LIST: "/notifications/",
+        UNREAD_COUNT: "/notifications/unread-count/",
+        MARK_READ: (id: number) => `/notifications/${id}/read/`,
+        MARK_ALL_READ: "/notifications/read-all/",
+        WS: "ws/notifications/"
     }
 };
 

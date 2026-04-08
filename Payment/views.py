@@ -67,6 +67,17 @@ def confirm_payment_as_giver(request, payment_id):
                 request.user.id,
             )
 
+            from Notifications.models import NotifType
+            from Notifications.services import notify_user
+
+            notify_user(
+                user=payment.receiver,
+                notification_type=NotifType.PAYMENT_CONFIRMED,
+                title="Payment confirmed by sender",
+                body=f"{request.user.first_name} has confirmed their payment of ₹{payment.amount}.",
+                data={"group_id": payment.group_id, "payment_id": payment.id},
+            )
+
             return CustomResponse(
                 is_success=True,
                 message="Payment confirmed by giver",
@@ -129,6 +140,17 @@ def confirm_payment_as_receiver(request, payment_id):
                 "Payment completed: payment_id=%s receiver_id=%s",
                 payment_id,
                 request.user.id,
+            )
+
+            from Notifications.models import NotifType
+            from Notifications.services import notify_user
+
+            notify_user(
+                user=payment.giver,
+                notification_type=NotifType.PAYMENT_CONFIRMED,
+                title="Payment completed",
+                body=f"{request.user.first_name} confirmed receipt of your ₹{payment.amount} payment.",
+                data={"group_id": payment.group_id, "payment_id": payment.id},
             )
 
             return CustomResponse(

@@ -34,6 +34,8 @@ import {
 } from "./services";
 import { getTimeAgo } from "lib/utils";
 
+
+// TODO:: We can change the icons and colors to match the app's design system
 const typeConfig: Record<string, { icon: string; bg: string; color: string }> = {
     bidding_started: { icon: megaphoneOutline, bg: "bg-blue-100", color: "text-blue-600" },
     bidding_ended: { icon: timerOutline, bg: "bg-orange-100", color: "text-orange-600" },
@@ -49,7 +51,7 @@ function getDateGroup(dateStr: string): string {
     const now = new Date();
 
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfYesterday = new Date(startOfToday.getTime() - 86_400_000);
+    const startOfYesterday = new Date(startOfToday.getTime() - 86_400_000); // 86_400_000 milliseconds = 24 hours
 
     if (date >= startOfToday) return "Today";
     if (date >= startOfYesterday) return "Yesterday";

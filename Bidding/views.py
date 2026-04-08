@@ -251,6 +251,23 @@ def start_bidding(request, round_id):
         bidding_round.group_id,
         request.user.id,
     )
+
+    from Notifications.models import NotifType
+    from Notifications.services import notify_users_bulk
+
+    notif_data = {
+        "group_id": bidding_round.group_id,
+        "round_id": bidding_round.pk,
+        "link": f"/group/{bidding_round.group_id}/bidding",
+    }
+    notify_users_bulk(
+        users=bidding_round.group.groupmember_set.select_related("user").all(),
+        notification_type=NotifType.BIDDING_STARTED,
+        title="Bidding round started",
+        body=f"Round {bidding_round.round_number} in {bidding_round.group.name} is now active. Place your bid!",
+        data=notif_data,
+    )
+
     return CustomResponse(
         data={
             "bidding_round": BiddingRoundSerializer(bidding_round).data,

@@ -30,7 +30,7 @@ export const useBiddingSocket = <TBid,>(roundId: number, onBidUpdate: (bid: TBid
 
         const wsUrl = `${URLS.WS_BASE_URL}ws/bidding/${roundId}/`;
         console.log("Connecting to WebSocket:", wsUrl);
-
+        // TODO: here we need to add the token to the websocket url
         const socket = new WebSocket(wsUrl);
 
         socketRef.current = socket;

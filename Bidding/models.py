@@ -166,7 +166,11 @@ class BiddingRound(models.Model):
         from Notifications.models import NotifType
         from Notifications.services import notify_user
 
-        notif_data = {"group_id": self.group_id, "round_id": self.pk}
+        notif_data = {
+            "group_id": self.group_id,
+            "round_id": self.pk,
+            "link": f"/payments/{self.pk}",
+        }
 
         notify_user(
             user=winning_bid.member.user,

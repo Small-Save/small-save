@@ -255,7 +255,11 @@ def start_bidding(request, round_id):
     from Notifications.models import NotifType
     from Notifications.services import notify_users_bulk
 
-    notif_data = {"group_id": bidding_round.group_id, "round_id": bidding_round.pk}
+    notif_data = {
+        "group_id": bidding_round.group_id,
+        "round_id": bidding_round.pk,
+        "link": f"/group/{bidding_round.group_id}/bidding",
+    }
     notify_users_bulk(
         users=bidding_round.group.groupmember_set.select_related("user").all(),
         notification_type=NotifType.BIDDING_STARTED,

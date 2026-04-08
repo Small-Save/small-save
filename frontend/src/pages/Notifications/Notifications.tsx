@@ -1,12 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 
 import {
     IonButton,
     IonContent,
     IonIcon,
-    IonItem,
-    IonLabel,
-    IonList,
     IonPage,
     IonRefresher,
     IonRefresherContent,
@@ -16,8 +13,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     cashOutline,
     checkmarkDoneOutline,
+    chevronForward,
     megaphoneOutline,
-    notificationsOutline,
+    notificationsOffOutline,
     timerOutline,
     trophyOutline
 } from "ionicons/icons";
@@ -32,27 +30,88 @@ import {
     fetchUnreadCount,
     markAllAsRead,
     markAsRead,
-    type Notification,
-    type NotificationType
+    type Notification
 } from "./services";
 import { getTimeAgo } from "lib/utils";
 
-const typeIcon: Record<NotificationType, string> = {
-    bidding_started: megaphoneOutline,
-    bidding_ended: timerOutline,
-    bidding_won: trophyOutline,
-    payment_due: cashOutline,
-    payment_confirmed: checkmarkDoneOutline
+const typeConfig: Record<string, { icon: string; bg: string; color: string }> = {
+    bidding_started: { icon: megaphoneOutline, bg: "bg-blue-100", color: "text-blue-600" },
+    bidding_ended: { icon: timerOutline, bg: "bg-orange-100", color: "text-orange-600" },
+    bidding_won: { icon: trophyOutline, bg: "bg-yellow-100", color: "text-yellow-600" },
+    payment_due: { icon: cashOutline, bg: "bg-red-100", color: "text-red-600" },
+    payment_confirmed: { icon: checkmarkDoneOutline, bg: "bg-green-100", color: "text-green-600" }
 };
 
-const typeColor: Record<NotificationType, string> = {
-    bidding_started: "text-blue-500",
-    bidding_ended: "text-orange-500",
-    bidding_won: "text-yellow-500",
-    payment_due: "text-red-500",
-    payment_confirmed: "text-green-500"
-};
+const defaultConfig = { icon: megaphoneOutline, bg: "bg-gray-100", color: "text-gray-600" };
 
+function getDateGroup(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday.getTime() - 86_400_000);
+
+    if (date >= startOfToday) return "Today";
+    if (date >= startOfYesterday) return "Yesterday";
+    return "Earlier";
+}
+
+function groupByDate(notifications: Notification[]) {
+    const groups: { label: string; items: Notification[] }[] = [];
+    let current: (typeof groups)[number] | null = null;
+
+    for (const n of notifications) {
+        const label = getDateGroup(n.created_at);
+        if (!current || current.label !== label) {
+            current = { label, items: [] };
+            groups.push(current);
+        }
+        current.items.push(n);
+    }
+
+    return groups;
+}
+
+const NotificationCard: React.FC<{
+    notif: Notification;
+    onTap: (n: Notification) => void;
+}> = ({ notif, onTap }) => {
+    const cfg = typeConfig[notif.notification_type] ?? defaultConfig;
+
+    return (
+        <button
+            onClick={() => onTap(notif)}
+            className={`flex items-center gap-3 w-full rounded-2xl px-4 py-3 text-left transition-all active:scale-[0.98] ${
+                notif.is_read ? "bg-white opacity-70" : "bg-white shadow-sm"
+            }`}
+        >
+            <div
+                className={`flex items-center justify-center w-11 h-11 rounded-full shrink-0 ${cfg.bg}`}
+            >
+                <IonIcon icon={cfg.icon} className={`text-xl ${cfg.color}`} />
+            </div>
+
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                    <span
+                        className={`text-sm leading-snug truncate ${
+                            notif.is_read ? "font-medium text-gray-700" : "font-bold text-gray-900"
+                        }`}
+                    >
+                        {notif.title}
+                    </span>
+                    {!notif.is_read && (
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    )}
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notif.body}</p>
+                <p className="text-[11px] text-gray-400 mt-1">{getTimeAgo(notif.created_at)}</p>
+            </div>
+
+            <IonIcon icon={chevronForward} className="text-gray-300 text-lg shrink-0" />
+        </button>
+    );
+};
 
 const Notifications: React.FC = () => {
     const history = useHistory();
@@ -99,13 +158,9 @@ const Notifications: React.FC = () => {
             if (!notif.is_read) {
                 readMutation.mutate(notif.id);
             }
-            if (notif.data) {
-                const d = notif.data as Record<string, unknown>;
-                if (d.round_id) {
-                    history.push(`/payments/${d.round_id}`);
-                } else if (d.group_id) {
-                    history.push(`/groupdetail/${d.group_id}`);
-                }
+            const link = (notif.data as Record<string, unknown> | undefined)?.link;
+            if (typeof link === "string") {
+                history.push(link);
             }
         },
         [readMutation, history]
@@ -113,6 +168,7 @@ const Notifications: React.FC = () => {
 
     const notifList = notifResponse?.data ?? [];
     const hasUnread = notifList.some((n) => !n.is_read);
+    const grouped = useMemo(() => groupByDate(notifList), [notifList]);
 
     const handleRefresh = async (event: CustomEvent) => {
         await queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -137,7 +193,11 @@ const Notifications: React.FC = () => {
                                           onClick={() => readAllMutation.mutate()}
                                           disabled={readAllMutation.isPending}
                                       >
-                                          {readAllMutation.isPending ? <IonSpinner name="dots" /> : "Read all"}
+                                          {readAllMutation.isPending ? (
+                                              <IonSpinner name="dots" />
+                                          ) : (
+                                              "Mark all read"
+                                          )}
                                       </IonButton>
                                   ),
                                   slot: "end"
@@ -157,42 +217,37 @@ const Notifications: React.FC = () => {
                         <IonSpinner name="crescent" />
                     </div>
                 ) : notifList.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                        <IonIcon icon={notificationsOutline} className="text-6xl mb-4" />
-                        <p className="text-lg font-semibold">No notifications yet</p>
-                        <p className="text-sm">You'll see updates about bidding and payments here.</p>
+                    <div className="flex flex-col items-center justify-center h-72 px-8 text-center">
+                        <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-5">
+                            <IonIcon
+                                icon={notificationsOffOutline}
+                                className="text-4xl text-gray-400"
+                            />
+                        </div>
+                        <p className="text-lg font-bold text-gray-700">No notifications yet</p>
+                        <p className="text-sm text-gray-400 mt-1">
+                            Updates about bidding rounds and payments will appear here.
+                        </p>
                     </div>
                 ) : (
-                    <IonList lines="full">
-                        {notifList.map((notif) => (
-                            <IonItem
-                                key={notif.id}
-                                button
-                                detail={false}
-                                onClick={() => handleTap(notif)}
-                                className={notif.is_read ? "opacity-60" : ""}
-                            >
-                                <div slot="start" className="flex items-center pr-3">
-                                    <IonIcon
-                                        icon={typeIcon[notif.notification_type]}
-                                        className={`text-2xl ${typeColor[notif.notification_type]}`}
-                                    />
+                    <div className="px-4 pt-2 pb-4">
+                        {grouped.map((group) => (
+                            <div key={group.label} className="mb-4">
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 px-1">
+                                    {group.label}
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                    {group.items.map((notif) => (
+                                        <NotificationCard
+                                            key={notif.id}
+                                            notif={notif}
+                                            onTap={handleTap}
+                                        />
+                                    ))}
                                 </div>
-                                <IonLabel>
-                                    <div className="flex items-center gap-2">
-                                        <h2 className={`text-sm ${notif.is_read ? "font-normal" : "font-bold"}`}>
-                                            {notif.title}
-                                        </h2>
-                                        {!notif.is_read && (
-                                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-0.5">{notif.body}</p>
-                                    <p className="text-xs text-gray-400 mt-1">{getTimeAgo(notif.created_at)}</p>
-                                </IonLabel>
-                            </IonItem>
+                            </div>
                         ))}
-                    </IonList>
+                    </div>
                 )}
             </IonContent>
 

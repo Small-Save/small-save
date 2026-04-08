@@ -75,7 +75,11 @@ def confirm_payment_as_giver(request, payment_id):
                 notification_type=NotifType.PAYMENT_CONFIRMED,
                 title="Payment confirmed by sender",
                 body=f"{request.user.first_name} has confirmed their payment of ₹{payment.amount}.",
-                data={"group_id": payment.group_id, "payment_id": payment.id},
+                data={
+                    "group_id": payment.group_id,
+                    "payment_id": payment.id,
+                    "link": f"/groupdetail/{payment.group_id}",
+                },
             )
 
             return CustomResponse(
@@ -150,7 +154,11 @@ def confirm_payment_as_receiver(request, payment_id):
                 notification_type=NotifType.PAYMENT_CONFIRMED,
                 title="Payment completed",
                 body=f"{request.user.first_name} confirmed receipt of your ₹{payment.amount} payment.",
-                data={"group_id": payment.group_id, "payment_id": payment.id},
+                data={
+                    "group_id": payment.group_id,
+                    "payment_id": payment.id,
+                    "link": f"/groupdetail/{payment.group_id}",
+                },
             )
 
             return CustomResponse(

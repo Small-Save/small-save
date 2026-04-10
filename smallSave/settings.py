@@ -82,7 +82,6 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    "django_extensions",
     "channels",
 ]
 
@@ -314,3 +313,5 @@ else:
     MEDIA_URL = (
         f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
     )
+    if DEBUG:
+        THIRD_PARTY_APPS.append('django_extensions')

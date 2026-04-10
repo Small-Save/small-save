@@ -18,6 +18,7 @@ pillow = "*"
 channels = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 python-dateutil = "*"
+typing-extensions = "*"
 
 [dev-packages]
 django-extensions = "*"

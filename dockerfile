@@ -14,10 +14,8 @@ COPY Pipfile Pipfile.lock /app/
 # Install production dependencies only
 RUN pipenv install --system --deploy
 
-# Copy your actual project code
 COPY . /app/
 
 EXPOSE 8000
 
-# Replace 'your_project_name' with your actual core folder name
 CMD ["gunicorn", "smallSave.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]

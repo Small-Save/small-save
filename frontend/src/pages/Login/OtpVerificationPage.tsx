@@ -65,7 +65,7 @@ const OtpVerificationPage: React.FC = () => {
 
     return (
         <IonPage>
-            <IonContent className="ion-padding">
+            <IonContent>
                 <div className="flex flex-col items-center justify-center h-full">
                     <div className="max-w-md w-full space-y-6">
                         <div className="text-center ">

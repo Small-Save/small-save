@@ -186,7 +186,7 @@ const AddMembers: React.FC = () => {
             {/* Header */}
             <HeaderBox title="Create New Group" subTitle="Add Group Memebers" />
 
-            <IonContent fullscreen className="ion-padding">
+            <IonContent>
                 <div className="px-3 ">
                     {/* Section Title */}
                     <div className="mb-3">

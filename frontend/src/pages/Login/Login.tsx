@@ -32,7 +32,7 @@ const Login: React.FC = () => {
 
     return (
         <IonPage>
-            <IonContent className="ion-padding" scrollY={false}>
+            <IonContent scrollY={false}>
                 <div className="flex items-center justify-center h-full">
                     <div className="max-w-md w-full space-y-6">
                         {/* Title */}

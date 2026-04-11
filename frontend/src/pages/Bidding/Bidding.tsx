@@ -149,7 +149,7 @@ const Bidding: React.FC = () => {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
-                <IonContent className="ion-padding">
+                <IonContent>
                     <div className="flex items-center justify-center h-full">
                         <IonSpinner />
                     </div>
@@ -173,7 +173,7 @@ const Bidding: React.FC = () => {
         return (
             <IonPage>
                 <HeaderBox title={group?.name ?? "Bidding"} />
-                <IonContent className="ion-padding">
+                <IonContent>
                     <p className="text-sm text-red-600">Failed to load bidding data. Please try again.</p>
                     <div className="mt-3">
                         <IonButton
@@ -193,7 +193,7 @@ const Bidding: React.FC = () => {
         return (
             <IonPage>
                 <HeaderBox title="Bidding Status" />
-                <IonContent className="ion-padding">
+                <IonContent>
                     {round?.status === "scheduled" ? (
                         <ScheduledBiddingRound
                             formattedSchedule={formattedSchedule}
@@ -228,7 +228,7 @@ const Bidding: React.FC = () => {
                     }
                 ]}
             />
-            <IonContent className="ion-padding bg-slate-50">
+            <IonContent>
                 <div className="max-w-3xl mx-auto space-y-4 pb-16">
                     {/* winner card */}
                     <div

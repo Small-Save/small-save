@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (loading) {
         return (
             <IonPage>
-                <IonContent className="ion-padding flex justify-center items-center">
+                <IonContent className="flex justify-center items-center">
                     {/* Change this our loading icon */}
                     <IonSpinner name="crescent" />
                 </IonContent>

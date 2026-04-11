@@ -210,7 +210,7 @@ const Notifications: React.FC = () => {
             />
 
             <IonContent>
-                <IonRefresher slot="" onIonRefresh={handleRefresh}>
+                <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
                     <IonRefresherContent />
                 </IonRefresher>
 

@@ -82,8 +82,8 @@ const CreateGroup: React.FC = () => {
 
             <HeaderBox title="Create New Group" subTitle="Setup your savings group" />
             {/* Content */}
-            <IonContent className="ion-padding">
-                <div className="h-full px-3">
+            <IonContent>
+                <div>
                     <p className="text-xs text-gray-500 text-center mt-3">
                         Fill in the details below to create your savings group
                     </p>

@@ -12,11 +12,11 @@ const AccountPage: React.FC = () => {
     return (
         <IonPage>
             <HeaderBox title="Account" />
-            <IonContent className="">
-                <div className="">
+            <IonContent>
+                <div>
                     {/* Logout Button */}
                     <IonButton className="flex gap-1 items-center" onClick={() => logout()} fill="clear">
-                        <IonIcon icon={logOutOutline} className="" />
+                        <IonIcon icon={logOutOutline} />
                         Logout
                     </IonButton>
                 </div>

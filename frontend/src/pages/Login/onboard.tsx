@@ -43,7 +43,7 @@ const OnBoard: React.FC = () => {
     };
 
     return (
-        <IonContent fullscreen>
+        <IonContent>
             <Swiper
                 modules={[Pagination]}
                 pagination={{ clickable: true }}

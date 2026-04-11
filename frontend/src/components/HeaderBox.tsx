@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 
-import { IonButton, IonButtons, IonHeader, IonIcon, IonTitle, IonToolbar, useIonRouter } from "@ionic/react";
+import { IonButton, IonButtons, IonHeader, IonIcon, IonToolbar, useIonRouter } from "@ionic/react";
 import { arrowBack } from "ionicons/icons";
 
 import { ProfilePic } from "./profilePic";
@@ -18,7 +18,8 @@ interface HeaderBoxProps {
     showBack?: boolean;
     onBack?: () => void;
     className?: string;
-    image?: string;
+    image?: string | null;
+    children?: React.ReactNode;
 }
 
 export const HeaderBox: React.FC<HeaderBoxProps> = ({
@@ -28,7 +29,8 @@ export const HeaderBox: React.FC<HeaderBoxProps> = ({
     showBack = true,
     onBack,
     image,
-    className
+    className,
+    children
 }) => {
     const ionRouter = useIonRouter();
 
@@ -38,45 +40,49 @@ export const HeaderBox: React.FC<HeaderBoxProps> = ({
     }, [onBack, ionRouter]);
 
     const Image = useCallback(() => {
-        if (image) return <ProfilePic src={image} variant="circle" size={44} />;
+        if (image !== undefined) return <ProfilePic src={image} variant="circle" size={44} />;
         return null;
     }, [image]);
 
     return (
-        <IonHeader className={""}>
+        <IonHeader className={className ?? ""}>
             <IonToolbar color="dark" aria-label={title}>
-                <div className="grid grid-cols-5 items-center gap-4 w-full py-5">
-                    <div className="col-span-1">
-                        {showBack && (
-                            <IonButtons slot="start">
+                <div className="px-4 pb-4">
+                <div className="flex items-center w-full gap-3 min-h-22">
+                    {/* Left zone — fixed width so center never shifts */}
+                    {showBack && (
+                        <div className="w-10 shrink-0 flex items-center justify-start">
+                            <IonButtons>
                                 <IonButton aria-label="Go back" fill="solid" shape="round" onClick={handleBack}>
                                     <IonIcon icon={arrowBack} />
                                 </IonButton>
                             </IonButtons>
-                        )}
-                    </div>
-                    <div className="flex flex-col col-span-3 gap-2 items-start text-left">
+                        </div>
+                    )}
+
+                    {/* Center zone — grows to fill remaining space */}
+                    <div className="flex flex-1 items-center gap-3 min-w-0">
                         <Image />
-                        <div className="flex flex-col items-start text-left">
-                            <IonTitle>{title}</IonTitle>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-primary-contrast font-semibold text-base leading-tight truncate">
+                                {title}
+                            </span>
                             {subTitle && (
-                                <p className="text-sm" aria-label="subtitle">
+                                <span className="text-primary-contrast/75 text-sm leading-tight" aria-label="subtitle">
                                     {subTitle}
-                                </p>
+                                </span>
                             )}
                         </div>
                     </div>
-                    <div className="col-span-1">
-                        {actions && actions.length > 0 && (
-                            <>
-                                {actions.map((action) => (
-                                    <IonButtons key={action.key} slot={action.slot || "end"}>
-                                        {action.element}
-                                    </IonButtons>
-                                ))}
-                            </>
-                        )}
+
+                    {/* Right zone — fixed width so center never shifts */}
+                    <div className="w-10 shrink-0 flex items-center justify-end">
+                        {actions?.map((action) => (
+                            <IonButtons key={action.key}>{action.element}</IonButtons>
+                        ))}
                     </div>
+                </div>
+                {children && <div>{children}</div>}
                 </div>
             </IonToolbar>
         </IonHeader>

@@ -1,39 +1,35 @@
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 
 import {
-    IonCol,
     IonContent,
     IonFab,
     IonFabButton,
-    IonGrid,
-    IonHeader,
     IonIcon,
     IonPage,
-    IonRow,
-    IonToolbar
+    IonRefresher,
+    IonRefresherContent,
+    IonSpinner
 } from "@ionic/react";
-import { useQuery } from "@tanstack/react-query";
-import { add, ellipsisVertical } from "ionicons/icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { add, ellipsisVertical, peopleOutline } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
-
-import GroupCard from "./GroupCard";
-
-import "./Home.css";
-
 import useNotificationStore from "stores/useNotifications";
 
 import BottomNav from "components/BottomNav";
-import { ProfilePic } from "components/profilePic";
+import { HeaderBox } from "components/HeaderBox";
 import { AuthContext } from "contexts/AuthProvider";
 import { fetchUserGroups } from "pages/CreateGroup/services";
 import { fetchUnreadCount } from "pages/Notifications/services";
+
+import GroupCard from "./GroupCard";
 
 const Home: React.FC = () => {
     const { user } = useContext(AuthContext)!;
     const { setUnreadCount } = useNotificationStore();
     const history = useHistory();
+    const queryClient = useQueryClient();
 
-    const { data: groupDetails } = useQuery({
+    const { data: groupDetails, isLoading } = useQuery({
         queryKey: ["userGroups"],
         queryFn: fetchUserGroups,
         staleTime: 1000 * 60 * 5,
@@ -52,61 +48,86 @@ const Home: React.FC = () => {
         staleTime: 1000 * 60
     });
 
-    const activeGroups = groupDetails?.data?.length || 0;
-    const totalSpend = groupDetails?.data?.reduce((sum, group) => sum + Number(group.target_amount), 0) || 0;
+    const handleRefresh = useCallback(
+        async (event: CustomEvent) => {
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["userGroups"] }),
+                queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] })
+            ]);
+            event.detail.complete();
+        },
+        [queryClient]
+    );
+
+    const activeGroups = groupDetails?.data?.length ?? 0;
+    const totalSpend = groupDetails?.data?.reduce((sum, g) => sum + Number(g.target_amount), 0) ?? 0;
+    const hasGroups = Boolean(groupDetails?.data && groupDetails.data.length > 0);
 
     return (
         <IonPage>
-            <IonHeader>
-                <IonToolbar className=" home-toolbar ion-padding">
-                    <IonGrid>
-                        <IonRow className="ion-align-items-center">
-                            <IonCol size="3">
-                                <ProfilePic src={user?.profile_pic} variant="circle" />
-                            </IonCol>
-                            <IonCol size="8">
-                                <h6>Hi, {user?.username}</h6>
-                                Welcome to SmallSave
-                            </IonCol>
-                            <IonCol size="1">
-                                <IonIcon icon={ellipsisVertical} className="header-menu-icon" />
-                            </IonCol>
-                        </IonRow>
+            <HeaderBox
+                title={`Hi, ${user?.first_name} 👋`}
+                subTitle="Welcome to SmallSave"
+                image={user?.profile_pic}
+                showBack={false}
+                actions={[
+                    {
+                        key: "notifications",
+                        slot: "end",
+                        element: (
+                            <button
+                                className="flex items-center justify-center w-9 h-9 rounded-full text-primary-contrast shrink-0"
+                                onClick={() => history.push("/notifications")}
+                            >
+                                <IonIcon icon={ellipsisVertical} className="text-xl" />
+                            </button>
+                        )
+                    }
+                ]}
+            >
+                {hasGroups && (
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-primary-tint rounded-md px-4 py-3">
+                            <p className="text-primary-contrast/60 text-xs m-0 mb-1">Total due</p>
+                            <p className="text-primary-contrast text-xl m-0">
+                                $ {totalSpend.toLocaleString()}
+                            </p>
+                        </div>
 
-                        {groupDetails?.data && groupDetails.data.length > 0 && (
-                            <IonRow className="summary-row">
-                                <IonCol size="6" className="summary-col-right">
-                                    <div className="summary-card">
-                                        <div className="summary-label">Total Due</div>
-                                        <div className="summary-value">${totalSpend}</div>
-                                    </div>
-                                </IonCol>
+                        <div className="bg-primary-tint rounded-md px-4 py-3">
+                            <p className="text-primary-contrast/60 text-xs m-0 mb-1">Active Groups</p>
+                            <div className="flex items-center gap-1.5">
+                                <IonIcon icon={peopleOutline} className="text-primary-contrast text-xl" />
+                                <p className="text-primary-contrast text-xl m-0">{activeGroups}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </HeaderBox>
 
-                                <IonCol size="6" className="summary-col-left">
-                                    <div className="summary-card">
-                                        <div className="summary-label">Active Groups</div>
-                                        <div className="summary-value">{activeGroups}</div>
-                                    </div>
-                                </IonCol>
-                            </IonRow>
-                        )}
-                    </IonGrid>
-                </IonToolbar>
-            </IonHeader>
-            <IonContent className="ion-padding">
-                {groupDetails?.data && groupDetails.data.length > 0 ? (
-                    <>
-                        <h3>Groups</h3>
-                        {groupDetails.data.map((group) => (
+            <IonContent>
+                {/* Summary cards — only visible when groups exist */}
+                <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+                    <IonRefresherContent />
+                </IonRefresher>
+
+                {isLoading ? (
+                    <div className="flex items-center justify-center min-h-[60vh]">
+                        <IonSpinner name="crescent" />
+                    </div>
+                ) : hasGroups ? (
+                    <div>
+                        {groupDetails!.data!.map((group) => (
                             <GroupCard key={group.id} group={group} />
                         ))}
-                    </>
+                    </div>
                 ) : (
-                    <div className="empty-state">
-                        <h4>Save Together,</h4>
-                        <h4>Grow Together.</h4>
-                        <h6>Ready to Start Saving?</h6>
-                        <p>Create your first saving group and invite members to join your financial journey.</p>
+                    <div className="flex flex-col items-center justify-center h-full px-8 text-center space-y-6">
+                        <div className="text-4xl ">Save Together, Grow Together.</div>
+                        <div className="text-lg">Ready to Start Saving ?</div>
+                        <div className="text-primary/50 text-sm">
+                            Create your first saving group and invite members to join your financial journey.
+                        </div>
                     </div>
                 )}
 

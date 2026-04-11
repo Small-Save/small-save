@@ -133,7 +133,7 @@ const GroupDetail: React.FC = () => {
             <HeaderBox title={group?.name || "Group Details"} subTitle={`${size} Members Active`} />
 
             <IonContent>
-                <div className="p-4 space-y-4">
+                <div className="space-y-4">
                     <div>
                         <BiddingInfoCard
                             currentRound={current_bidding_round as BiddingRound}

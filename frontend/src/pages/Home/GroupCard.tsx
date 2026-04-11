@@ -60,7 +60,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
         history.push(`/groupdetail/${group.id}/`);
     };
 
-    const progress = Math.min((group.members.length / group.size) * 100, 100);
+    const progress = group.bidding_rounds.reduce((acc, round) => acc + (round.status === "completed" ? 1 : 0), 0) / group.size * 100;
     // TODO: Change this
     const status = getStatusBadge(group.current_bidding_round);
 
@@ -104,7 +104,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group }) => {
             {/* Progress bar */}
             <div>
                 <div className="flex justify-between text-xs text-primary/50 mb-1.5">
-                    <span>Progress</span>
+                    <span>Rounds completed</span>
                     <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
